@@ -29,7 +29,7 @@ jobs:
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "burstui-dev"
+          project: "burst"
           entrypoint: "main.ts"
           root: "."
           
