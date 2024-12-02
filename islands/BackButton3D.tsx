@@ -1,17 +1,16 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "@3d/three";
 import { burstColors } from "../static/colors.ts";
 
-const SIZE = [100, 75]
+const SIZE = [100, 75];
 
 export default function BackButton3D() {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false); // Hover state
+  const isHoveredRef = useRef(false); // Track hover state
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
-    
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -34,34 +33,46 @@ export default function BackButton3D() {
 
     const extrudeSettings = { depth: 1, bevelEnabled: false };
     const triangleGeometry = new THREE.ExtrudeGeometry(triangleShape, extrudeSettings);
-    const triangleMaterial = new THREE.MeshBasicMaterial({ color: burstColors.accOrange });
+    const triangleMaterial = new THREE.MeshBasicMaterial({
+      color: burstColors.accOrange,
+      transparent: true,
+      opacity: 0.3, // Initial opacity
+    });
     const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
     triangle.rotation.y = Math.PI; // Point triangle left
-    triangle.position.set(-2, 0, 0.5) 
+    triangle.position.set(-2, 0, 0.5);
     group.add(triangle);
 
     // Create a rectangle connected to the point of the triangle
     const rectangleGeometry = new THREE.BoxGeometry(2, 1, 1);
-    const rectangleMaterial = new THREE.MeshBasicMaterial({ color: isHovered ? burstColors.accRed : burstColors.accYellow });
+    const rectangleMaterial = new THREE.MeshBasicMaterial({
+      color: burstColors.accYellow,
+      transparent: true,
+      opacity: 0.3, // Initial opacity
+    });
     const rectangle = new THREE.Mesh(rectangleGeometry, rectangleMaterial);
     rectangle.position.set(0, 0, 0); // Connect to triangle's point
     group.add(rectangle);
 
     scene.add(group);
 
-    // Add hover animation (up and down movement)
+    // Add hover animation
     let direction = 1;
     const animate = () => {
-      // Hover animation for the group
-      //group.position.y += 0.01 * direction;
-
-      // Reverse direction at hover limits
+      // Add slight up-down hover animation
+      group.position.y += 0.01 * direction;
       if (group.position.y > 0.2 || group.position.y < -0.2) {
         direction *= -1;
       }
 
       // Add slight rotation to show 3D depth
       group.rotation.x += 0.01;
+
+      // Adjust opacity and color based on hover state
+      const targetOpacity = isHoveredRef.current ? 1 : 0.3;
+      rectangleMaterial.opacity += (targetOpacity - rectangleMaterial.opacity) * 0.1; // Smooth transition
+      triangleMaterial.opacity += (targetOpacity - triangleMaterial.opacity) * 0.1; // Smooth transition
+      rectangleMaterial.color.set(isHoveredRef.current ? burstColors.accRed : burstColors.accYellow);
 
       renderer.render(scene, camera);
     };
@@ -72,11 +83,15 @@ export default function BackButton3D() {
       renderer.setAnimationLoop(null);
       mount.removeChild(renderer.domElement);
     };
-  }, [isHovered]);
+  }, []);
 
   // Hover handlers
-  const handleMouseEnter = () => setIsHovered(true);
-  const handleMouseLeave = () => setIsHovered(false);
+  const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+  };
+  const handleMouseLeave = () => {
+    isHoveredRef.current = false;
+  };
 
   // Navigate back to the home page
   const handleClick = () => {
@@ -89,19 +104,14 @@ export default function BackButton3D() {
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      class="go-back" // Add a class for styling
       style={{
         width: `${SIZE[0]}px`, // Small button
-        height: `50px`,
+        height: `40px`,
         cursor: "pointer",
         background: "transparent", // No background
         position: "relative",
-        left: "-10px",
         margin: "0", // No extra spacing
         display: "inline-block", // Align naturally
-        opacity: isHovered ? '1' : '0.3', // Low initial opacity
-        filter: isHovered ? "brightness(1.2)" : "brightness(0.8)", // Bright when hovered, dull otherwise
-        transition: "opacity 0.2s ease, filter 0.2s ease", // Smooth transition
       }}
       title="Go Back"
     />
