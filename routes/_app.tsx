@@ -1,4 +1,5 @@
 import { type PageProps } from "$fresh/server.ts";
+
 export default function App({ Component }: PageProps) {
   return (
     <html>
@@ -9,11 +10,19 @@ export default function App({ Component }: PageProps) {
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
-        <div class="min-h-screen bg-bgPurple flex items-center justify-center">
+        {/* Outer wrapper to maintain purple background */}
+        <div class="min-h-screen bg-bgPurple flex flex-col items-center justify-center">
+          {/* Add space above */}
+          <div class="h-8 bg-bgPurple"></div>
+          
+          {/* Aqua middle div */}
           <div class="max-w-screen-md w-full p-8 bg-bgAqua rounded-md shadow-lg">
             <Component />
           </div>
-        </div> 
+          
+          {/* Add space below */}
+          <div class="h-8 bg-bgPurple"></div>
+        </div>
       </body>
     </html>
   );
