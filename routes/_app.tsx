@@ -9,7 +9,11 @@ export default function App({ Component }: PageProps) {
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
-        <Component />
+        <div class="min-h-screen bg-bgPurple flex items-center justify-center">
+          <div class="max-w-screen-md w-full p-8 bg-bgAqua rounded-md shadow-lg">
+            <Component />
+          </div>
+        </div> 
       </body>
     </html>
   );
