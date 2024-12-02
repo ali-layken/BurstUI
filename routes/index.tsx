@@ -6,8 +6,8 @@ export default async function Home() {
   const posts: string[] = [];
 
   for await (const entry of Deno.readDir(postsDirectory)) {
-    if (entry.isFile && entry.name.endsWith(".md")) {
-      posts.push(entry.name.replace(".md", ""));
+    if (entry.isFile && entry.name.endsWith('md')) {
+      posts.push(entry.name.slice(0, -3));
     }
   }
   return (
@@ -18,7 +18,7 @@ export default async function Home() {
           <li key={slug} class="mb-4">
             <a href={`/blog/${slug}`}
                class="text-accYellow hover:text-accRed hover:underline text-xl transition-colors duration-200">
-              {slug.replace(/-/g, " ").toUpperCase()}
+              {slug.replace(/_/g, " ").toUpperCase()}
             </a>
           </li>
         ))}
