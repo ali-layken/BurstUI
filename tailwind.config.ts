@@ -1,4 +1,6 @@
 import { type Config } from "tailwindcss";
+import { burstColors, burstTextColors } from "./static/colors.ts"
+import typography from "@tailwindcss/typography";
 
 export default {
   content: [
@@ -7,15 +9,50 @@ export default {
   mode: 'jit',
   theme: {
     extend: {
-      colors: {
-        bgPurple: "#2D0666",
-        accOrange: "#F46036",
-        accYellow: "#EDF67D",
-        bgAqua: "#17947F",
-        accRed: "#E71D36",
-        accGreen: "#A1E887",
+      colors: burstColors,
+      textColor: burstTextColors
+    },
+    typography: {
+      DEFAULT: {
+        css: {
+          h1: {
+            color: "#F46036", // Custom color for h1
+            fontSize: "2.25rem", // Custom size
+            fontWeight: "700",
+          },
+          h2: {
+            color: burstColors.accGreen,
+            fontSize: "1.875rem",
+            fontWeight: "600",
+          },
+          h3: {
+            color: burstColors.accGreen,
+            fontSize: "1.5rem",
+            fontWeight: "600",
+          },
+          p: {
+            color: burstTextColors.black,
+            lineHeight: "1.6",
+            fontSize: "1rem"
+          },
+          a: {
+            color: burstColors.accYellow,
+            textDecoration: "underline",
+            "&:hover": {
+              color: burstColors.accRed, // Change on hover
+            },
+          },
+          img: {
+            display: "block",
+            margin: "1.5rem auto", // Top/bottom margin, center horizontally
+            padding: "0", // Reset padding if needed
+            maxWidth: "100%", // Make images responsive
+            height: "auto",
+          },
+        },
       },
     },
   },
+  plugins: [typography],
   
 } satisfies Config;
