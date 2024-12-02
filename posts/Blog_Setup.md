@@ -33,5 +33,11 @@ Using <a target="_blank" rel="noopener noreferrer" href="https://fresh.deno.dev/
 Deno is growing promisng land as projects like Fresh evolve. I used <a target="_blank" rel="noopener noreferrer" href="https://deno.com/deploy">Deno Deploy</a> to easily host this website which is really just <a target="_blank" rel="noopener noreferrer" href="https://github.com/ali-layken/BurstUI/blob/main/posts/Blog_Setup.md">hosted on github repo</a> so you can really see how these rendereres work if you like. Since I tried Deno last about 2 years ago it has greatly improved integration with npm. I had <code>0 package issues</code> setting up this site (3js, tailwind, marked, fresh).
 <br/>
 <br/>
-Using Islands really helps build a smooth experience by seperating computing resources for specific tasks. Deciding what to locally and what to send can vary a ton depending on the goal. For example, for security, if I wanted to use an API key to access google map to show a Google Map in a blog post I could make sure that API connection happens on the Server and not on an Island on the Client. Check out how smooth the opacity transition on this back link below is because **you** are rendering it. I am not sending you any frames or anything just the code...
+<div style="height: 0.5rem; display: block;"></div>
+
+### Slide Back to the Home Page 
+---
+<div style="height: 0.5rem; display: block;"></div>
+
+Using Islands really helps build a smooth experience by seperating computing resources for specific tasks. Deciding what to locally and what to send can vary a ton depending on the goal. For example, for security, if I wanted to use an API key to access Google Maps to show a Google Map in a blog post I could make sure that API connection happens on the Server and not on an Island on the Client. The homepage will load faster if you got the cube here or this page will load faster if you got the cube there since; it is now your cube now! You are now in charge of the Cube Island I've sent. Check out how smooth the opacity transition on this back link below is because **you** are rendering it. I am not sending you any frames or model data or anything, just the code to render each object...
 
