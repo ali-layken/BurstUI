@@ -1,4 +1,4 @@
-import DynamicMarkdownItem from "../../islands/DynamicMardownItem.tsx";
+import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
 import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import BackButton3D from "../../islands/BackButton3D.tsx";
 
