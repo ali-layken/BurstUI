@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "@3d/three";
+import { burstColors, burstTextColors } from "../static/colors.ts";
 
 const ROT_SPEED: number = 0.004;
 
@@ -21,12 +22,12 @@ export default function SpinningCube() {
 
     // Create a cube and add it to the scene
     const geometry : THREE.BoxGeometry = new THREE.BoxGeometry(3, 3, 3);
-    const material = new THREE.MeshBasicMaterial({ color: 0xe71d36 });
+    const material = new THREE.MeshBasicMaterial({ color: burstColors.accRed });
     const cube = new THREE.Mesh(geometry, material);
 
     // Add white edges to the cube
     const edges = new THREE.EdgesGeometry(geometry);
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const lineMaterial = new THREE.LineBasicMaterial({ color: burstTextColors.white });
     const edgeLines = new THREE.LineSegments(edges, lineMaterial);
 
     // Group cube and edges for better management
