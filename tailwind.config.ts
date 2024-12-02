@@ -30,6 +30,7 @@ export default {
             fontSize: "1.5rem",
             fontWeight: "600",
           },
+          
           p: {
             color: burstTextColors.black,
             lineHeight: "1.6",
@@ -48,6 +49,21 @@ export default {
             padding: "0", // Reset padding if needed
             maxWidth: "100%", // Make images responsive
             height: "auto",
+          },
+          code: {
+            color: burstTextColors.white,
+            backgroundColor: burstColors.transGray,
+            padding: "0.1em 0.4em",
+            borderRadius: "0.25rem",
+            fontFamily: "monospace",
+            fontSize: "0.90em",
+          },
+          pre: {
+            backgroundColor: burstColors.accRed,
+            padding: "1rem",
+            borderRadius: "0.5rem",
+            color: burstTextColors.white,
+            overflowX: "auto",
           },
         },
       },

@@ -5,8 +5,7 @@ export const burstColors = {
     bgAqua:     "#17947F",
     accRed:     "#E71D36",
     accGreen:   "#A1E887",
-    white:      "#ffffff",
-    black:      "#000000"
+    transGray:  "rgba(105,105,105, 0.6)"
 }
 export const burstTextColors = {
     white:      "#ffffff",
