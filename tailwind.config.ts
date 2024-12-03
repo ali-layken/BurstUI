@@ -1,16 +1,16 @@
 import { type Config } from "tailwindcss";
-import { burstColors, burstTextColors } from "./static/colors.ts"
+import { burstColors, burstTextColors } from "./static/colors.ts";
 import typography from "@tailwindcss/typography";
 
 export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx,js,jsx}",
   ],
-  mode: 'jit',
+  mode: "jit",
   theme: {
     extend: {
       colors: burstColors,
-      textColor: burstTextColors
+      textColor: burstTextColors,
     },
     typography: {
       DEFAULT: {
@@ -30,11 +30,11 @@ export default {
             fontSize: "1.5rem",
             fontWeight: "600",
           },
-          
+
           p: {
             color: burstTextColors.black,
             lineHeight: "1.6",
-            fontSize: "1rem"
+            fontSize: "1rem",
           },
           a: {
             color: burstColors.accYellow,
@@ -65,10 +65,40 @@ export default {
             color: burstTextColors.white,
             overflowX: "auto",
           },
+          "figure.custom-image": {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            margin: "1.5rem auto", // Margin around the figure
+            img: {
+              borderRadius: "0.5rem",
+              maxWidth: "100%",
+              height: "auto",
+            },
+            code: {
+              color: burstTextColors.transWhite,
+              backgroundColor: burstColors.trans2Gray,
+              padding: "0.1em 0.4em",
+              borderRadius: "0.25rem",
+              fontFamily: "monospace",
+              fontSize: "0.90em",
+            },
+            figcaption: {
+              marginTop: "-1rem", // Small space between image and caption
+              color: burstTextColors.subtitles,
+              padding: "0.2rem 0", // Slight padding for clarity
+              fontSize: "0.875rem",
+              textAlign: "center",
+              fontStyle: "italic",
+              fontWeight: "400"
+            },
+            "& + *": {
+              marginTop: "1.5rem", // Normal gap after the figure to the next content
+            },
+          },
         },
       },
     },
   },
   plugins: [typography],
-  
 } satisfies Config;
