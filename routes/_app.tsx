@@ -1,5 +1,3 @@
-import { type PageProps } from "$fresh/server.ts";
-
 export default function App({ Component }: PageProps) {
   return (
     <html>
@@ -16,7 +14,7 @@ export default function App({ Component }: PageProps) {
           <div class="h-8 bg-bgPurple"></div>
           
           {/* Aqua middle div */}
-          <div class="max-w-screen-md w-full sm:px-4 md:px-8 p-8 bg-bgAqua rounded-md shadow-lg">
+          <div class="max-w-screen-md w-full px-4 sm:px-8 py-8 bg-bgAqua rounded-md shadow-lg">
             <Component />
           </div>
           
