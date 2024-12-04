@@ -16,7 +16,7 @@ export default function App({ Component }: PageProps) {
           <div class="h-8 bg-bgPurple"></div>
           
           {/* Aqua middle div */}
-          <div class="max-w-screen-md w-full sm:w-11/12 md:w-10/12 lg:w-8/12 xl:w-6/12 px-4 py-8 bg-bgAqua rounded-md shadow-lg">
+          <div class="max-w-screen-md w-full px-8 py-8 bg-bgAqua rounded-md shadow-lg">
             <Component />
           </div>
           
