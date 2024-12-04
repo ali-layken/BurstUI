@@ -1,7 +1,8 @@
 import { Head } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 import BackButton3D from "../islands/BackButton3D.tsx";
 
-export default function Error404() {
+export default function Error404(props: PageProps) {
   return (
     <>
       <Head>
@@ -16,7 +17,7 @@ export default function Error404() {
             height="128"
             alt="the Fresh logo: a sliced lemon dripping with juice"
           />
-          <h1 class="text-4xl font-bold">404 - Page not found</h1>
+          <h1 class="text-4xl font-bold">404 - {props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found</h1>
           <p class="my-4">
             The page you were looking for doesn't exist.
           </p>

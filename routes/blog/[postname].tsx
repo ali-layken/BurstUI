@@ -5,6 +5,7 @@ import BackButton3D from "../../islands/BackButton3D.tsx";
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { PageProps } from "$fresh/server.ts";
+import Error404 from "../_404.tsx";
 
 export default function Blog(props: PageProps) {
   const filePath = join(
@@ -23,11 +24,7 @@ export default function Blog(props: PageProps) {
     createdTime = new Date(fileStats.birthtime).toLocaleString();
     modifiedTime = new Date(fileStats.mtime).toLocaleString();
   } catch (_error) {
-    return (
-    <>
-      <h1>Post Not Found</h1>
-      <BackButton3D />
-    </>);
+    return Error404(props);
   }
 
   // Use the parameter as the title
@@ -45,6 +42,7 @@ export default function Blog(props: PageProps) {
         </header>
 
         {renderedMarkdown}
+        {/*Send you the interactive island that will replace the markdown*/}
         <DynamicMarkdownItem />
 
         <BackButton3D />
