@@ -24,13 +24,15 @@ export default {
             color: burstColors.accGreen,
             fontSize: "1.875rem",
             fontWeight: "600",
+            fontStyle: "italic;",
+            textDecoration: "underline"
           },
           h3: {
             color: burstColors.accGreen,
             fontSize: "1.5rem",
             fontWeight: "600",
+            paddingLeft: "1rem", // Add padding for 2-space indent
           },
-
           p: {
             color: burstTextColors.black,
             lineHeight: "1.6",
@@ -49,6 +51,15 @@ export default {
             padding: "0", // Reset padding if needed
             maxWidth: "100%", // Make images responsive
             height: "auto",
+          },
+          "img.marked-emoji-img": {
+            display: "inline-block",
+            width: "1em",
+            height: "1em",
+            verticalAlign: "-0.15em",
+            position: "relative",
+            margin: "0",
+            padding: "0",
           },
           code: {
             color: burstTextColors.white,
@@ -90,7 +101,7 @@ export default {
               fontSize: "0.875rem",
               textAlign: "center",
               fontStyle: "italic",
-              fontWeight: "400"
+              fontWeight: "400",
             },
             "& + *": {
               marginTop: "1.5rem", // Normal gap after the figure to the next content

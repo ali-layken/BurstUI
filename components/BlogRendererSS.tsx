@@ -1,7 +1,20 @@
 import { marked, Tokens } from "marked";
 import { markedSmartypantsLite } from "marked-smartypants-lite";
-marked.use(markedSmartypantsLite());
+import {markedEmoji, MarkedEmojiOptions} from "marked-emoji";
+import {Octokit} from "@octokit/rest";
+
+const octokit = new Octokit();
+const res = await octokit.rest.emojis.get();
+const emojis = res.data;
+const options : MarkedEmojiOptions = {
+	emojis,
+	renderer: (token) => `<img alt="${token.name}" src="${token.emoji}" class="marked-emoji-img">`
+};
+marked.use(markedSmartypantsLite(), markedEmoji(options));
 const renderer = new marked.Renderer();
+marked.setOptions({
+  renderer: renderer
+})
 
 renderer.image = ({href, text}: Tokens.Image): string => {
   return `
@@ -16,16 +29,11 @@ renderer.image = ({href, text}: Tokens.Image): string => {
 renderer.heading = ({text, depth}: Tokens.Heading): string => {
   const tag = `h${depth}`;
   switch (depth) {
-    case 2:
-      return `
-        <${tag}>${text}</${tag}>
-      `;
     case 3:
       return `
-        <div style="height: 0.5rem; display: block;"></div>
-          <${tag}>${text}</${tag}>
-        <hr/>
-        <div style="height: 0.5rem; display: block;"></div>
+        <div style="height: 1rem; display: block;"></div>
+        <${tag}>${text}</${tag}>
+        <hr style="width: 66%; margin: 0rem 0 0.5rem; text-align: left;" />
     `;
     default:
       return `<${tag}>${text}</${tag}>`;
@@ -38,10 +46,6 @@ renderer.link = ({href, title, text}): string => {
   const safeTitle = title ? `title="${title}"` : "";
   return `<a href="${safeHref}" ${safeTitle} target="_blank" rel="noopener noreferrer">${text}</a>`;
 };
-
-marked.setOptions({
-  renderer: renderer
-})
 
 export default  function BlogPostRenderer({ content }: { content: string }) {
   const renderedContent = marked.parse(
