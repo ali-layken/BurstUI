@@ -6,7 +6,7 @@ export default async function Home() {
   const posts: { name: string; createdAt: Date }[] = [];
 
   for await (const entry of Deno.readDir(postsDirectory)) {
-    if (entry.isFile && entry.name.endsWith('md')) {
+    if (entry.isFile && entry.name.endsWith("md")) {
       const filePath = join(postsDirectory, entry.name);
       const stat = await Deno.stat(filePath);
       posts.push({
@@ -20,18 +20,27 @@ export default async function Home() {
 
   return (
     <>
-      <SpinningCube/>
+      <SpinningCube />
       <ul>
         {posts.map((post, index) => (
-          <li key={post.name} class="mb-4">
-          <span class="text-xl font-bold text-accGreen mr-2">{index + 1}.</span>
-          <a
-            href={`/blog/${post.name}`}
-            class="text-accYellow hover:text-accRed hover:underline text-xl transition-colors duration-200"
-          >
-            {post.name.replace(/_/g, " ").toUpperCase()}
-          </a>
-        </li>
+          <li key={post.name} class="mb-4 flex items-baseline">
+            <span class="text-xl font-bold text-accGreen mr-2">
+              {index + 1}.
+            </span>
+            <a
+              href={`/blog/${post.name}`}
+              class="text-accYellow hover:text-accRed hover:underline text-xl transition-colors duration-200"
+            >
+              {post.name.replace(/_/g, " ").toUpperCase()}
+            </a>
+            <span
+              class="text-sm text-subtitles ml-2 relative"
+              style={{ top: "-0.12em" }}
+            >
+              {" - "}
+              {new Date(post.createdAt).toLocaleString()}
+            </span>
+          </li>
         ))}
       </ul>
     </>
