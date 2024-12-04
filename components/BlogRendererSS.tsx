@@ -28,15 +28,28 @@ renderer.image = ({href, text}: Tokens.Image): string => {
 // Customize heading rendering for better semantics and styling
 renderer.heading = ({text, depth}: Tokens.Heading): string => {
   const tag = `h${depth}`;
+  // Split the text into parts: matches (like :emoji:) and non-matches
+  const parts = text.split(/(:\w+?:)/g); // Regex matches :emoji: patterns
+  const processedParts = parts.map((part) => {
+    if (part.startsWith(":") && part.endsWith(":")) {
+      // Process emoji parts with marked.parse
+      return (marked.parseInline(part) as string).trim(); // Trim unnecessary whitespace
+    }
+    // Return non-emoji parts untouched
+    return part;
+  });
+
+  // Rejoin processed and untouched parts
+  const emojied = processedParts.join("");
   switch (depth) {
     case 3:
       return `
         <div style="height: 1rem; display: block;"></div>
-        <${tag}>${text}</${tag}>
+        <${tag}>${emojied}</${tag}>
         <hr style="width: 66%; margin: 0rem 0 0.5rem; text-align: left;" />
     `;
     default:
-      return `<${tag}>${text}</${tag}>`;
+      return `<${tag}>${emojied}</${tag}>`;
   }
 };
 
