@@ -4,7 +4,7 @@
     "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     "cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
     "manifest": "deno task cli manifest $(pwd)",
-    "start": "deno run -A --watch=static/,routes/ dev.ts",
+    "start": "deno run -A --watch=static/,routes/,posts dev.ts",
     "build": "deno run -A dev.ts build",
     "preview": "deno run -A main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update ."
@@ -23,9 +23,11 @@
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
     "@3d/three": "jsr:@3d/three@^0.166.0",
+    "@octokit/rest": "npm:@octokit/rest@^21.0.2",
     "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5.15",
     "@types/three": "npm:@types/three@^0.170.0",
     "marked": "npm:marked@^15.0.3",
+    "marked-emoji": "npm:marked-emoji@^1.4.3",
     "marked-smartypants-lite": "npm:marked-smartypants-lite@^1.0.2",
     "preact": "https://esm.sh/preact@10.22.0",
     "preact/": "https://esm.sh/preact@10.22.0/",
