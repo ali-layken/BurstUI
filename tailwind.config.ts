@@ -45,6 +45,16 @@ export default {
               color: burstColors.accRed, // Change on hover
             },
           },
+          "a img": {
+            borderBottom: `1px solid ${burstColors.accYellow}`, // Add underline for images in links
+            textDecoration: "none",
+            transition: "border-color 0.3s ease", // Smooth transition
+            display: "inline-block",
+            verticalAlign: "middle",
+          },
+          "a:hover img": {
+            borderColor: burstColors.accRed, // Change underline color to red on hover
+          },
           img: {
             display: "block",
             margin: "1.5rem auto", // Top/bottom margin, center horizontally
