@@ -43,4 +43,5 @@ export default function DynamicMarkdownItem() {
     render(Component, placeholder);
   };
 
+  return null;
 }
