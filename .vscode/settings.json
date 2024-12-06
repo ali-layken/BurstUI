@@ -19,5 +19,12 @@
   ],
   "cSpell.words": [
     "postname"
+  ],
+  "grammarly.selectors": [
+    {
+      "language": "markdown",
+      "scheme": "file",
+      "pattern": "posts/Blog_Setup.md"
+    }
   ]
 }

@@ -40,7 +40,7 @@ renderer.heading = ({text, depth}: Tokens.Heading): string => {
   });
 
   // Rejoin processed and untouched parts
-  const emojied = processedParts.join("");
+  const emojied = marked.parseInline(processedParts.join(""));
   switch (depth) {
     case 3:
       return `
