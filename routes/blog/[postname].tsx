@@ -8,11 +8,7 @@ import { PageProps } from "$fresh/server.ts";
 import Error404 from "../_404.tsx";
 
 export default function Blog(props: PageProps) {
-  const filePath = join(
-    Deno.cwd(),
-    "posts",
-    `${props.params.postname}.md`,
-  );
+  const filePath = join(Deno.cwd(), "posts", `${props.params.postname}.md`);
   let content;
   let createdTime;
   let modifiedTime;
@@ -32,21 +28,18 @@ export default function Blog(props: PageProps) {
 
   // Parse Markdown server-side
   const renderedMarkdown = BlogPostRenderer({ content });
+
   return (
     <>
-        <header class="mb-4">
-          <h1 class="text-5xl font-bold mb-2">{title}</h1>
-          <p class="text-sm text-gray-600">
-            Created: {createdTime} | Last Edited: {modifiedTime}
-          </p>
-        </header>
-
-        {renderedMarkdown}
-        {/*Send you the interactive island that will replace the markdown*/}
-        <DynamicMarkdownItem />
-
-        <BackButton3D />
-
+      <header class="mb-4">
+        <h1 class="text-5xl font-bold mb-2">{title}</h1>
+        <p class="text-sm text-gray-600">
+          Created: {createdTime} | Last Edited: {modifiedTime}
+        </p>
+      </header>
+      {renderedMarkdown}
+      <DynamicMarkdownItem />
+      <BackButton3D />
     </>
   );
 }
