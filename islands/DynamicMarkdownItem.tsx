@@ -1,26 +1,46 @@
-import { useEffect } from "preact/hooks";
-import SpinningCube from "./SpinningCube.tsx";
+import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { render } from "preact";
 
-const componentMap: Record<string, () => JSX.Element> = {
-  SpinningCube
-};
+type ComponentCache = Record<string, JSX.Element>;
 
 export default function DynamicMarkdownItem() {
+  const [cache, setCache] = useState<ComponentCache>({});
+
   useEffect(() => {
-    // Find placeholders and render corresponding components dynamically
     const placeholders = document.querySelectorAll("[data-component]");
-    placeholders.forEach((placeholder) => {
+
+    placeholders.forEach(async (placeholder) => {
       const componentName = placeholder.getAttribute("data-component");
-      const Component = componentMap[componentName || ""];
-      if (Component) {
-        const container = document.createElement("div");
-        placeholder.appendChild(container);
-        render(<Component />, container);
+      if (!componentName) return;
+
+      // Skip rendering if the placeholder is already filled
+      if (placeholder.hasChildNodes()) return;
+
+      // If component is cached, render it
+      if (cache[componentName]) {
+        renderComponent(placeholder, cache[componentName]);
+        return;
+      }
+
+      // Dynamically import the island and cache it
+      try {
+        const module = await import(`../islands/${componentName}.tsx`);
+        const Component = module.default;
+
+        if (Component) {
+          const element = <Component />;
+          setCache((prevCache) => ({ ...prevCache, [componentName]: element }));
+          renderComponent(placeholder, element);
+        }
+      } catch (error) {
+        console.error(`Failed to load component: ${componentName}`, error);
       }
     });
-  }, []);
+  }, [cache]);
 
-  return null; // No visible output; only mounts components dynamically
+  const renderComponent = (placeholder: Element, Component: JSX.Element) => {
+    render(Component, placeholder);
+  };
+
 }
