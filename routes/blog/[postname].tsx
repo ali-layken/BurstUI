@@ -33,7 +33,7 @@ export default function Blog(props: PageProps) {
     <>
       <header class="mb-4">
         <h1 class="text-5xl font-bold mb-2">{title}</h1>
-        <p class="text-sm text-gray-600">
+        <p class="text-sm text-subtitles">
           Created: {createdTime} | Last Edited: {modifiedTime}
         </p>
       </header>
