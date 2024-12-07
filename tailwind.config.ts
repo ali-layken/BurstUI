@@ -34,7 +34,7 @@ export default {
             paddingLeft: "1rem", // Add padding for 2-space indent
           },
           p: {
-            color: burstTextColors.white,
+            color: burstColors.creamTan,
             lineHeight: "1.6",
             fontSize: "1rem",
           },
