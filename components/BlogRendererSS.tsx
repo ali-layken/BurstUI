@@ -5,10 +5,15 @@ import { Octokit } from "@octokit/rest";
 
 const octokit = new Octokit();
 const res = await octokit.rest.emojis.get();
-const emojis = res.data;
+const gitEmojis = res.data;
+
+// Custom emoji set
+const customEmojis = {
+  "arch_linux": "https://github.com/archlinux/archweb/blob/master/sitestatic/favicon.png?raw=true",
+};
 
 const options: MarkedEmojiOptions = {
-  emojis,
+  emojis: {...gitEmojis, ...customEmojis},
   renderer: (token) =>
     `<img alt="${token.name}" src="${token.emoji}" class="marked-emoji-img">`,
 };
