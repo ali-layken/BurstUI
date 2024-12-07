@@ -1,16 +1,24 @@
 export const burstColors = {
-    bgPurple:   "#2D0666",
-    accOrange:  "#F46036",
-    accYellow:  "#EDF67D",
-    bgAqua:     "#17947F",
-    accRed:     "#E71D36",
-    accGreen:   "#A1E887",
-    transGray:  "rgba(105,105,105, 0.6)",
-    trans2Gray: "rgba(105,105,105, 0.3)"
+    bgPurple:     "rgb(45, 6, 102)",
+    bgAqua:       "rgb(11, 54, 91)",
+    accOrange:    "rgb(244, 96, 54)",
+    accYellow:    "rgb(205, 205, 31)",
+    accRed:       "rgb(231, 29, 54)",
+    accGreen:     "rgb(58, 158, 21)",
+    accGreen2:     "rgb(194, 214, 120)",
+    accLiteGreen: "rgb(29, 222, 93)",
+    creamTan:     "rgb(240, 231, 216)",
+    goodGray:     "rgb(82, 82, 82)",
+    transGray:    "rgba(105, 105, 105, 0.6)",
+    trans2Gray:   "rgba(105, 105, 105, 0.3)"
 }
+
 export const burstTextColors = {
-    white:      "#ffffff",
-    black:      "#000000",
-    subtitles:  "rgba(1, 2, 88, 0.5)",
-    transWhite: "rgba(255, 255, 255, 0.95)"
+    white:      "rgb(255, 255, 255)",
+    black:      "rgb(0, 0, 0)",
+    subtitles:  "rgb(255, 144, 84)",
+    transWhite: "rgba(255, 255, 255, 0.95)",
+    lightBlue:  "rgb(201, 240, 255)",
+    skyBlue:    "rgb(157, 209, 241)",
+    offWhite:   "rgb(207, 204, 214)",
 }

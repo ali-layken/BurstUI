@@ -21,32 +21,35 @@ export default {
             fontWeight: "700",
           },
           h2: {
-            color: burstColors.accGreen,
+            color: burstColors.accLiteGreen,
             fontSize: "1.875rem",
             fontWeight: "600",
             fontStyle: "italic;",
             textDecoration: "underline"
           },
           h3: {
-            color: burstColors.accGreen,
+            color: burstColors.accLiteGreen,
             fontSize: "1.5rem",
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
           },
           p: {
-            color: burstTextColors.black,
+            color: burstTextColors.white,
             lineHeight: "1.6",
             fontSize: "1rem",
           },
           a: {
-            color: burstColors.accYellow,
+            color: burstColors.accGreen,
             textDecoration: "underline",
             "&:hover": {
               color: burstColors.accRed, // Change on hover
             },
+            "&:visited": {
+              color: burstColors.accGreen2
+            }
           },
           "a img": {
-            borderBottom: `1px solid ${burstColors.accYellow}`, // Add underline for images in links
+            borderBottom: `1px solid ${burstColors.accGreen}`, // Add underline for images in links
             textDecoration: "none",
             transition: "border-color 0.3s ease", // Smooth transition
             display: "inline-block",
@@ -54,6 +57,9 @@ export default {
           },
           "a:hover img": {
             borderColor: burstColors.accRed, // Change underline color to red on hover
+          },
+          "a:visited img": {
+            borderColor: burstColors.accGreen2, // Change underline color to red on hover
           },
           img: {
             display: "block",

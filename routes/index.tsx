@@ -24,12 +24,12 @@ export default async function Home() {
       <ul>
         {posts.map((post, index) => (
           <li key={post.name} class="mb-4 flex items-baseline">
-            <span class="text-xl font-bold text-accGreen mr-2">
+            <span class="text-xl font-bold text-subtitles mr-2">
               {index + 1}.
             </span>
             <a
               href={`/blog/${post.name}`}
-              class="text-accYellow hover:text-accRed hover:underline text-xl transition-colors duration-200"
+              class="text-accGreen hover:text-accRed hover:underline text-xl transition-colors duration-200"
             >
               {post.name.replace(/_/g, " ").toUpperCase()}
             </a>
