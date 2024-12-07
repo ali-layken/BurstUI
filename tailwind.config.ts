@@ -46,6 +46,9 @@ export default {
             },
             "&:visited": {
               color: burstColors.accGreen2
+            },
+            "&:visited:hover": {
+              color: burstColors.accRed
             }
           },
           "a img": {
