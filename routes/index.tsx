@@ -41,9 +41,9 @@ export default async function Home() {
             </a>
             <span
               class="text-sm text-subtitles ml-2 relative"
-              style={{ top: "-0.12em" }}
+              style={{ top: "-0.13em" }}
             >
-              {" - "}
+              {" <- "}
               {new Date(post.createdAt).toLocaleString()}
             </span>
           </li>
