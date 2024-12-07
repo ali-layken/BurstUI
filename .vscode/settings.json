@@ -2,6 +2,7 @@
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
+  "editor.colorDecorators": true,
   "[typescriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
@@ -26,5 +27,7 @@
       "scheme": "file",
       "pattern": "posts/Blog_Setup.md"
     }
-  ]
+  ],
+  "editor.colorDecoratorsLimit": 1000,
+  "editor.defaultColorDecorators": true
 }
