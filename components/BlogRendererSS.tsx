@@ -45,7 +45,10 @@ renderer.heading = ({ text, depth }: Tokens.Heading): string => {
         <hr style="width: 66%; margin: 0rem 0 0.5rem; text-align: left;" />
     `;
     default:
-      return `<${tag}>${emojied}</${tag}>`;
+      return `
+      <div style="height: 1rem; display: block;"></div>
+      <${tag}>${emojied}</${tag}>
+      `;
   }
 };
 
