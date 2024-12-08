@@ -11,16 +11,16 @@ Over here on the Server, I'll just focus on getting the static content [ :page_f
 ### Dynamic Routing
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Next, I want to set up a blog system where I can easily make new posts. For now, I have just made a single file in `posts` called `Blog_Setup.md`:
 
-![Fresh Project: Directory Tree](/blogtree.png)
+![Fresh Project: Directory Tree](/1/blogtree.png)
 
 Using [dynamic routing](https://fresh.deno.dev/docs/getting-started/dynamic-routes), `/blog/[postname].tsx` will serve `[postname].md` as HTML when you visit the corresponding `/blog/[postname]`. I just have to add another Markdown file in the `posts` folder for a new link to show up on the [homepage](/) & a new route to be generated. Going to [a post I haven’t made yet](/blog/fakepost) would fail since its corresponding `.md` file would'nt be found.
 
 ### Combination - Islands in Blog Posts 
-![Code Responsible For Building Blog Post Pages: <code>/blog/[postname].tsx</code>](/[postname].png)
+![Code Responsible For Building Blog Post Pages: <code>/blog/[postname].tsx</code>](/1/[postname].png)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Above, `BlogRendererSS`, is a Markdown-to-HTML renderer that will run on the Server when you request a blog post; turning `[postname].md` into HTML. `DynamicMarkdownItem` is an Island that replaces **`{{ SpinningCube }}`** in the HTML with the corresponding Island's. This replacement code will run in your browser; the Client. The static HTML I sent will come alive and start moving, having been replaced by the actual HTML and JavaScript code that displays the cube. This completes our goal of having a simple but dynamic blogging system that effectively separates Server and Client work.
 
-![<strong>SpinningCube</strong> Island in Markdown](/ComponentsInMarkdown.png)
+![<strong>SpinningCube</strong> Island in Markdown](/1/ComponentsInMarkdown.png)
 
 ### DENO = [:goat:](https://www.merriam-webster.com/dictionary/GOATED) & Fresh = [:boat:](https://dictionary.reverso.net/english-definition/BOAT)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Deno is a growing and promising land, especially as projects like Fresh evolve. I used [Deno Deploy](https://deno.com/deploy) to host this website for free. The code is all in [a public GitHub repo](https://github.com/ali-layken/BurstUI/blob/main/posts/Blog_Setup.md), so you can see how these renderers work if you like. Whenever there's a new commit on the repo [GitHub automatically builds the website](https://github.com/ali-layken/BurstUI/actions) and deploys it. When I say "over here", or refer to the Server, I am talking about [the computer running Deno/Fresh](https://deno.com/blog/anatomy-isolate-cloud) that received this build, that you connect to when visiting burst.deno.dev in your browser. Since I tried Deno last, about 2 years ago, it has greatly improved its integration with existing npm packages. I had **0 package issues** setting up this site :relieved:<br/><br/>
