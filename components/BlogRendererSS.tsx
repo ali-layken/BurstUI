@@ -1,7 +1,14 @@
 import { marked, Tokens } from "marked";
 import { markedSmartypantsLite } from "marked-smartypants-lite";
 import { markedEmoji, MarkedEmojiOptions } from "marked-emoji";
+import { markedHighlight } from "marked-highlight";
+
+import hljsJS from 'highlight.js/lib/languages/javascript';
+import hljs from 'highlight.js/lib/core';
+
 import { Octokit } from "@octokit/rest";
+
+hljs.registerLanguage('javascript', hljsJS);
 
 const octokit = new Octokit();
 const res = await octokit.rest.emojis.get();
@@ -17,37 +24,43 @@ const options: MarkedEmojiOptions = {
   renderer: (token) =>
     `<img alt="${token.name}" src="${token.emoji}" class="marked-emoji-img">`,
 };
-marked.use(markedSmartypantsLite(), markedEmoji(options));
+
 const renderer = new marked.Renderer();
+marked.use(markedSmartypantsLite(), markedEmoji(options));
+marked.use(markedHighlight({
+  emptyLangClass: 'hljs',
+  langPrefix: 'hljs language-',
+  highlight: (code, lang) => {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    } 
+}));
 marked.setOptions({ renderer });
 
-renderer.image = ({ href, text }: Tokens.Image): string => `
+renderer.image = ({ href, text }: Tokens.Image): string => {
+  const ogalt: string = text
+  text =  marked.parseInline(text) as string;
+  return `
   <figure class="custom-image">
-    <img src="${href ?? ""}" alt="${text ?? ""}" />
+    <img src="${href ?? ""}" alt="${ogalt ?? ""}" />
     ${text ? `<figcaption>${text}</figcaption>` : ""}
   </figure>
-`;
+`};
 
 renderer.heading = ({ text, depth }: Tokens.Heading): string => {
   const tag = `h${depth}`;
-  const parts = text.split(/(:\w+?:)/g);
-  const processedParts = parts.map((part) =>
-    part.startsWith(":") && part.endsWith(":")
-      ? (marked.parseInline(part) as string).trim()
-      : part
-  );
-  const emojied = marked.parseInline(processedParts.join(""));
+  text = marked.parseInline(text) as string;
   switch (depth) {
     case 3:
       return `
         <div style="height: 1rem; display: block;"></div>
-        <${tag}>${emojied}</${tag}>
+        <${tag}>${text}</${tag}>
         <hr style="width: 66%; margin: 0rem 0 0.5rem; text-align: left;" />
     `;
     default:
       return `
       <div style="height: 1rem; display: block;"></div>
-      <${tag}>${emojied}</${tag}>
+      <${tag}>${text}</${tag}>
       `;
   }
 };
@@ -56,6 +69,7 @@ renderer.heading = ({ text, depth }: Tokens.Heading): string => {
 renderer.link = ({href, title, text}): string => {
   const safeHref = href ?? "#";
   const safeTitle = title ? `title="${title}"` : "";
+  text = marked.parseInline(text) as string;
   return `<a href="${safeHref}" ${safeTitle} target="_blank" rel="noopener noreferrer">${text}</a>`;
 };
 
