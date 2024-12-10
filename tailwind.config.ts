@@ -1,16 +1,23 @@
 import { type Config } from "tailwindcss";
 import { burstColors, burstTextColors } from "./static/colors.ts";
 import typography from "@tailwindcss/typography";
+import twHLJS from "./node_modules/.deno/tailwind-highlightjs@2.0.1/node_modules/tailwind-highlightjs/src/index.js";
 
 export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx,js,jsx}",
   ],
+  safelist: [{
+    pattern: /hljs+/,
+  }],
   mode: "jit",
   theme: {
     extend: {
       colors: burstColors,
       textColor: burstTextColors,
+    },
+    hljs: {
+      theme: 'night-owl',
     },
     typography: {
       DEFAULT: {
@@ -33,6 +40,15 @@ export default {
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
           },
+          h4: {
+            color: burstColors.accLiteGreen,
+            fontSize: "1.25rem",
+            fontWeight: "600",
+            paddingLeft: "1rem", // Add padding for 2-space indent
+            strong: {
+              color: burstColors.accRed
+            }
+          },
           p: {
             color: burstColors.creamTan,
             lineHeight: "1.6",
@@ -41,28 +57,27 @@ export default {
           a: {
             color: burstColors.accGreen,
             textDecoration: "underline",
+            "&:visited": {
+              color: burstColors.accGreen2,
+              "&:hover": {
+                color: burstColors.accRed
+              }
+            },
             "&:hover": {
               color: burstColors.accRed, // Change on hover
             },
-            "&:visited": {
-              color: burstColors.accGreen2
+            "& img": {
+              borderBottom: `1px solid ${burstColors.accGreen}`, // Add underline for images in links
+              textDecoration: "none",
+              display: "inline-block",
+              verticalAlign: "middle",
             },
-            "&:visited:hover": {
-              color: burstColors.accRed
-            }
-          },
-          "a img": {
-            borderBottom: `1px solid ${burstColors.accGreen}`, // Add underline for images in links
-            textDecoration: "none",
-            transition: "border-color 0.3s ease", // Smooth transition
-            display: "inline-block",
-            verticalAlign: "middle",
-          },
-          "a:hover img": {
-            borderColor: burstColors.accRed, // Change underline color to red on hover
-          },
-          "a:visited img": {
-            borderColor: burstColors.accGreen2, // Change underline color to red on hover
+            "&:visited img": {
+              borderColor: burstColors.accGreen2, // Change underline color to red on hover
+            },
+            "&:hover img": {
+              borderColor: burstColors.accRed, // Change underline color to red on hover
+            },
           },
           img: {
             display: "block",
@@ -80,16 +95,8 @@ export default {
             margin: "0",
             padding: "0",
           },
-          code: {
-            color: burstTextColors.white,
-            backgroundColor: burstColors.transGray,
-            padding: "0.1em 0.4em",
-            borderRadius: "0.25rem",
-            fontFamily: "monospace",
-            fontSize: "0.90em",
-          },
           pre: {
-            backgroundColor: burstColors.accRed,
+            backgroundColor: burstColors.termBack1,
             padding: "1rem",
             borderRadius: "0.5rem",
             color: burstTextColors.white,
@@ -130,5 +137,6 @@ export default {
       },
     },
   },
-  plugins: [typography],
+  variants: {},
+  plugins: [typography, twHLJS],
 } satisfies Config;
