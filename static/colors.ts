@@ -10,7 +10,8 @@ export const burstColors = {
     creamTan:     "rgb(240, 231, 216)",
     goodGray:     "rgb(82, 82, 82)",
     transGray:    "rgba(105, 105, 105, 0.6)",
-    trans2Gray:   "rgba(105, 105, 105, 0.3)"
+    trans2Gray:   "rgba(105, 105, 105, 0.3)",
+    termBack1:    "#1f1f1f"
 }
 
 export const burstTextColors = {
