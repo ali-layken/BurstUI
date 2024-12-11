@@ -15,7 +15,7 @@ const marked = new Marked(
       const highlighted = hljs.highlight(code, { language }).value;
 
       // Explicitly add langPrefix manually if not handled
-      return `<pre data-component="CopyableCodeBlock" data-lang=${language}><code class="hljs language-${language}">${highlighted}</code></pre>`;
+      return `<pre data-component="CopyableCodeBlock" data-lang="${language}" data-code="${encodeURIComponent(code)}"><code class="hljs language-${language}">${highlighted}</code></pre>`;
     },
   })
 );
