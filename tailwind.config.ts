@@ -1,7 +1,8 @@
 import { type Config } from "tailwindcss";
 import { burstColors, burstTextColors } from "./static/colors.ts";
 import typography from "@tailwindcss/typography";
-import twHLJS from "./node_modules/.deno/tailwind-highlightjs@2.0.1/node_modules/tailwind-highlightjs/src/index.js";
+import twHLJS from "tailwind-highlightjs";
+import { colors } from "$fresh/src/server/deps.ts";
 
 export default {
   content: [
@@ -17,7 +18,7 @@ export default {
       textColor: burstTextColors,
     },
     hljs: {
-      theme: 'night-owl',
+      theme: 'base16/solarized-dark',
     },
     typography: {
       DEFAULT: {
@@ -28,20 +29,20 @@ export default {
             fontWeight: "700",
           },
           h2: {
-            color: burstColors.accLiteGreen,
+            color: burstColors.accRed2,
             fontSize: "1.875rem",
             fontWeight: "600",
             fontStyle: "italic;",
             textDecoration: "underline"
           },
           h3: {
-            color: burstColors.accLiteGreen,
+            color: burstColors.accGreen2,
             fontSize: "1.5rem",
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
           },
           h4: {
-            color: burstColors.accLiteGreen,
+            color: burstColors.accRed2,
             fontSize: "1.25rem",
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
@@ -53,12 +54,27 @@ export default {
             color: burstColors.creamTan,
             lineHeight: "1.6",
             fontSize: "1rem",
+            code: {
+              color: burstTextColors.white,
+              backgroundColor: burstColors.transGray,
+              padding: "0.1em 0.4em",
+              borderRadius: "0.25rem",
+              fontFamily: "monospace",
+              fontSize: "0.90em",
+            },
+            pre: {
+              backgroundColor: burstColors.termBack1,
+              padding: "1rem",
+              borderRadius: "0.5rem",
+              color: burstTextColors.white,
+              overflowX: "auto",
+            },
           },
           a: {
             color: burstColors.accGreen,
             textDecoration: "underline",
             "&:visited": {
-              color: burstColors.accGreen2,
+              color: burstColors.accLitePurple,
               "&:hover": {
                 color: burstColors.accRed
               }
@@ -73,7 +89,7 @@ export default {
               verticalAlign: "middle",
             },
             "&:visited img": {
-              borderColor: burstColors.accGreen2, // Change underline color to red on hover
+              borderColor: burstColors.accLitePurple, // Change underline color to red on hover
             },
             "&:hover img": {
               borderColor: burstColors.accRed, // Change underline color to red on hover
@@ -86,6 +102,26 @@ export default {
             maxWidth: "100%", // Make images responsive
             height: "auto",
           },
+          ol: {
+            "list-style-type": "decimal", // Ensure ordered list numbering
+            "padding-left": "3rem", // Increase indentation for ordered lists
+            "margin-top": "1rem", // Optional spacing above the list
+            "margin-bottom": "1rem", // Optional spacing below the list
+          },
+          "ol > li": {
+            "margin-top": "0.5rem", // Add vertical spacing between list items
+            "margin-bottom": "0.5rem", // Same for bottom spacing
+            "&::marker": {
+              color: burstTextColors.subtitles, // Customize the marker color
+              fontWeight: "bold", // Optional: make markers bold
+            },
+          },
+          "ol > li > p": {
+            "margin-top": "0", // Remove extra top margin from nested <p>
+            "margin-bottom": "0", // Remove extra bottom margin
+            "display": "inline", // Ensure <p> inside <li> doesn't break flow
+            color: burstColors.creamTan2
+          },
           "img.marked-emoji-img": {
             display: "inline-block",
             width: "1em",
@@ -94,13 +130,6 @@ export default {
             position: "relative",
             margin: "0",
             padding: "0",
-          },
-          pre: {
-            backgroundColor: burstColors.termBack1,
-            padding: "1rem",
-            borderRadius: "0.5rem",
-            color: burstTextColors.white,
-            overflowX: "auto",
           },
           "figure.custom-image": {
             display: "flex",
