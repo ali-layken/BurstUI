@@ -31,13 +31,14 @@ The documentation for Fresh is easy to navigate and short. I recommend [checking
 
 #### Steps
 
-1. First we have to install Deno. Follow this link for instructions specific to your OS. Before moving on, check if it was installed correctly. Open a terminal and try: 
-
-2. Step 2
-
+1. First we have to install Deno. Follow [this link](https://docs.deno.com/runtime/getting_started/installation/) for instructions specific to your OS. Before moving on, check if it was installed correctly. Open a terminal and try:
 ```bash
 deno -v
 ```
+2. Step 2
+
+
+
 
 
 Using Islands helps build a smooth experience by separating computing resources for specific tasks. Deciding what to handle locally and what to send can vary depending on the goal. For example, for security, if I wanted to use an API key :key: to access Google Maps to show a Google Map in a blog post; I could make sure that API connection happens on the Server :closed_lock_with_key:, and not on an Island on the Client :unlock:. The homepage will load faster if you got the cube here or this page will load faster if you got the cube there since it is your cube now! You are now in charge of the Cube Island I’ve sent. The :arrow_left: island below has a smooth opacity transition because **you** are rendering it. Try it out, I am not sending you video frames or animation updates, just the code for you to make your own frames and animations!!! :space_invader:

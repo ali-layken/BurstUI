@@ -95,6 +95,7 @@ export default {
               borderColor: burstColors.accRed, // Change underline color to red on hover
             },
           },
+
           img: {
             display: "block",
             margin: "1.5rem auto", // Top/bottom margin, center horizontally
@@ -105,8 +106,10 @@ export default {
           ol: {
             "list-style-type": "decimal", // Ensure ordered list numbering
             "padding-left": "3rem", // Increase indentation for ordered lists
-            "margin-top": "1rem", // Optional spacing above the list
-            "margin-bottom": "1rem", // Optional spacing below the list
+          },
+          pre: {
+            paddingLeft: "2rem",
+            paddingRight: "2rem"
           },
           "ol > li": {
             "margin-top": "0.5rem", // Add vertical spacing between list items
@@ -115,6 +118,7 @@ export default {
               color: burstTextColors.subtitles, // Customize the marker color
               fontWeight: "bold", // Optional: make markers bold
             },
+            color: burstColors.creamTan2
           },
           "ol > li > p": {
             "margin-top": "0", // Remove extra top margin from nested <p>
