@@ -32,7 +32,7 @@ export default function CopyableCodeBlock({ code, lang }: CopyableCodeBlockProps
         topBar.className =
           "flex justify-between items-center px-6 pt-1.5 pb-0.5 bg-gray-800 text-white border-b border-gray-700";
         topBar.innerHTML = `
-          <span class="text-xs text-accOrange text-opacity-60">${lang.toUpperCase()}</span>
+          <span class="text-xs text-accOrange text-opacity-60">${lang}</span>
           <div class="flex items-center gap-1 relative">
             <span id="copy-message" class="text-xs text-subtitles opacity-0 transition-opacity duration-300 absolute right-16">✅</span> 
             <button id="copy-button" class="text-blue-400 hover:text-blue-600 text-xs">copy all</button>
@@ -41,7 +41,7 @@ export default function CopyableCodeBlock({ code, lang }: CopyableCodeBlockProps
 
         // Append top bar and code element to `pre`
         preElement.appendChild(topBar);
-        preElement.appendChild(codeElement);
+
 
         // Attach copy event to the button
         const copyButton = topBar.querySelector("#copy-button");
