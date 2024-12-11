@@ -22,10 +22,22 @@ Using [dynamic routing](https://fresh.deno.dev/docs/getting-started/dynamic-rout
 
 ![<strong>SpinningCube</strong> Island in Markdown](/1/ComponentsInMarkdown.png)
 
-```js
-const supaheat = 33;
-```
+## Website Building
 
 ### DENO = [:goat:](https://www.merriam-webster.com/dictionary/GOATED) & Fresh = [:boat:](https://dictionary.reverso.net/english-definition/BOAT)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Deno is a growing and promising land, especially as projects like Fresh evolve. I used [Deno Deploy](https://deno.com/deploy) to host this website for free. The code is all in [a public GitHub repo](https://github.com/ali-layken/BurstUI/blob/main/posts/Blog_Setup.md), so you can see how these renderers work if you like. Whenever there's a new commit on the repo [GitHub automatically builds the website](https://github.com/ali-layken/BurstUI/actions) and deploys it. When I say "over here", or refer to the Server, I am talking about [the computer running Deno/Fresh](https://deno.com/blog/anatomy-isolate-cloud) that received this build, that you connect to when visiting burst.deno.dev in your browser. Since I tried Deno last, about 2 years ago, it has greatly improved its integration with existing npm packages. I had **0 package issues** setting up this site :relieved: & this is all it took to scaffold and deplo<br/><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Deno is a growing and promising land, especially as projects like Fresh evolve. I used [Deno Deploy](https://deno.com/deploy) to host this website for free. The code is all in [a public GitHub repo](https://github.com/ali-layken/BurstUI/blob/main/posts/Blog_Setup.md), so you can see how these renderers work if you like. Whenever there's a new commit on the repo [GitHub automatically builds the website](https://github.com/ali-layken/BurstUI/actions) and deploys it. When I say "over here", or refer to the Server, I am talking about [the computer running Deno/Fresh](https://deno.com/blog/anatomy-isolate-cloud) that received this build, that you connect to when visiting burst.deno.dev in your browser. Since I tried Deno last, about 2 years ago, it has greatly improved its integration with existing npm packages. I had **0 package issues** setting up this site :relieved: and I don't think you will either, let's try it out:<br/><br/>
+
+The documentation for Fresh is easy to navigate and short. I recommend [checking it out](https://fresh.deno.dev/docs/getting-started/create-a-project) as they explain each step in detail and offer alternative configurations. For now here are the minimal steps to get a website up that others can visit just like this one! (without the blog or cube :sob:)
+
+#### Steps
+
+1. First we have to install Deno. Follow this link for instructions specific to your OS. Before moving on, check if it was installed correctly. Open a terminal and try: 
+
+2. Step 2
+
+```bash
+deno -v
+```
+
+
 Using Islands helps build a smooth experience by separating computing resources for specific tasks. Deciding what to handle locally and what to send can vary depending on the goal. For example, for security, if I wanted to use an API key :key: to access Google Maps to show a Google Map in a blog post; I could make sure that API connection happens on the Server :closed_lock_with_key:, and not on an Island on the Client :unlock:. The homepage will load faster if you got the cube here or this page will load faster if you got the cube there since it is your cube now! You are now in charge of the Cube Island I’ve sent. The :arrow_left: island below has a smooth opacity transition because **you** are rendering it. Try it out, I am not sending you video frames or animation updates, just the code for you to make your own frames and animations!!! :space_invader:
