@@ -8,7 +8,7 @@ What got me really distracted, and caused this write-up, was setting the DNS Ser
 ![No updates & No google.com](/2/image.png)
 
 
-#### **What The Heck #1**: IP Address
+#### **What The Heck #1:** IP Address
 How could this be?: The laptop is connected to my home router from which it [received an IP Address (10.0.0.95)](https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top). An [IP Address](https://en.wikipedia.org/wiki/IP_address) is just like [a real home Address](https://en.wikipedia.org/wiki/House_numbering): using this IP Address the router and other computers can send information just like sending mail to a real address. We can see this for sure by doing a little test connection:
 
 ![Laptop is on LAN :heavy_check_mark:](/2/image2.png)
