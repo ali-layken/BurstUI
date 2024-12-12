@@ -26,6 +26,7 @@ export default function CopyableCodeBlock({ code, lang }: CopyableCodeBlockProps
       if (preElement && codeElement) {
         // Clear any existing content inside `pre`
         preElement.innerHTML = "";
+        codeElement.innerHTML = "";
 
         // Create top bar
         const topBar = document.createElement("div");
@@ -41,6 +42,7 @@ export default function CopyableCodeBlock({ code, lang }: CopyableCodeBlockProps
 
         // Append top bar and code element to `pre`
         preElement.appendChild(topBar);
+        
 
 
         // Attach copy event to the button
