@@ -9,12 +9,12 @@ export const burstColors = {
     accGreen:      "rgb(58, 158, 21)",
     accGreen2:     "rgb(194, 214, 120)",
     accLiteGreen:  "rgb(29, 222, 93)",
-    creamTan:      "rgb(235, 214, 176)",
+    creamTan:      "rgb(240, 231, 216)",
     creamTan2:     "rgb(228, 191, 125)",
     goodGray:      "rgb(82, 82, 82)",
     transGray:     "rgba(105, 105, 105, 0.6)",
     trans2Gray:    "rgba(105, 105, 105, 0.3)",
-    termBack1:     "#1f1f1f"
+    termBack1:     "rgb(31, 31, 31)"
 }
 
 export const burstTextColors = {
