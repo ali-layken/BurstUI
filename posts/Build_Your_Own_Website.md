@@ -32,9 +32,12 @@ The documentation for Fresh is easy to navigate and short. I recommend [checking
 #### Steps
 
 1. First we have to install Deno. Follow [this link](https://docs.deno.com/runtime/getting_started/installation/) for instructions specific to your OS. Before moving on, check if it was installed correctly. Open a terminal and try:
-```bash
-deno -v
+
+```shellsession
+$ deno -v
+deno 2.1.4
 ```
+
 2. Step 2
 
 
