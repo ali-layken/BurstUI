@@ -95,7 +95,6 @@ export default {
               borderColor: burstColors.accRed, // Change underline color to red on hover
             },
           },
-
           img: {
             display: "block",
             margin: "1.5rem auto", // Top/bottom margin, center horizontally
@@ -109,7 +108,7 @@ export default {
           },
           pre: {
             paddingLeft: "2rem",
-            paddingRight: "2rem"
+            paddingRight: "2rem",
           },
           "ol > li": {
             "margin-top": "0.5rem", // Add vertical spacing between list items
