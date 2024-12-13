@@ -22,11 +22,14 @@ export default function DynamicMarkdownItem() {
 
       // Special case for `CopyableCodeBlock`
       if (componentName === "CopyableCodeBlock") {
+        const container = document.createElement('div');
         const lang = placeholder.getAttribute("data-lang") || "plaintext";
         const code = decodeURIComponent(placeholder.getAttribute("data-code") || "");
-        render(<CopyableCodeBlock lang={lang} code={code} />, placeholder);
+        placeholder.parentElement!.parentElement!.appendChild(container)
+        render(<CopyableCodeBlock lang={lang} code={code} />, container);
         return;
       }
+
 
       // Dynamic import for other components
       if (cache[componentName]) {
