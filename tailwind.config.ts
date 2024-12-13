@@ -18,7 +18,7 @@ export default {
       textColor: burstTextColors,
     },
     hljs: {
-      theme: 'base16/solarized-dark',
+      theme: "base16/solarized-dark",
     },
     typography: {
       DEFAULT: {
@@ -33,7 +33,7 @@ export default {
             fontSize: "1.875rem",
             fontWeight: "600",
             fontStyle: "italic;",
-            textDecoration: "underline"
+            textDecoration: "underline",
           },
           h3: {
             color: burstColors.accGreen2,
@@ -47,8 +47,8 @@ export default {
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
             strong: {
-              color: burstColors.accRed
-            }
+              color: burstColors.accRed,
+            },
           },
           p: {
             color: burstColors.creamTan,
@@ -76,8 +76,8 @@ export default {
             "&:visited": {
               color: burstColors.accLitePurple,
               "&:hover": {
-                color: burstColors.accRed
-              }
+                color: burstColors.accRed,
+              },
             },
             "&:hover": {
               color: burstColors.accRed, // Change on hover
@@ -107,8 +107,35 @@ export default {
             "padding-left": "3rem", // Increase indentation for ordered lists
           },
           pre: {
-            paddingLeft: "2rem",
-            paddingRight: "2rem",
+            "@apply overflow-hidden whitespace-pre-wrap break-words p-4": {},
+            paddingLeft: "3.5rem",
+            paddingRight: "3.5rem",
+            "code.hljs": {
+              "@apply rounded-t-lg": {},
+              padding: "1.75rem 2.25rem 0rem",
+            },
+          },
+          ".code-line": {
+            "@apply flex items-center": {},
+            lineHeight: "1.75",
+            margin: "0 !important", // Remove unintended margins
+            padding: "0 !important", // Remove unintended paddings
+            height: "auto", // Ensure it adapts to content
+          },
+          ".code-line > span": {
+            "@apply inline-block": {},
+            margin: "0 !important",
+            padding: "0 !important",
+            maxWidth: "100%", // Prevent overflowing
+            overflow: "hidden", // Hide excess content
+            textOverflow: "ellipsis", // Truncate if necessary
+          },
+          ".copy-line-button": {
+            "@apply text-sm ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer":
+              {},
+            lineHeight: "1", // Prevent button affecting line height
+            marginTop: "0", // Remove vertical spacing impact
+            marginBottom: "0",
           },
           "ol > li": {
             "margin-top": "0.5rem", // Add vertical spacing between list items
@@ -117,13 +144,13 @@ export default {
               color: burstTextColors.subtitles, // Customize the marker color
               fontWeight: "bold", // Optional: make markers bold
             },
-            color: burstColors.creamTan2
+            color: burstColors.creamTan2,
           },
           "ol > li > p": {
             "margin-top": "0", // Remove extra top margin from nested <p>
             "margin-bottom": "0", // Remove extra bottom margin
             "display": "inline", // Ensure <p> inside <li> doesn't break flow
-            color: burstColors.creamTan2
+            color: burstColors.creamTan2,
           },
           "img.marked-emoji-img": {
             display: "inline-block",
