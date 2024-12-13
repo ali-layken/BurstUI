@@ -25,7 +25,29 @@ Using [dynamic routing](https://fresh.deno.dev/docs/getting-started/dynamic-rout
 ## Website Building
 
 ### DENO = [:goat:](https://www.merriam-webster.com/dictionary/GOATED) & Fresh = [:boat:](https://dictionary.reverso.net/english-definition/BOAT)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Deno is a growing and promising land, especially as projects like Fresh evolve. I used [Deno Deploy](https://deno.com/deploy) to host this website for free. The code is all in [a public GitHub repo](https://github.com/ali-layken/BurstUI/blob/main/posts/Blog_Setup.md), so you can see how these renderers work if you like. Whenever there's a new commit on the repo [GitHub automatically builds the website](https://github.com/ali-layken/BurstUI/actions) and deploys it. When I say "over here", or refer to the Server, I am talking about [the computer running Deno/Fresh](https://deno.com/blog/anatomy-isolate-cloud) that received this build, that you connect to when visiting burst.deno.dev in your browser. Since I tried Deno last, about 2 years ago, it has greatly improved its integration with existing npm packages. I had **0 package issues** setting up this site :relieved: and I don't think you will either, let's try it out:<br/><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All websites and website technology, of every language and complexity, *boil down* to 3 main ingredients, all of which are just different kinds of text we store in files:
+1. **JavaScript**; Code that the browser can run. Chrome runs JavaScript files using Google's open-source [V8 JavaScript Engine](https://github.com/v8/v8). To run a `.js` file from your command line you'll need a runtime, an application that reads code and runs it. The most popular JavaScript runtime [Node.js](https://nodejs.org/en) and Deno also are built on the V8 engine. After installing all you have to do is: `$ [node/deno] SomeJS.js` similar to how Python is run. 
+
+1. **HTML**; This is a language that describes to the browser what to draw in the window canvas. You can fill out and arrange paragraphs of text, images, links, boxes, all the visual elements that you see in your browsers window. The JavaScript code can also read the window's HTML and change it: this is how most meaningful visual changes and code interactions happen.
+
+1. **CSS**; This is a set of properties you can use to modify the display of HTML elements. For example you can set opacity, opacity transitions, entire animations, colors, fonts, and other things. The same HTML can look extremely different depending on the `.css` style file that is sent with it. If you didn't properly receive the .css file when visiting this site all the text would be black on the left and the background would be white which is just the browsers default way of displaying HTML.
+
+The *boiling down* is where the complexity lies. Let's start with a minimal example. When visiting [example.com](https://example.com/):
+
+![Press F12 to open Browser Tools](/1/example.png)
+
+your browser is requests the `/` HTML file from `example.com` to display in its main window. Most servers by default send `/index.html` when a file is not specified. You can see this is true by going to [example.com/index.html](example.com/index.html) or [google.com/index.html](google.com/index.html) and if you want to go on a tangent try [google.com/robots.txt](google.com/robots.txt). The idea, traditionally, is that browsers [are like remote file system browsers](https://www.kernel.org/pub/). If you have Python installed, you can easily see your own fs in your browser locally by trying:
+
+```shellsession
+$ python3 -m http.server #8001 #<- uncomment if port in use
+```
+By visiting the provided link, you'll be able to navigate the folder you ran this command in. Let's examine [the index.html file](view-source:http://example.com/)  that example.com is sending:
+
+ the root and  the  is translated by the brow The browser asks for grabs a favicon to display in the tab up top but it 404ed because example.com has no favicon so no icon is displayed next to the website  in the tab.
+
+Let's examine how intense relationships between website technologies and the 3 main ingredients can get. 
+
+Deno is a growing and promising land, especially as projects like Fresh evolve. I used [Deno Deploy](https://deno.com/deploy) to host this website for free. The code is all in [a public GitHub repo](https://github.com/ali-layken/BurstUI/blob/main/posts/Blog_Setup.md), so you can see how these renderers work if you like. Whenever there's a new commit on the repo [GitHub automatically builds the website](https://github.com/ali-layken/BurstUI/actions) and deploys it. When I say "over here", or refer to the Server, I am talking about [the computer running Deno/Fresh](https://deno.com/blog/anatomy-isolate-cloud) that received this build, that you connect to when visiting burst.deno.dev in your browser. Since I tried Deno last, about 2 years ago, it has greatly improved its integration with existing npm packages. I had **0 package issues** setting up this site :relieved: and I don't think you will either, let's try it out:<br/><br/>
 
 The documentation for Fresh is easy to navigate and short. I recommend [checking it out](https://fresh.deno.dev/docs/getting-started/create-a-project) as they explain each step in detail and offer alternative configurations. For now here are the minimal steps to get a website up that others can visit just like this one! (without the blog or cube :sob:)
 
@@ -35,10 +57,9 @@ The documentation for Fresh is easy to navigate and short. I recommend [checking
 
 ```shellsession
 $ deno -v
-$ echo $SUPAHEAT
 ```
 
-2. Step 2
+2. Deno is a runtime 
 
 
 
