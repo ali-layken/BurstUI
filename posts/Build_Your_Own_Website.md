@@ -35,7 +35,7 @@ The documentation for Fresh is easy to navigate and short. I recommend [checking
 
 ```shellsession
 $ deno -v
-deno 2.1.4
+$ echo $SUPAHEAT
 ```
 
 2. Step 2
