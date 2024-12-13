@@ -57,7 +57,7 @@ export default {
             code: {
               color: burstTextColors.white,
               backgroundColor: burstColors.transGray,
-              padding: "0.1em 0.4em",
+              padding: "0.1em 0.4em 0.15em",
               borderRadius: "0.25rem",
               fontFamily: "monospace",
               fontSize: "0.90em",
@@ -145,6 +145,13 @@ export default {
               fontWeight: "bold", // Optional: make markers bold
             },
             color: burstColors.creamTan2,
+            code: {
+              color: burstTextColors.white,
+              backgroundColor: burstColors.transGray,
+              padding: "0.1em 0.4em 0.15em",
+              borderRadius: "0.25rem",
+              fontFamily: "monospace",
+            },
           },
           "ol > li > p": {
             "margin-top": "0", // Remove extra top margin from nested <p>
