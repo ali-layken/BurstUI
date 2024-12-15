@@ -8,10 +8,16 @@ import { burstColors, burstTextColors } from "../static/colors.ts";
 
 const customRenderer = new Renderer();
 customRenderer.link = ({ href, title, text }): string => {
-  const safeHref = href ?? "#";
-  const safeTitle = title ? `title="${title}"` : "";
-  text = marked.parseInline(text) as string;
-  return `<a href="${safeHref}" ${safeTitle} target="_blank" rel="noopener noreferrer">${text}</a>`;
+  try{
+    const safeHref = href ?? "#";
+    const safeTitle = title ? `title="${title}"` : "";
+    text = marked.parseInline(text) as string;
+    return `<a href="${safeHref}" ${safeTitle} target="_blank" rel="noopener noreferrer">${text}</a>`;
+  } catch (error){
+    console.log(error);
+    return 'Bad Link Format!';
+  }
+
 };
 customRenderer.image = ({ href, text }: Tokens.Image): string => {
   const ogalt: string = text;
