@@ -34,6 +34,9 @@ export default {
             fontWeight: "600",
             fontStyle: "italic;",
             textDecoration: "underline",
+            strong: {
+              color: burstColors.accRed,
+            },
           },
           h3: {
             color: burstColors.accGreen2,
@@ -161,9 +164,9 @@ export default {
           },
           "img.marked-emoji-img": {
             display: "inline-block",
-            width: "1em",
-            height: "1em",
-            verticalAlign: "-0.15em",
+            width: "1.1em",
+            height: "1.1em",
+            verticalAlign: "-0.2em",
             position: "relative",
             margin: "0",
             padding: "0",
