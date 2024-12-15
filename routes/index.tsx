@@ -6,7 +6,7 @@ export default async function Home() {
   const posts: { name: string; createdAt: Date }[] = [];
 
   for await (const entry of Deno.readDir(postsDirectory)) {
-    if (entry.isFile && entry.name.endsWith("md")) {
+    if (entry.isFile && entry.name.endsWith("md") && !entry.name.startsWith('_')) {
       const filePath = join(postsDirectory, entry.name);
       const stat = await Deno.stat(filePath);
       posts.push({
