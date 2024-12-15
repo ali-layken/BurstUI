@@ -23,7 +23,7 @@ export default async function Home() {
       <h1 class="text-8xl text-black font-bold mb-2">Burst.</h1>
       <div style="height: 0.75rem; display: block;"></div>
       <p class="text-accLiteGreen">
-        This space is dedicated to brevity and clarity: turning my nonsensical
+        This space is dedicated to brevity and clarity: turning my nonsensical &
         spontaneous adventures into something you can grasp, benefit from, and
         share. If I ever do something cool, I truly want you to be able to do it
         too!

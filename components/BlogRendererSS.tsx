@@ -39,6 +39,11 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
         <${tag}>${text}</${tag}>
         <hr style="width: 75%; margin: 0rem 0 0.5rem; text-align: left;" />
     `;
+    case 4:
+      return `
+        <div style="height: 1rem; display: block;"></div>
+        <${tag}>${text}</${tag}>
+    `;
     default:
       return `
       <div style="height: 1rem; display: block;"></div>
@@ -101,7 +106,7 @@ const options: MarkedEmojiOptions = {
 marked.use(markedSmartypantsLite(), markedEmoji(options));
 
 
-export default function BlogPostRenderer({ content }: { content: string }) {
+export default function BlogPostRenderer(content: string) {
   const renderedContent = marked.parse(
     content.replace(/{{(\w+)}}/g, (_match, componentName) => {
       return `<div id="component-${componentName}" data-component="${componentName}"></div>`;
