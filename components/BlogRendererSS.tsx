@@ -3,6 +3,9 @@ import { markedSmartypantsLite } from "marked-smartypants-lite";
 import { markedEmoji, MarkedEmojiOptions } from "marked-emoji";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
+import { Octokit } from "@octokit/rest";
+import { burstColors, burstTextColors } from "../static/colors.ts";
+
 const customRenderer = new Renderer();
 customRenderer.link = ({ href, title, text }): string => {
   const safeHref = href ?? "#";
@@ -28,7 +31,7 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
       return `
         <div style="height: 1rem; display: block;"></div>
         <${tag}>${text}</${tag}>
-        <hr style="width: 66%; margin: 0rem 0 0.5rem; text-align: left;" />
+        <hr style="width: 75%; margin: 0rem 0 0.5rem; text-align: left;" />
     `;
     default:
       return `
@@ -71,11 +74,6 @@ const marked = new Marked(
     renderer: customRenderer,
   }
 );
-
-
-
-import { Octokit } from "@octokit/rest";
-import { burstColors, burstTextColors } from "../static/colors.ts";
 
 const octokit = new Octokit();
 const res = await octokit.rest.emojis.get();
