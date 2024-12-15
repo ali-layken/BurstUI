@@ -1,6 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { render } from "preact";
+import CopyableCodeBlock from "./CopyableCodeBlock.tsx";
+
 
 type ComponentCache = Record<string, JSX.Element>;
 
@@ -15,15 +17,26 @@ export default function DynamicMarkdownItem() {
       if (!componentName) return;
 
       // Skip rendering if the placeholder is already filled
-      if (placeholder.hasChildNodes()) return;
+      if (placeholder.getAttribute("data-hydrated") === "true") return;
+      placeholder.setAttribute("data-hydrated", "true");
 
-      // If component is cached, render it
-      if (cache[componentName]) {
-        renderComponent(placeholder, cache[componentName]);
+      // Special case for `CopyableCodeBlock`
+      if (componentName === "CopyableCodeBlock") {
+        const container = document.createElement('div');
+        const lang = placeholder.getAttribute("data-lang") || "plaintext";
+        const code = decodeURIComponent(placeholder.getAttribute("data-code") || "");
+        placeholder.parentElement!.parentElement!.appendChild(container)
+        render(<CopyableCodeBlock lang={lang} code={code} />, container);
         return;
       }
 
-      // Dynamically import the island and cache it
+
+      // Dynamic import for other components
+      if (cache[componentName]) {
+        render(cache[componentName], placeholder);
+        return;
+      }
+
       try {
         const module = await import(`../islands/${componentName}.tsx`);
         const Component = module.default;
@@ -31,7 +44,7 @@ export default function DynamicMarkdownItem() {
         if (Component) {
           const element = <Component />;
           setCache((prevCache) => ({ ...prevCache, [componentName]: element }));
-          renderComponent(placeholder, element);
+          render(element, placeholder,);
         }
       } catch (error) {
         console.error(`Failed to load component: ${componentName}`, error);
@@ -39,9 +52,7 @@ export default function DynamicMarkdownItem() {
     });
   }, [cache]);
 
-  const renderComponent = (placeholder: Element, Component: JSX.Element) => {
-    render(Component, placeholder);
-  };
+
 
   return null;
 }
