@@ -2,7 +2,7 @@ import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "@3d/three";
 import { burstColors, burstTextColors } from "../static/colors.ts";
 
-const ROT_SPEED: number = 0.0025;
+const ROT_SPEED: number = 0.004;
 
 export default function SpinningCube() {
   const mountRef = useRef<HTMLDivElement>(null);
