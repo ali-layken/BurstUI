@@ -39,7 +39,7 @@ export default {
             },
           },
           h3: {
-            color: burstColors.accGreen2,
+            color: burstTextColors.subtitles,
             fontSize: "1.5rem",
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
