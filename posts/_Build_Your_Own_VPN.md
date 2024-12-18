@@ -14,7 +14,7 @@ How could this be?: The laptop is connected to my home router from which it [rec
 ![Laptop is on LAN :heavy_check_mark:](/2/image2.png)
 
 #### DNS
-Seems like the computers on my home network can find each other. This is because my router is keeping track of all the addresses it has dished out as computers and phones connect. However, to find a *hostname* like `google.com` had d Across OSs, in Wi-fi Settings Tabs on phones and Configuration Files Linux there exists the ability to set a DNS Server: 
+Great! Seems like the computers on my home network can find each other. This is because my router is keeping track of all the addresses it has dished out as computers and phones connect using [DHCP](https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top). However, to find a *hostname* like `google.com` had d Across OSs, in Wi-fi Settings Tabs on phones and Configuration Files Linux there exists the ability to set a DNS Server: 
 
 When that config is in use and a network request is made that includes hostnames like browsing to nerdculture.de or sshing into CromeArch.local; before getting the website content, the OS will <b>first send the hostname to the IP listed as the DNS Server on port 53</code></b>. The Server will lookup that hostname in a giant table or ask another DNS Server for help using its massive table. In the end you'll get back an IP Address that you computer can use to connect. 
 
