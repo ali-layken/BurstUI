@@ -64,7 +64,7 @@ export default function Blog(props: PageProps) {
           Created: {postProps.createdTime} | Last Edited: {postProps.modifiedTime}
         </p>
       </header>
-      {renderedMarkdown}
+      {renderedMarkdown.renderedContent}
       <DynamicMarkdownItem />
       <BackButton3D />
     </>
