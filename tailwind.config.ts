@@ -29,7 +29,7 @@ export default {
             fontWeight: "700",
           },
           h2: {
-            color: burstColors.accRed2,
+            color: burstColors.accLiteGreen,
             fontSize: "1.875rem",
             fontWeight: "600",
             fontStyle: "italic;",
@@ -45,7 +45,7 @@ export default {
             paddingLeft: "1rem", // Add padding for 2-space indent
           },
           h4: {
-            color: burstColors.accRed2,
+            color: burstColors.accLiteGreen,
             fontSize: "1.25rem",
             fontWeight: "600",
             paddingLeft: "1rem", // Add padding for 2-space indent
