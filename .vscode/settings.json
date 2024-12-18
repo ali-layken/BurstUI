@@ -31,5 +31,5 @@
     }
   ],
   "editor.colorDecoratorsLimit": 1000,
-  "editor.defaultColorDecorators": true
+  "editor.defaultColorDecorators": "auto"
 }
