@@ -22,14 +22,14 @@ export default function DynamicLayout(
 
   if (isNarrow.value) {
     return (
-      <div class="min-h-screen bg-bgPurple flex flex-col">
+      <div class="min-h-screen w-full bg-bgPurple flex flex-col">
         {/* Sticky Dropdown Navigation */}
-        <div class="sticky top-0 z-50">
+        <div class="flex-2 sticky top-0 z-50">
           <SiteNavNarrow currentPage={currentPage} headingsSignal={headingsSignal} />
         </div>
 
         {/* Main Content */}
-        <div class="flex-1 px-4 py-8 bg-bgAqua rounded-md shadow-lg">
+        <div class="flex-1 max-w-4xl px-4 py-8 bg-bgAqua rounded-md shadow-lg">
           {children}
         </div>
       </div>
