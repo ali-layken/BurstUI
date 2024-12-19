@@ -11,6 +11,7 @@ import * as $index from "./routes/index.tsx";
 import * as $BackButton3D from "./islands/BackButton3D.tsx";
 import * as $CopyableCodeBlock from "./islands/CopyableCodeBlock.tsx";
 import * as $DynamicMarkdownItem from "./islands/DynamicMarkdownItem.tsx";
+import * as $SiteNav from "./islands/SiteNav.tsx";
 import * as $SpinningCube from "./islands/SpinningCube.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -27,6 +28,7 @@ const manifest = {
     "./islands/BackButton3D.tsx": $BackButton3D,
     "./islands/CopyableCodeBlock.tsx": $CopyableCodeBlock,
     "./islands/DynamicMarkdownItem.tsx": $DynamicMarkdownItem,
+    "./islands/SiteNav.tsx": $SiteNav,
     "./islands/SpinningCube.tsx": $SpinningCube,
   },
   baseUrl: import.meta.url,
