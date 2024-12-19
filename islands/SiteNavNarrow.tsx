@@ -18,21 +18,24 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavNa
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <div class="bg-bgAqua p-4 shadow-lg relative"> {/* Add relative positioning */}
+    <div class="fixed bottom-0 w-full max-w-4xl mx-auto bg-bgPurple">
       {/* Dropdown Toggle */}
-      <button
-        class="flex items-center space-x-2 bg-bgPurple text-white px-4 py-2 rounded-md"
-        onClick={toggleMenu}
-      >
-        <span class="text-xl">☰</span>
-        <span class="text-sm font-bold">Menu</span>
-      </button>
-
-      {/* Dropdown Content */}
-      {isOpen && (
-        <ul
-          class="absolute left-0 mt-2 w-full bg-bgAqua rounded-md shadow-lg z-50 space-y-2 p-4"
+      <div class="flex justify-end py-4 px-8">
+        <button
+          class="bg-bgPurple text-white px-4 py-2 rounded-md"
+          onClick={toggleMenu}
         >
+          {isOpen ? "⌄" : "⌃"}
+        </button>
+      </div>
+
+      {/* Drop-Up Content */}
+      <div
+        class={`absolute bottom-full left-0 w-full bg-bgPurple rounded-t-md z-50 space-y-2 p-4 transition-opacity duration-300 ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <ul>
           {currentPage === "/" &&
             (headingsSignal.value as IndexLink[]).map((post, index) => {
               const isEven = index % 2 === 0;
@@ -48,7 +51,8 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavNa
                     <span class="font-bold">{index + 1}.</span>
                     <a
                       href={`/blog/${post.name}`}
-                      class="hover:text-accGreen hover:underline transition-colors duration-200"
+                      class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200"
+                      onClick={() => setIsOpen(false)} // Close menu on click
                     >
                       {post.name.replace(/_/g, " ")}
                     </a>
@@ -73,8 +77,9 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavNa
             </div>
           )}
         </ul>
-      )}
+      </div>
     </div>
   );
 }
+
 
