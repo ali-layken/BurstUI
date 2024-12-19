@@ -18,23 +18,24 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavNa
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <div class="fixed bottom-0 w-full max-w-4xl mx-auto bg-bgPurple">
+    <div
+      class={`fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-4xl bg-bgPurple opacity-95 rounded-t-lg transition-transform duration-300 ${
+        isOpen ? "translate-y-0" : "translate-y-full"
+      }`}
+    >
       {/* Dropdown Toggle */}
-      <div class="flex justify-end py-4 px-8">
+      <div class="absolute top-[-2.5rem] w-full flex justify-end px-6 opacity-55">
         <button
-          class="bg-bgPurple text-white px-4 py-2 rounded-md"
+          class="bg-accRed text-white px-4 py-2 rounded-t-lg"
           onClick={toggleMenu}
         >
-          {isOpen ? "⌄" : "⌃"}
+          {currentPage === "/" && "≡ Posts"}
+          {currentPage.startsWith("/blog") && headingsSignal.value.length > 0 && (isOpen ? "⌄" : "⌃")}
         </button>
       </div>
 
       {/* Drop-Up Content */}
-      <div
-        class={`absolute bottom-full left-0 w-full bg-bgPurple rounded-t-md z-50 space-y-2 p-4 transition-opacity duration-300 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      >
+      <div class="p-4 shadow-lg">
         <ul>
           {currentPage === "/" &&
             (headingsSignal.value as IndexLink[]).map((post, index) => {
@@ -81,5 +82,6 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavNa
     </div>
   );
 }
+
 
 
