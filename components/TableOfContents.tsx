@@ -1,12 +1,12 @@
 import { JSX } from "preact/jsx-runtime";
 import { HeadingInfo } from "./BlogRendererSS.tsx";
-import { burstTextColors } from "../static/colors.ts";
 
 interface TableOfContentsProps {
-    headings: HeadingInfo[];
+  headings: HeadingInfo[];
+  onLinkClick?: () => void; // Optional callback to handle link click
 }
 
-export default function TableOfContents({ headings }: TableOfContentsProps): JSX.Element {
+export default function TableOfContents({ headings, onLinkClick }: TableOfContentsProps): JSX.Element {
   return (
     <ul class="space-y-2">
       {headings.map(({ id, text, level }) => (
@@ -22,6 +22,7 @@ export default function TableOfContents({ headings }: TableOfContentsProps): JSX
           {/* Link */}
           <a
             href={`#${id}`}
+            onClick={onLinkClick || undefined} // Safely call the function if provided
             dangerouslySetInnerHTML={{ __html: text }}
             class="block text-accGreen font-medium hover:text-accRed transition-colors duration-300"
             style={{
@@ -34,4 +35,3 @@ export default function TableOfContents({ headings }: TableOfContentsProps): JSX
     </ul>
   );
 }
-

@@ -15,7 +15,7 @@ export const burstColors = {
     transGray:     "rgba(105, 105, 105, 0.6)",
     trans2Gray:    "rgba(105, 105, 105, 0.3)",
     termBack1:     "rgb(31, 31, 31)",
-    subtitles2:  "rgb(255, 144, 84)",
+    subtitles2:    "rgb(255, 144, 84)",
 }
 
 export const burstTextColors = {
