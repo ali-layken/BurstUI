@@ -4,6 +4,7 @@ import BackButton3D from "../../islands/BackButton3D.tsx";
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { Handlers, PageProps } from "$fresh/server.ts";
+import { linklist } from "../../utils/linklist.ts";
 
 interface BlogProps {
   content: string;
@@ -11,6 +12,8 @@ interface BlogProps {
   modifiedTime: string;
   title: string;
 }
+
+const TitleHeaderID = 'PostTitle';
 
 export const handler: Handlers = {
   GET(_req, ctx) {
@@ -56,10 +59,11 @@ export default function Blog(props: PageProps) {
   // Parse Markdown server-side
   const renderedMarkdown = BlogPostRenderer(postProps.content);
 
+  linklist.value.unshift({  id: TitleHeaderID, text: "(Top)", level: 1})
   return (
     <>
       <header class="mb-4">
-        <h1 class="text-5xl font-bold mb-2">{postProps.title}</h1>
+        <h1 id="PostTitle" class="text-5xl font-bold mb-2 scroll-mt-24">{postProps.title}</h1>
         <p class="text-sm text-subtitles">
           Created: {postProps.createdTime} | Last Edited: {postProps.modifiedTime}
         </p>
