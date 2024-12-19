@@ -95,7 +95,7 @@ export default function BackButton3D() {
 
   // Navigate back to the home page
   const handleClick = () => {
-    window.location.href = "/";
+    globalThis.window.location.href = "/";
   };
 
   return (
