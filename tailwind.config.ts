@@ -23,6 +23,9 @@ export default {
     typography: {
       DEFAULT: {
         css: {
+          'h1, h2, h3, h4, h5, h6': {
+            scrollMarginTop: '6rem', // Adjust for desired spacing
+          },
           h1: {
             color: "#F46036", // Custom color for h1
             fontSize: "2.25rem", // Custom size
