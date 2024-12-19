@@ -4,7 +4,7 @@ import { isNarrow } from "../utils/screensize.ts";
 export default function ResizeDetector(): null {
   useEffect(() => {
     const updateScreenSize = () => {
-      isNarrow.value = globalThis.window.innerWidth <= 1338; // Adjust breakpoint as needed
+      isNarrow.value = globalThis.window.innerWidth <= 1371; // Adjust breakpoint as needed
     };
 
     updateScreenSize(); // Initial check
