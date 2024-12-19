@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.marked-emoji-img {
+  display: inline-block;
+  width: 1em; /* Adjust size */
+  height: 1em; /* Match width */
+  vertical-align: middle; /* Align with text */
+}

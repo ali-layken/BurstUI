@@ -6,6 +6,7 @@ import hljs from "highlight.js";
 import { Octokit } from "@octokit/rest";
 import { burstColors, burstTextColors } from "../static/colors.ts";
 import { JSX } from "preact/jsx-runtime";
+import { linklist } from "../utils/linklist.ts";
 
 export interface HeadingInfo { id: string; text: string; level: number }
 interface RendererResult {
@@ -52,17 +53,17 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
     case 3:
       return `
         <div style="height: 1rem; display: block;"></div>
-        <${tag} id="${id}" class="group">${text}<a href="#${id}" class="ml-2 text-subtitles text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">🔗</a><hr style="width: 75%; margin: 0rem 0 0.5rem; text-align: left;" /></${tag}>
+        <${tag} id="${id}">${text}<hr style="width: 75%; margin: 0rem 0 0.5rem; text-align: left;" /></${tag}>
     `;
     case 4:
       return `
         <div style="height: 1rem; display: block;"></div>
-        <${tag} id="${id}" class="group">${text}<a href="#${id}" class="ml-2 text-subtitles text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">🔗</a></${tag}>
+        <${tag} id="${id}">${text}</${tag}>
     `;
     default:
       return `
       <div style="height: 1rem; display: block;"></div>
-      <${tag} id="${id}" class="group">${text}<a href="#${id}" class="ml-2 text-subtitles text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">🔗</a></${tag}>
+      <${tag} id="${id}">${text}</${tag}>
       `;
   }
 };
@@ -128,7 +129,7 @@ export default function BlogPostRenderer(content: string): RendererResult {
       return `<div id="component-${componentName}" data-component="${componentName}"></div>`;
     }),
   );
-
+  linklist.value = headings
   return {
     renderedContent: (
       <article class="prose lg:prose-xl custom-prose mx-auto">
