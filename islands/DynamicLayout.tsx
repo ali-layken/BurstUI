@@ -19,11 +19,14 @@ export default function DynamicLayout(
     case true:
       return (
         <div class="min-h-screen w-full bg-bgPurple flex flex-col items-center">
-          <div class="flex-2 sticky top-0 z-50 w-full max-w-4xl">
-            <SiteNavNarrow currentPage={currentPage} headingsSignal={headingsSignal} />
-          </div>
-          <div class="flex-1 w-full max-w-4xl px-4 py-8 mt-4 bg-bgAqua rounded-md shadow-lg">
+          {/* Main Content */}
+          <div class="flex-1 w-full max-w-4xl px-4 py-8 bg-bgAqua rounded-md shadow-lg">
             {children}
+          </div>
+
+          {/* Sticky Bottom Navigation */}
+          <div class="w-full max-w-4xl">
+            <SiteNavNarrow currentPage={currentPage} headingsSignal={headingsSignal} />
           </div>
         </div>
       );
@@ -45,6 +48,6 @@ export default function DynamicLayout(
         </div>
       );
     default:
-      return <div class="min-h-screen bg-bgPurple flex flex-col items-center justify-start" />
+      return <div class="min-h-screen bg-bgPurple flex flex-col items-center justify-start" />;
   }
 }
