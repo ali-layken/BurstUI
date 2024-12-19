@@ -14,11 +14,9 @@ export default function App({ Component, route }: PageProps): JSX.Element {
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
-        <div class="min-h-screen bg-bgPurple flex flex-col items-center justify-start">
         <DynamicLayout currentPage={route} headingsSignal={linklist}>
           <Component />
         </DynamicLayout>
-        </div>
         <ResizeDetector />
       </body>
     </html>
