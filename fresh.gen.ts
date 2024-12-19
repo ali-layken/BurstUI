@@ -10,8 +10,11 @@ import * as $cube from "./routes/cube.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $BackButton3D from "./islands/BackButton3D.tsx";
 import * as $CopyableCodeBlock from "./islands/CopyableCodeBlock.tsx";
+import * as $DynamicLayout from "./islands/DynamicLayout.tsx";
 import * as $DynamicMarkdownItem from "./islands/DynamicMarkdownItem.tsx";
+import * as $ResizeDetector from "./islands/ResizeDetector.tsx";
 import * as $SiteNav from "./islands/SiteNav.tsx";
+import * as $SiteNavNarrow from "./islands/SiteNavNarrow.tsx";
 import * as $SpinningCube from "./islands/SpinningCube.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -27,8 +30,11 @@ const manifest = {
   islands: {
     "./islands/BackButton3D.tsx": $BackButton3D,
     "./islands/CopyableCodeBlock.tsx": $CopyableCodeBlock,
+    "./islands/DynamicLayout.tsx": $DynamicLayout,
     "./islands/DynamicMarkdownItem.tsx": $DynamicMarkdownItem,
+    "./islands/ResizeDetector.tsx": $ResizeDetector,
     "./islands/SiteNav.tsx": $SiteNav,
+    "./islands/SiteNavNarrow.tsx": $SiteNavNarrow,
     "./islands/SpinningCube.tsx": $SpinningCube,
   },
   baseUrl: import.meta.url,
