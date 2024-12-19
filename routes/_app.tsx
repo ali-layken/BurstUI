@@ -1,7 +1,10 @@
 import { type PageProps } from "$fresh/server.ts";
 import { JSX } from "preact/jsx-runtime";
+import SiteNav from "../islands/SiteNav.tsx";
+import { useRef } from "preact/hooks"; 
+import { linklist } from "../utils/linklist.ts";
 
-export default function App({ Component }: PageProps) {
+export default function App({ Component, route, }: PageProps) {
   return (
     <html>
       <head>
@@ -12,14 +15,18 @@ export default function App({ Component }: PageProps) {
       </head>
       <body>
         {/* Outer wrapper to maintain purple background */}
-        <div class="min-h-screen bg-bgPurple flex flex-col items-center justify-center">
+        <div class="min-h-screen bg-bgPurple flex flex-col items-center justify-start">
           {/* Add space above */}
           <div class="h-12 bg-bgPurple"></div>
 
-          {/* Container with padding to ensure purple border */}
-          <div class="max-w-4xl w-full px-4">
-            {/* Aqua middle div */}
-            <div class="w-full px-8 py-8 bg-bgAqua rounded-md shadow-lg">
+          {/* Flex container */}
+          <div class="max-w-full w-full px-4 flex gap-8 justify-center">
+            {/* Left smaller div */}
+            <div class="flex-2 px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex items-center justify-center">
+              <SiteNav currentPage={route} headingsSignal={linklist}/>
+            </div>
+            {/* Right larger div */}
+            <div class="flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg">
               <Component />
             </div>
           </div>
