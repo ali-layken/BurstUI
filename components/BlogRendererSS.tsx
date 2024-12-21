@@ -4,9 +4,10 @@ import { markedEmoji, MarkedEmojiOptions } from "marked-emoji";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
 import { Octokit } from "@octokit/rest";
-import { burstColors, burstTextColors } from "../static/colors.ts";
+import { burstTextColors } from "../static/colors.ts";
 import { JSX } from "preact/jsx-runtime";
 import { linklist } from "../utils/linklist.ts";
+import { TitleHeaderID } from "../routes/blog/[postname].tsx";
 
 export interface HeadingInfo { id: string; text: string; level: number }
 interface RendererResult {
@@ -129,6 +130,7 @@ export default function BlogPostRenderer(content: string): RendererResult {
       return `<div id="component-${componentName}" data-component="${componentName}"></div>`;
     }),
   );
+  headings.unshift({  id: TitleHeaderID, text: "(Top)", level: 1})
   linklist.value = headings
   return {
     renderedContent: (
