@@ -1,18 +1,13 @@
 import { useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { Signal } from "@preact/signals";
-import { LinkList } from "../utils/linklist.ts";
 import { IndexLink } from "../routes/index.tsx";
 import BackButton3D from "./BackButton3D.tsx";
 import TableOfContents from "../components/TableOfContents.tsx";
 import { HeadingInfo } from "../components/BlogRendererSS.tsx";
+import { SiteNavProps } from "./SiteNav.tsx";
 
-type SiteNavNarrowProps = {
-  currentPage: string;
-  headingsSignal: Signal<LinkList[]>;
-};
 
-export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavNarrowProps): JSX.Element {
+export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
