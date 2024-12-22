@@ -36,7 +36,6 @@ export default async function Home() {
         too!
       </p>
       <SpinningCube />
-      <div style="height: 0.75rem; display: block;"></div>
     </>
   );
 }
