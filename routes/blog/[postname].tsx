@@ -1,69 +1,75 @@
-import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
+import { Handlers, PageProps } from "$fresh/server.ts";
+import { join } from "$std/path/mod.ts";
 import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import BackButton3D from "../../islands/BackButton3D.tsx";
-import { readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
 
 interface BlogProps {
   content: string;
-  createdTime: string;
-  modifiedTime: string;
+  createdTime: string | null;
+  modifiedTime: string | null;
   title: string;
 }
 
-export const TitleHeaderID: string = 'PostTitle';
+export const TitleHeaderID: string = "PostTitle";
 
 export const handler: Handlers = {
-  GET(_req, ctx) {
-    const blogpost: BlogProps | null = fetchBlogpost(ctx.params.postname);
+  async GET(_req, ctx) {
+    const blogpost: BlogProps | null = await fetchBlogpost(ctx.params.postname);
     if (!blogpost) {
       return ctx.renderNotFound({
         custom: "prop",
       });
     }
-    return ctx.render({blogpost });
+    return ctx.render({ blogpost });
   },
 };
 
-const fetchBlogpost = (slug: string): BlogProps | null => {
+const fetchBlogpost = async (slug: string): Promise<BlogProps | null> => {
   const filePath = join(Deno.cwd(), "posts", `${slug}.md`);
-  let content: string;
-  let createdTime;
-  let modifiedTime;
 
   try {
-    const fileStats = statSync(filePath);
+    // Check if file exists and fetch stats
+    const fileStats = await Deno.stat(filePath);
+    const content = await Deno.readTextFile(filePath);
 
-    content = readFileSync(filePath, "utf-8");
-    createdTime = new Date(fileStats.birthtime).toLocaleString();
-    modifiedTime = new Date(fileStats.mtime).toLocaleString();
-  } catch {
+    const createdTime = fileStats.birthtime
+      ? new Date(fileStats.birthtime).toLocaleString()
+      : null; // Use null if birthtime is not available
+
+    const modifiedTime = fileStats.mtime
+      ? new Date(fileStats.mtime).toLocaleString()
+      : null;
+
+    // Use the slug as the title
+    const title = slug.replace(/_/g, " ").toUpperCase();
+
+    return {
+      content,
+      createdTime,
+      modifiedTime,
+      title,
+    };
+  } catch (error) {
+    console.error(`Error fetching blogpost '${slug}':`, error);
     return null;
   }
-
-  // Use the parameter as the title
-  const title = slug.replace(/_/g, " ").toUpperCase();
-  return {
-    content: content,
-    createdTime: createdTime,
-    modifiedTime: modifiedTime,
-    title: title
-  }
-}
+};
 
 export default function Blog(props: PageProps) {
+  const postProps = props.data.blogpost;
 
-  const postProps = props.data.blogpost
-  // Parse Markdown server-side
+  // Rendered Markdown (example, replace with your renderer)
   const renderedMarkdown = BlogPostRenderer(postProps.content);
 
   return (
     <>
       <header class="mb-4">
-        <h1 id="PostTitle" class="text-5xl font-bold mb-2 scroll-mt-24">{postProps.title}</h1>
+        <h1 id="PostTitle" class="text-5xl font-bold mb-2 scroll-mt-24">
+          {postProps.title}
+        </h1>
         <p class="text-sm text-subtitles">
-          Created: {postProps.createdTime} | Last Edited: {postProps.modifiedTime}
+          Created: {postProps.createdTime || "N/A"} | Last Edited: {postProps.modifiedTime || "N/A"}
         </p>
       </header>
       {renderedMarkdown.renderedContent}
