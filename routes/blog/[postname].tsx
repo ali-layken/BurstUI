@@ -70,7 +70,7 @@ export default function Blog(props: PageProps) {
           {postProps.title}
         </h1>
         <p class="text-sm text-subtitles">
-          Created: {postProps.createdTime || "N/A"} | Last Edited: {postProps.modifiedTime || "N/A"}
+          Last Edited: {postProps.modifiedTime || "N/A"}
         </p>
       </header>
       {renderedMarkdown.renderedContent}
