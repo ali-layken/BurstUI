@@ -33,8 +33,8 @@ const fetchBlogpost = async (slug: string): Promise<BlogProps | null> => {
     const fileStats = await Deno.stat(filePath);
     const content = await Deno.readTextFile(filePath);
 
-    const createdTime = fileStats.birthtime
-      ? new Date(fileStats.birthtime).toLocaleString()
+    const createdTime = fileStats.ctime
+      ? fileStats.ctime.toLocaleString()
       : null; // Use null if birthtime is not available
 
     const modifiedTime = fileStats.mtime
