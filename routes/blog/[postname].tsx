@@ -32,6 +32,7 @@ const fetchBlogpost = async (slug: string): Promise<BlogProps | null> => {
     // Check if file exists and fetch stats
     const fileStats = await Deno.stat(filePath);
     const content = await Deno.readTextFile(filePath);
+    console.log("avail stats: ", fileStats);
 
     const createdTime = fileStats.ctime
       ? fileStats.ctime.toLocaleString()
