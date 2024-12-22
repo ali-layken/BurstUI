@@ -1,10 +1,7 @@
-import { type PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import { JSX } from "preact/jsx-runtime";
-import DynamicLayout from "../islands/DynamicLayout.tsx";
-import ResizeDetector from "../islands/ResizeDetector.tsx";
-import { linklist } from "../utils/linklist.ts";
 
-export default function App({ Component, route }: PageProps): JSX.Element {
+export default function App({ Component }: PageProps): JSX.Element {
   return (
     <html>
       <head>
@@ -14,10 +11,7 @@ export default function App({ Component, route }: PageProps): JSX.Element {
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
-        <DynamicLayout currentPage={route} headingsSignal={linklist}>
-          <Component />
-        </DynamicLayout>
-        <ResizeDetector />
+        <Component />
       </body>
     </html>
   );

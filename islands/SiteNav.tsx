@@ -1,4 +1,3 @@
-import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { Signal } from "@preact/signals";
 import { LinkList } from "../utils/linklist.ts";
@@ -7,13 +6,13 @@ import BackButton3D from "./BackButton3D.tsx";
 import TableOfContents from "../components/TableOfContents.tsx";
 import { HeadingInfo } from "../components/BlogRendererSS.tsx";
 
-type SidebarProps = {
+export type SiteNavProps = {
   currentPage: string;
   headingsSignal: Signal<LinkList[]>;
 };
 
 export default function SiteNav(
-  { currentPage, headingsSignal }: SidebarProps,
+  { currentPage, headingsSignal }: SiteNavProps,
 ): JSX.Element {
   switch (currentPage) {
     case "/":
