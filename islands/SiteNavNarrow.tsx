@@ -32,7 +32,7 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavPr
 
       {/* Drop-Up Content */}
       <div class="p-4 shadow-lg">
-        <ul>
+        <ul class="space-y-4">
           {currentPage === "/" &&
             (headingsSignal.value as IndexLink[]).map((post, index) => {
               const isEven = index % 2 === 0;
