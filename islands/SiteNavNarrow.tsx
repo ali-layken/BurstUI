@@ -11,6 +11,7 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavPr
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+  console.log("Rendering SiteNavNarrow with props:", { currentPage, headingsSignal });
 
   return (
     <div
