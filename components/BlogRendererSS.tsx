@@ -84,17 +84,16 @@ const marked = new Marked(
         return `<div class="code-line relative group">
                   <span 
                     class="absolute group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style="top: 9.75px; left: -10.5px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
+                    style="top: 5px; left: -10.5px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
                   </span>
-                  <span class="pl-2 truncate">${line}</span> <!-- Added truncate to prevent overflow -->
+                  <span class="pl-2 text-xs">${line}</span>
                   <span 
                     class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
                     data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
                     title="Copy Button">📋</span>
                 </div>`;
       });
-      
-      
+
       return `<div data-component="CopyableCodeBlock" data-lang="${language}" data-code="${encodeURIComponent(code)}">${linesWithButtons.join("")}</div>`;
     },
   }),
@@ -111,6 +110,10 @@ const gitEmojis = res.data;
 const customEmojis = {
   "arch_linux":
     "https://github.com/archlinux/archweb/blob/master/sitestatic/favicon.png?raw=true",
+  "google_logo":
+    "https://www.google.com/favicon.ico",
+  "apple_logo":
+    "https://www.apple.com/favicon.ico"
 };
 
 const options: MarkedEmojiOptions = {

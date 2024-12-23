@@ -19,10 +19,15 @@
     ".vscode/tailwind.json"
   ],
   "cSpell.words": [
+    "distro",
+    "hostnames",
+    "Hotspot",
     "ogalt",
     "postname",
     "screensize",
-    "shellsession"
+    "shellsession",
+    "tailnet",
+    "Tailscale"
   ],
   "grammarly.selectors": [
     {
