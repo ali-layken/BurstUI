@@ -6,5 +6,5 @@
   display: inline-block;
   width: 1em; /* Adjust size */
   height: 1em; /* Match width */
-  vertical-align: middle; /* Align with text */
+  vertical-align: -0.2em; /* Align with text */
 }
