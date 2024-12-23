@@ -43,7 +43,7 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
       backgroundDiv?.classList.remove("justify-start");
       wideTopDiv?.classList.remove("h-12", "bg-bgPurple");
       if (mainDiv) {
-        mainDiv.className = "flex-1 w-full max-w-4xl px-4 py-8 bg-bgAqua rounded-md shadow-lg";
+        mainDiv.className = "flex-1 w-full max-w-4xl px-5 py-8 bg-bgAqua rounded-md shadow-lg";
       }
       if (wideNavDiv) {
         wideNavDiv.innerHTML = "";
@@ -62,7 +62,7 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
       backgroundDiv?.classList.add("justify-start");
       wideTopDiv?.classList.add("h-12", "bg-bgPurple");
       if (mainDiv) {
-        mainDiv.className = "max-w-full w-full px-4 flex gap-8 justify-center";
+        mainDiv.className = "max-w-full w-full px-5 flex gap-8 justify-center";
       }
       if (wideNavDiv) {
         wideNavDiv.className = "flex-2 min-w-80 px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex items-center justify-center";
