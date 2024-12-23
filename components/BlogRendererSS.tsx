@@ -23,6 +23,9 @@ customRenderer.link = ({ href, title, text }): string => {
     const safeHref = href ?? "#";
     const safeTitle = title ? `title="${title}"` : "";
     text = marked.parseInline(text) as string;
+    if(text.endsWith('notab')){
+      return `<a href="${safeHref}" ${safeTitle} rel="noopener noreferrer">${text.replace('notab', '')}</a>`;
+    }
     return `<a href="${safeHref}" ${safeTitle} target="_blank" rel="noopener noreferrer">${text}</a>`;
   } catch (error){
     console.log(error);
