@@ -111,14 +111,15 @@ export default {
           ol: {
             "list-style-type": "decimal", // Ensure ordered list numbering
             "padding-left": "3rem", // Increase indentation for ordered lists
+            "padding-right": "3rem"
           },
           pre: {
             "@apply overflow-hidden whitespace-pre-wrap break-words p-4": {},
-            paddingLeft: "3.5rem",
-            paddingRight: "3.5rem",
+            paddingLeft: "1rem",
+            paddingRight: "1rem",
             "code.hljs": {
               "@apply rounded-t-lg": {},
-              padding: "1.75rem 2.25rem 0rem",
+              padding: "1.75rem 2rem 0rem",
             },
           },
           ".code-line": {
