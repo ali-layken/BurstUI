@@ -32,9 +32,10 @@ const fetchBlogpost = async (slug: string): Promise<BlogProps | null> => {
     // Check if file exists and fetch stats
     const fileStats = await Deno.stat(filePath);
     const content = await Deno.readTextFile(filePath);
+    console.log("avail stats: ", fileStats);
 
-    const createdTime = fileStats.birthtime
-      ? new Date(fileStats.birthtime).toLocaleString()
+    const createdTime = fileStats.ctime
+      ? fileStats.ctime.toLocaleString()
       : null; // Use null if birthtime is not available
 
     const modifiedTime = fileStats.mtime
@@ -69,7 +70,7 @@ export default function Blog(props: PageProps) {
           {postProps.title}
         </h1>
         <p class="text-sm text-subtitles">
-          Created: {postProps.createdTime || "N/A"} | Last Edited: {postProps.modifiedTime || "N/A"}
+          Last Edited: {postProps.modifiedTime || "N/A"}
         </p>
       </header>
       {renderedMarkdown.renderedContent}
