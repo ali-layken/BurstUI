@@ -54,6 +54,12 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
   headings.push({ id, text: tocHtml, level: depth }); // Add heading to TOC array
 
   switch (depth) {
+    case 2:
+      return `
+        <div style="height: 1rem; display: block;"></div>
+        <${tag} id="${id}">${text}</${tag}>
+        <div style="height: 1rem; display: block;"></div>
+    `;
     case 3:
       return `
         <div style="height: 1rem; display: block;"></div>
