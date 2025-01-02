@@ -4,7 +4,7 @@ import { linklist } from "../utils/linklist.ts";
 
 export interface IndexLink { 
   name: string;
-  createdAt: Date; 
+  modifiedAt: Date; 
 }
 
 export default async function Home() {
@@ -17,12 +17,12 @@ export default async function Home() {
       const stat = await Deno.stat(filePath);
       posts.push({
         name: entry.name.slice(0, -3),
-        createdAt: stat.birthtime ?? new Date(),
+        modifiedAt: stat.mtime ?? new Date(),
       });
     }
   }
 
-  posts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  posts.sort((a, b) => a.modifiedAt.getTime() - b.modifiedAt.getTime());
   linklist.value = posts;
 
   return (
