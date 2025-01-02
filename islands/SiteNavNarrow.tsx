@@ -56,7 +56,7 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavPr
 
                   {/* Right Section: Timestamp */}
                   <time class="text-xs ml-4 mt-1">
-                    {new Date(post.createdAt).toLocaleString()}
+                    {new Date(post.modifiedAt).toLocaleString()}
                   </time>
                 </li>
               );

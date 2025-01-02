@@ -6,7 +6,6 @@ import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
 
 interface BlogProps {
   content: string;
-  createdTime: string | null;
   modifiedTime: string | null;
   title: string;
 }
@@ -32,7 +31,6 @@ const fetchBlogpost = async (slug: string): Promise<BlogProps | null> => {
     // Check if file exists and fetch stats
     const fileStats = await Deno.stat(filePath);
     const content = await Deno.readTextFile(filePath);
-    console.log("avail stats: ", fileStats);
 
     const createdTime = fileStats.ctime
       ? fileStats.ctime.toLocaleString()
@@ -47,7 +45,6 @@ const fetchBlogpost = async (slug: string): Promise<BlogProps | null> => {
 
     return {
       content,
-      createdTime,
       modifiedTime,
       title,
     };
@@ -70,7 +67,7 @@ export default function Blog(props: PageProps) {
           {postProps.title}
         </h1>
         <p class="text-sm text-subtitles">
-          Last Edited: {postProps.modifiedTime || "N/A"}
+        Last Edited: {postProps.modifiedTime || "N/A"}
         </p>
       </header>
       {renderedMarkdown.renderedContent}

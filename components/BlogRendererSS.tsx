@@ -116,7 +116,11 @@ const customEmojis = {
   "google_logo":
     "https://www.google.com/favicon.ico",
   "apple_logo":
-    "https://www.apple.com/favicon.ico"
+    "https://www.apple.com/favicon.ico",
+  "r_pi":
+    "https://www.raspbian.org/static/favicon.ico",
+  "debian_logo":
+    "https://www.debian.org/favicon.ico"
 };
 
 const options: MarkedEmojiOptions = {
