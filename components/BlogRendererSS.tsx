@@ -8,6 +8,7 @@ import { burstTextColors } from "../static/colors.ts";
 import { JSX } from "preact/jsx-runtime";
 import { linklist } from "../utils/linklist.ts";
 import { TitleHeaderID } from "../routes/blog/[postname].tsx";
+import { stringToIdentifier } from "$fresh/src/server/init_safe_deps.ts";
 
 export interface HeadingInfo { id: string; text: string; level: number }
 interface RendererResult {
@@ -53,27 +54,21 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
   const tocHtml = text.replace(/<a[^>]*>(.*?)<\/a>/g, "$1");
   headings.push({ id, text: tocHtml, level: depth }); // Add heading to TOC array
 
+  const leftPad = `style="padding-left: ${depth}rem"`
+
   switch (depth) {
-    case 2:
+    case 1:
       return `
-        <div style="height: 1rem; display: block;"></div>
         <${tag} id="${id}">${text}</${tag}>
-        <div style="height: 1rem; display: block;"></div>
     `;
     case 3:
       return `
-        <div style="height: 1rem; display: block;"></div>
-        <${tag} id="${id}">${text}<hr style="width: 75%; margin: 0rem 0 0.5rem; text-align: left;" /></${tag}>
-    `;
-    case 4:
-      return `
-        <div style="height: 1rem; display: block;"></div>
-        <${tag} id="${id}">${text}</${tag}>
+        <${tag} id="${id}" ${leftPad}>${text}</${tag}>
+        <hr style="margin: -0.9rem 2rem 1rem 1.75rem; text-align: left;" />
     `;
     default:
       return `
-      <div style="height: 1rem; display: block;"></div>
-      <${tag} id="${id}">${text}</${tag}>
+      <${tag} id="${id}" ${leftPad}>${text}</${tag}>
       `;
   }
 };
@@ -146,7 +141,7 @@ export default function BlogPostRenderer(content: string): RendererResult {
       return `<div id="component-${componentName}" data-component="${componentName}"></div>`;
     }),
   );
-  headings.unshift({  id: TitleHeaderID, text: "(Top)", level: 1})
+  headings.unshift({  id: TitleHeaderID, text: "(Top)", level: 0})
   linklist.value = headings
   return {
     renderedContent: (

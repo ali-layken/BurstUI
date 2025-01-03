@@ -8,7 +8,7 @@ interface TableOfContentsProps {
 
 export default function TableOfContents({ headings, onLinkClick }: TableOfContentsProps): JSX.Element {
   return (
-    <ul class="space-y-2">
+    <ul class="space-y-2 px-5">
       {headings.map(({ id, text, level }) => (
         <li key={id} class="relative" style={{ paddingLeft: `${level * 1.2}rem` }}>
           {/* Vertical Line for Tree */}

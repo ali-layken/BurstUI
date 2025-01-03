@@ -25,11 +25,15 @@ export default {
         css: {
           'h1, h2, h3, h4, h5, h6': {
             scrollMarginTop: '6rem', // Adjust for desired spacing
+            margin: "1rem 0rem"
           },
           h1: {
-            color: "#F46036", // Custom color for h1
-            fontSize: "2.25rem", // Custom size
+            color: burstTextColors.subtitles,
+            fontSize: "2rem",
             fontWeight: "700",
+            strong: {
+              color: burstColors.accRed,
+            },
           },
           h2: {
             color: burstColors.accLiteGreen,
@@ -37,7 +41,9 @@ export default {
             fontWeight: "600",
             fontStyle: "italic;",
             textDecoration: "underline",
+            textDecorationColor: burstColors.creamTan,
             strong: {
+              fontWeight: "800",
               color: burstColors.accRed,
             },
           },
@@ -54,6 +60,7 @@ export default {
             paddingLeft: "1rem", // Add padding for 2-space indent
             strong: {
               color: burstColors.accRed,
+
             },
           },
           p: {
@@ -74,6 +81,10 @@ export default {
               borderRadius: "0.5rem",
               color: burstTextColors.white,
               overflowX: "auto",
+            },
+            strong: {
+              color: burstTextColors.transWhite,
+              fontWeight: "900"
             },
           },
           a: {
@@ -110,8 +121,7 @@ export default {
           },
           ol: {
             "list-style-type": "decimal", // Ensure ordered list numbering
-            "padding-left": "3rem", // Increase indentation for ordered lists
-            "padding-right": "3rem"
+            padding: "0rem 3rem"
           },
           pre: {
             "@apply overflow-hidden whitespace-pre-wrap break-words p-4": {},
