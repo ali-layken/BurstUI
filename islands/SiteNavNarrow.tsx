@@ -9,7 +9,7 @@ import { PageType, SiteNavProps } from "./SiteNav.tsx";
 export default function SiteNavNarrow(
   { currentPage, headingsSignal }: SiteNavProps,
 ): JSX.Element {
-  const [isOpen, setIsOpen] = useState(!(currentPage in PageType));
+  const [isOpen, setIsOpen] = useState(currentPage !== PageType[1]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
