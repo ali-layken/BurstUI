@@ -31,7 +31,7 @@ export default async function Home() {
       <div style="height: 0.75rem; display: block;"></div>
       <p class="text-accLiteGreen text-xl">
         <strong>Welcome</strong>, my <em>digitally wandering</em> visitor! This space is dedicated to turning my nonsensical &
-        spontaneous adventures into something you can benefit from! If I ever do something cool,
+        spontaneous adventures into something you can benefit from. If I ever do something cool,
         I truly want you to be able to do it too!
       </p>
       <SpinningCube />
