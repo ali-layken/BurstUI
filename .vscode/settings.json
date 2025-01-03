@@ -19,10 +19,12 @@
     ".vscode/tailwind.json"
   ],
   "cSpell.words": [
+    "blockable",
     "distro",
     "hostnames",
     "Hotspot",
     "ogalt",
+    "phonebook",
     "postname",
     "screensize",
     "shellsession",
