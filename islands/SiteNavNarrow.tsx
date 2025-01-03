@@ -4,11 +4,12 @@ import { IndexLink } from "../routes/index.tsx";
 import BackButton3D from "./BackButton3D.tsx";
 import TableOfContents from "../components/TableOfContents.tsx";
 import { HeadingInfo } from "../components/BlogRendererSS.tsx";
-import { SiteNavProps } from "./SiteNav.tsx";
+import { PageType, SiteNavProps } from "./SiteNav.tsx";
 
-
-export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavProps): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false);
+export default function SiteNavNarrow(
+  { currentPage, headingsSignal }: SiteNavProps,
+): JSX.Element {
+  const [isOpen, setIsOpen] = useState(!(currentPage in PageType));
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -24,59 +25,73 @@ export default function SiteNavNarrow({ currentPage, headingsSignal }: SiteNavPr
           class="bg-accRed text-white px-4 py-2 rounded-t-lg"
           onClick={toggleMenu}
         >
-          {currentPage === "/" && "≡ Posts"}
-          {currentPage.startsWith("/blog") && headingsSignal.value.length > 0 && (isOpen ? "⌄" : "⌃")}
+          {currentPage == PageType[0] ? "≡ Posts" : (isOpen ? "⌄" : "⌃")}
         </button>
       </div>
 
       {/* Drop-Up Content */}
       <div class="p-4 shadow-lg">
-        <ul class="space-y-4">
-          {currentPage === "/" &&
-            (headingsSignal.value as IndexLink[]).map((post, index) => {
-              const isEven = index % 2 === 0;
+        {(() => {
+          switch (currentPage) {
+            case PageType[0]:
               return (
-                <li
-                  key={post.name}
-                  class={`flex justify-between items-center w-full text-sm ${
-                    isEven ? "text-subtitles" : "text-accYellow"
-                  }`}
-                >
-                  {/* Left Section: Post Number and Name */}
-                  <div class="flex items-baseline space-x-2">
-                    <span class="font-bold">{index + 1}.</span>
-                    <a
-                      href={`/blog/${post.name}`}
-                      class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200"
-                      onClick={() => setIsOpen(false)} // Close menu on click
-                    >
-                      {post.name.replace(/_/g, " ")}
-                    </a>
-                  </div>
+                <ul class="space-y-4">
+                  {(headingsSignal.value as IndexLink[]).map((post, index) => {
+                    const isEven = index % 2 === 0;
+                    return (
+                      <li
+                        key={post.name}
+                        class={`flex justify-between items-center w-full text-sm ${
+                          isEven ? "text-subtitles" : "text-accYellow"
+                        }`}
+                      >
+                        {/* Left Section: Post Number and Name */}
+                        <div class="flex items-baseline space-x-2">
+                          <span class="font-bold">{index + 1}.</span>
+                          <a
+                            href={`/blog/${post.name}`}
+                            class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200"
+                            onClick={() => setIsOpen(false)} // Close menu on click
+                          >
+                            {post.name.replace(/_/g, " ")}
+                          </a>
+                        </div>
 
-                  {/* Right Section: Timestamp */}
-                  <time class="text-xs ml-4 mt-1">
-                    {new Date(post.modifiedAt).toLocaleString()}
-                  </time>
-                </li>
+                        {/* Right Section: Timestamp */}
+                        <time class="text-xs ml-4 mt-1">
+                          {new Date(post.modifiedAt).toLocaleString()}
+                        </time>
+                      </li>
+                    );
+                  })}
+                </ul>
               );
-            })}
-          {currentPage.startsWith("/blog") && headingsSignal.value.length > 0 && (
-            <div>
-              <TableOfContents
-                headings={headingsSignal.value as HeadingInfo[]}
-                onLinkClick={() => setIsOpen(false)} // Close the menu on link click
-              />
-              <div class="flex items-center justify-center pt-2 pb-6">
-                <BackButton3D />
-              </div>
-            </div>
-          )}
-        </ul>
+            case PageType[1]:
+              return (
+                <ul class="space-y-4">
+                  {headingsSignal.value.length > 0 &&
+                    (
+                      <div>
+                        <TableOfContents
+                          headings={headingsSignal.value as HeadingInfo[]}
+                          onLinkClick={() => setIsOpen(false)} // Close the menu on link click
+                        />
+                        <div class="flex items-center justify-center pt-2 pb-6">
+                          <BackButton3D />
+                        </div>
+                      </div>
+                    )}
+                </ul>
+              );
+            default:
+              return (
+                <div class="flex items-center justify-center pt-2 pb-6">
+                  <BackButton3D />
+                </div>
+              );
+          }
+        })()}
       </div>
     </div>
   );
 }
-
-
-
