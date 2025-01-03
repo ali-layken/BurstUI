@@ -4,7 +4,7 @@ import { linklist } from "../utils/linklist.ts";
 
 export interface IndexLink { 
   name: string;
-  createdAt: Date; 
+  modifiedAt: Date; 
 }
 
 export default async function Home() {
@@ -17,12 +17,12 @@ export default async function Home() {
       const stat = await Deno.stat(filePath);
       posts.push({
         name: entry.name.slice(0, -3),
-        createdAt: stat.birthtime ?? new Date(),
+        modifiedAt: stat.mtime ?? new Date(),
       });
     }
   }
 
-  posts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  posts.sort((a, b) => a.modifiedAt.getTime() - b.modifiedAt.getTime());
   linklist.value = posts;
 
   return (
@@ -30,10 +30,9 @@ export default async function Home() {
       <h1 class="text-8xl text-black font-bold mb-2">Burst.</h1>
       <div style="height: 0.75rem; display: block;"></div>
       <p class="text-accLiteGreen text-xl">
-        This space is dedicated to brevity and clarity: turning my nonsensical &
-        spontaneous adventures into something you can grasp, benefit from, and
-        share. If I ever do something cool, I truly want you to be able to do it
-        too!
+        <strong>Welcome</strong>, my <em>digitally wandering</em> visitor! This space is dedicated to turning my nonsensical &
+        spontaneous adventures into something you can benefit from! If I ever do something cool,
+        I truly want you to be able to do it too!
       </p>
       <SpinningCube />
     </>

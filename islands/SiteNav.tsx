@@ -11,11 +11,17 @@ export type SiteNavProps = {
   headingsSignal: Signal<LinkList[]>;
 };
 
+export enum PageType {
+  "/",
+  "/blog/:postname",
+}
+
+
 export default function SiteNav(
   { currentPage, headingsSignal }: SiteNavProps,
 ): JSX.Element {
   switch (currentPage) {
-    case "/":
+    case PageType[0]:
       return (
         <ul class="space-y-4">
           {(headingsSignal.value as IndexLink[]).map((post, index) => {
@@ -48,14 +54,14 @@ export default function SiteNav(
                     isEven ? "text-subtitles" : "text-accYellow"
                   } ml-4 mt-1`}
                 >
-                  {new Date(post.createdAt).toLocaleString()}
+                  {new Date(post.modifiedAt).toLocaleString()}
                 </time>
               </li>
             );
           })}
         </ul>
       );
-    case "/blog/:postname":
+    case PageType[1]:
       return (headingsSignal.value.length
         ? (
           <div>
