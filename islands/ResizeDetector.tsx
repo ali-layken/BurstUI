@@ -10,7 +10,7 @@ interface ResizeDetectorProps extends SiteNavProps {
 }
 
 export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCookie }: ResizeDetectorProps): JSX.Element {
-  if (globalThis.window == undefined){
+  if (globalThis.globalThis == undefined){
     return <></>
   }
 
@@ -18,16 +18,16 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
 
   useEffect(() => {
     const updateScreenSize = () => {
-      const narrow = globalThis.window?.innerWidth <= 1371;
+      const narrow = globalThis.globalThis?.innerWidth <= 1371;
       setIsNarrow(narrow);
       document.cookie = `isNarrow=${narrow}; path=/; max-age=31536000;`;
     };
 
     updateScreenSize(); // Initial check
     
-    globalThis.window.addEventListener("resize", updateScreenSize);
+    globalThis.globalThis.addEventListener("resize", updateScreenSize);
 
-    return () => globalThis.window.removeEventListener("resize", updateScreenSize);
+    return () => globalThis.globalThis.removeEventListener("resize", updateScreenSize);
   }, []);
 
   useEffect(() => {

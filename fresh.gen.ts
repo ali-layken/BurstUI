@@ -9,6 +9,7 @@ import * as $api_joke from "./routes/api/joke.ts";
 import * as $blog_postname_ from "./routes/blog/[postname].tsx";
 import * as $cube from "./routes/cube.tsx";
 import * as $index from "./routes/index.tsx";
+import * as $AnimatedText3D from "./islands/AnimatedText3D.tsx";
 import * as $BackButton3D from "./islands/BackButton3D.tsx";
 import * as $CopyableCodeBlock from "./islands/CopyableCodeBlock.tsx";
 import * as $DynamicLayout from "./islands/DynamicLayout.tsx";
@@ -30,6 +31,7 @@ const manifest = {
     "./routes/index.tsx": $index,
   },
   islands: {
+    "./islands/AnimatedText3D.tsx": $AnimatedText3D,
     "./islands/BackButton3D.tsx": $BackButton3D,
     "./islands/CopyableCodeBlock.tsx": $CopyableCodeBlock,
     "./islands/DynamicLayout.tsx": $DynamicLayout,

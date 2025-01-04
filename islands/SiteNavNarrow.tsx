@@ -50,7 +50,7 @@ export default function SiteNavNarrow(
                           <span class="font-bold">{index + 1}.</span>
                           <a
                             href={`/blog/${post.name}`}
-                            class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200"
+                            class="text-accGreen hover:text-accRed hover:underline transition-colors font-serif duration-200"
                             onClick={() => setIsOpen(false)} // Close menu on click
                           >
                             {post.name.replace(/_/g, " ")}

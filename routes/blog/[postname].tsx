@@ -62,7 +62,7 @@ export default function Blog(props: PageProps) {
 
   return (
     <>
-      <header class="mb-2">
+      <header class="mb-2 text-center">
         <h1 id="PostTitle" class="text-5xl font-bold mb-2 scroll-mt-24 underline decoration-2">
           {postProps.title}
         </h1>

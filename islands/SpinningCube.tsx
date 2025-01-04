@@ -1,8 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
-import * as THREE from "@3d/three";
+import * as THREE from "three";
 import { burstColors, burstTextColors } from "../static/colors.ts";
-
-const ROT_SPEED: number = 0.004;
 
 export default function SpinningCube() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -21,7 +19,7 @@ export default function SpinningCube() {
     mount.appendChild(renderer.domElement);
 
     // Create a cube and add it to the scene
-    const geometry : THREE.BoxGeometry = new THREE.BoxGeometry(3, 3, 3);
+    const geometry: THREE.BoxGeometry = new THREE.BoxGeometry(3, 3, 3);
     const material = new THREE.MeshBasicMaterial({ color: burstColors.accRed });
     const cube = new THREE.Mesh(geometry, material);
 
@@ -41,11 +39,13 @@ export default function SpinningCube() {
 
     // Animation loop
     const animate = () => {
-      cubeGroup.rotation.x += ROT_SPEED;
-      cubeGroup.rotation.y += ROT_SPEED;
+      cubeGroup.rotation.x += 0.01; // Directly tied to frame rate
+      cubeGroup.rotation.y += 0.01;
       renderer.render(scene, camera);
+      requestAnimationFrame(animate); // Tied to refresh rate
     };
-    renderer.setAnimationLoop(animate);
+
+    animate(); // Start the animation loop
 
     // Handle window resize
     const handleResize = () => {
@@ -59,7 +59,6 @@ export default function SpinningCube() {
 
     // Clean up when the component is unmounted
     return () => {
-      renderer.setAnimationLoop(null);
       globalThis.removeEventListener("resize", handleResize);
       geometry.dispose();
       material.dispose();

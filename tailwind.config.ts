@@ -2,7 +2,7 @@ import { type Config } from "tailwindcss";
 import { burstColors, burstTextColors } from "./static/colors.ts";
 import typography from "@tailwindcss/typography";
 import twHLJS from "tailwind-highlightjs";
-import { colors } from "$fresh/src/server/deps.ts";
+
 
 export default {
   content: [
@@ -16,6 +16,9 @@ export default {
     extend: {
       colors: burstColors,
       textColor: burstTextColors,
+      fontFamily: {
+        'teko': ['Teko']
+      }
     },
     hljs: {
       theme: "base16/solarized-dark",

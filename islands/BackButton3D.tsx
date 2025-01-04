@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
-import * as THREE from "@3d/three";
+import * as THREE from "three";
 import { burstColors } from "../static/colors.ts";
 
 const SIZE = [100, 75];
@@ -11,6 +11,8 @@ export default function BackButton3D() {
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
+
+    let lastTime = 0;
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -58,15 +60,18 @@ export default function BackButton3D() {
 
     // Add hover animation
     let direction = 1;
-    const animate = () => {
+    const animate = (time: number) => {
+      const deltaTime = (time - lastTime) / 1000; // Time in seconds
+      lastTime = time;
+
       // Add slight up-down hover animation
-      group.position.y += 0.01 * direction;
+      group.position.y += deltaTime * 0.1 * direction;
       if (group.position.y > 0.2 || group.position.y < -0.2) {
         direction *= -1;
       }
 
       // Add slight rotation to show 3D depth
-      group.rotation.x += 0.01;
+      group.rotation.x += deltaTime * 0.1;
 
       // Adjust opacity and color based on hover state
       const targetOpacity = isHoveredRef.current ? 1 : 0.3;
@@ -75,8 +80,9 @@ export default function BackButton3D() {
       rectangleMaterial.color.set(isHoveredRef.current ? burstColors.accRed : burstColors.accYellow);
 
       renderer.render(scene, camera);
+      requestAnimationFrame(animate);
     };
-    renderer.setAnimationLoop(animate);
+    animate(0);
 
     // Cleanup
     return () => {
@@ -95,7 +101,7 @@ export default function BackButton3D() {
 
   // Navigate back to the home page
   const handleClick = () => {
-    globalThis.window.location.href = "/";
+    globalThis.globalThis.location.href = "/";
   };
 
   return (

@@ -8,3 +8,11 @@
   height: 1em; /* Match width */
   vertical-align: -0.2em; /* Align with text */
 }
+
+
+@layer base {
+  @font-face {
+    font-family: 'Teko';
+    src: url(./Teko/Teko-VariableFont_wght.ttf);
+  }
+}

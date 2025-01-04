@@ -1,14 +1,13 @@
-import { Tokens, Marked, Renderer } from "marked";
-import { markedSmartypantsLite } from "marked-smartypants-lite";
+import { Octokit } from "@octokit/rest";
+import hljs from "highlight.js";
+import { Marked, Renderer, Tokens } from "marked";
 import { markedEmoji, MarkedEmojiOptions } from "marked-emoji";
 import { markedHighlight } from "marked-highlight";
-import hljs from "highlight.js";
-import { Octokit } from "@octokit/rest";
-import { burstTextColors } from "../static/colors.ts";
+import { markedSmartypantsLite } from "marked-smartypants-lite";
 import { JSX } from "preact/jsx-runtime";
-import { linklist } from "../utils/linklist.ts";
 import { TitleHeaderID } from "../routes/blog/[postname].tsx";
-import { stringToIdentifier } from "$fresh/src/server/init_safe_deps.ts";
+import { burstTextColors } from "../static/colors.ts";
+import { linklist } from "../utils/linklist.ts";
 
 export interface HeadingInfo { id: string; text: string; level: number }
 interface RendererResult {
@@ -121,7 +120,13 @@ const customEmojis = {
   "r_pi":
     "https://www.raspbian.org/static/favicon.ico",
   "debian_logo":
-    "https://www.debian.org/favicon.ico"
+    "https://www.debian.org/favicon.ico",
+  "red_hat_logo":
+    "https://www.redhat.com/favicon.ico",
+  "chromium_logo":
+    "https://raw.githubusercontent.com/chromium/chromium/refs/heads/main/chrome/app/theme/chromium/product_logo_64.png",
+  "podman_logo":
+    "https://podman.io/logos/optimized/podman-3-logo-95w-90h.webp"
 };
 
 const options: MarkedEmojiOptions = {

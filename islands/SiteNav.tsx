@@ -42,7 +42,7 @@ export default function SiteNav(
                   </span>
                   <a
                     href={`/blog/${post.name}`}
-                    class="text-accGreen hover:text-accRed hover:underline text-base transition-colors duration-200"
+                    class="text-accGreen hover:text-accRed hover:underline text-base font-serif transition-colors duration-200"
                   >
                     {post.name.replace(/_/g, " ")}
                   </a>

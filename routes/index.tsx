@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import SpinningCube from "../islands/SpinningCube.tsx";
+import AnimatedText3D from "../islands/AnimatedText3D.tsx";
 import { linklist } from "../utils/linklist.ts";
 
 export interface IndexLink { 
@@ -27,14 +27,12 @@ export default async function Home() {
 
   return (
     <>
-      <h1 class="text-8xl text-black font-bold mb-2">Burst.</h1>
-      <div style="height: 0.75rem; display: block;"></div>
+      <AnimatedText3D text="Burst."  fontPath="/Teko/Teko-Light_Regular.json"/>
       <p class="text-accLiteGreen text-xl">
         <strong>Welcome</strong>, my <em>digitally wandering</em> visitor! This space is dedicated to turning my nonsensical &
         spontaneous adventures into something you can benefit from. If I ever do something cool,
         I truly want you to be able to do it too!
       </p>
-      <SpinningCube />
     </>
   );
 }

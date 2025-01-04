@@ -24,7 +24,7 @@ export default function TableOfContents({ headings, onLinkClick }: TableOfConten
             href={`#${id}`}
             onClick={onLinkClick || undefined} // Safely call the function if provided
             dangerouslySetInnerHTML={{ __html: text }}
-            class="block text-accGreen font-medium hover:text-accRed transition-colors duration-300"
+            class="block text-accGreen font-serif font-medium hover:text-accRed transition-colors duration-300"
             style={{
               fontSize: `${1.25 - level * 0.1}rem`, // Dynamically adjust font size
               fontWeight: `${700 - level * 100}`, // Make text weight lighter for deeper levels
