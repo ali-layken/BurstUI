@@ -16,6 +16,7 @@ const AnimatedText3D = ({
   useEffect(() => {
     let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
     let textGroup: THREE.Group;
+    let isTextVisible = false; // Track visibility
     let lastTime = 0;
 
     const init = () => {
@@ -54,19 +55,19 @@ const AnimatedText3D = ({
           bevelSize: 0.5,
         });
 
-        const textMaterial = new THREE.MeshStandardMaterial({ 
+        const textMaterial = new THREE.MeshStandardMaterial({
           color,
           transparent: true,
-          opacity: 0.8 
+          opacity: 0.8,
         });
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
         // Add white edges to the text
         const edges = new THREE.EdgesGeometry(textGeometry);
-        const lineMaterial = new THREE.LineBasicMaterial({ 
+        const lineMaterial = new THREE.LineBasicMaterial({
           color: burstTextColors.white,
           transparent: true,
-          opacity: 0.2 
+          opacity: 0.2,
         });
         const edgeLines = new THREE.LineSegments(edges, lineMaterial);
 
@@ -79,9 +80,11 @@ const AnimatedText3D = ({
           edgeLines.position.set(centerOffset, -40, 0);
         }
 
-
         textGroup.add(textMesh);
         textGroup.add(edgeLines);
+
+        // Mark text as visible
+        isTextVisible = true;
       });
 
       // Handle resize
@@ -103,8 +106,8 @@ const AnimatedText3D = ({
       const deltaTime = (time - lastTime) / 1000; // Convert time to seconds
       lastTime = time;
 
-      // Rotate text group at a consistent speed
-      if (textGroup) {
+      // Rotate text group only when it's fully visible
+      if (isTextVisible && textGroup) {
         textGroup.rotation.y += deltaTime * 0.5; // 0.5 radians per second
       }
 

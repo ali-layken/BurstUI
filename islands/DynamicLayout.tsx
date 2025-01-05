@@ -1,10 +1,10 @@
-import { isNarrow } from "../utils/screensize.ts";
-import { JSX } from "preact/jsx-runtime";
-import SiteNav from "./SiteNav.tsx";
-import SiteNavNarrow from "./SiteNavNarrow.tsx";
 import { Signal } from "@preact/signals";
 import { ComponentChildren } from "preact";
+import { JSX } from "preact/jsx-runtime";
 import { LinkList } from "../utils/linklist.ts";
+import { isNarrow } from "../utils/screensize.ts";
+import SiteNav from "./SiteNav.tsx";
+import SiteNavNarrow from "./SiteNavNarrow.tsx";
 
 interface DynamicLayoutProps {
   children: ComponentChildren; // Server-rendered content as children
@@ -32,7 +32,7 @@ export default function DynamicLayout(
         <div id="background-container" class="min-h-screen bg-bgPurple flex flex-col items-center justify-start">
           <div id="wide-top-container" class="h-12 bg-bgPurple"></div>
           <div id="main-container" class="max-w-full w-full px-4 flex gap-8 justify-center">
-            <div id="wide-nav-container" class="flex-2 px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex items-center justify-center">
+            <div id="wide-nav-container" class="flex-2 max-w-4xl px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex items-center justify-center">
               <SiteNav currentPage={currentPage} headingsSignal={headingsSignal} />
             </div>
             <div  id="component-container" class="flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg">

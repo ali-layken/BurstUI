@@ -65,13 +65,13 @@ export default function BackButton3D() {
       lastTime = time;
 
       // Add slight up-down hover animation
-      group.position.y += deltaTime * 0.1 * direction;
-      if (group.position.y > 0.2 || group.position.y < -0.2) {
+      group.position.y += deltaTime * 0.3 * direction;
+      if (group.position.y > 1 || group.position.y < -1) {
         direction *= -1;
       }
 
       // Add slight rotation to show 3D depth
-      group.rotation.x += deltaTime * 0.1;
+      group.rotation.x += deltaTime * 0.9;
 
       // Adjust opacity and color based on hover state
       const targetOpacity = isHoveredRef.current ? 1 : 0.3;
