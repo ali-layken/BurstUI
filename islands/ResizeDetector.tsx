@@ -65,7 +65,7 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
         mainDiv.className = "max-w-full w-full px-5 flex gap-8 justify-center";
       }
       if (wideNavDiv) {
-        wideNavDiv.className = "flex-2 w-[29rem] px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex items-center justify-center";
+        wideNavDiv.className = "flex-2 w-[29rem] px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
         render(
             <SiteNav currentPage={currentPage} headingsSignal={headingsSignal} />,
             wideNavDiv)
