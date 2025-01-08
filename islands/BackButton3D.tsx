@@ -5,7 +5,7 @@ import { burstColors } from "../static/colors.ts";
 const SIZE = [100, 75];
 
 export default function BackButton3D() {
-  const mountRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLAnchorElement>(null);
   const isHoveredRef = useRef(false); // Track hover state
 
   useEffect(() => {
@@ -59,16 +59,10 @@ export default function BackButton3D() {
     scene.add(group);
 
     // Add hover animation
-    let direction = 1;
     const animate = (time: number) => {
       const deltaTime = (time - lastTime) / 1000; // Time in seconds
       lastTime = time;
 
-      // Add slight up-down hover animation
-      group.position.y += deltaTime * 0.3 * direction;
-      if (group.position.y > 1 || group.position.y < -1) {
-        direction *= -1;
-      }
 
       // Add slight rotation to show 3D depth
       group.rotation.x += deltaTime * 0.9;
@@ -99,15 +93,11 @@ export default function BackButton3D() {
     isHoveredRef.current = false;
   };
 
-  // Navigate back to the home page
-  const handleClick = () => {
-    globalThis.globalThis.location.href = "/";
-  };
-
   return (
-    <div
+    <a
+      href="/"
+      f-partial="/partials/home" // Specify the optimized partial endpoint
       ref={mountRef}
-      onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{

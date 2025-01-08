@@ -1,26 +1,23 @@
-
 import { Fragment, render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import SiteNav, { SiteNavProps } from "./SiteNav.tsx";
-import SiteNavNarrow from "./SiteNavNarrow.tsx";
 
-interface ResizeDetectorProps extends SiteNavProps {
-  isNarrowCookie: boolean | undefined
-}
+export type ResizeDetectorProps = {
+  currentPage: string;
+};
 
-export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCookie }: ResizeDetectorProps): JSX.Element {
+export default function ResizeDetector({ currentPage }: ResizeDetectorProps): JSX.Element {
   if (globalThis.globalThis == undefined){
     return <></>
   }
 
-  const [isNarrow, setIsNarrow] = useState<boolean | undefined>(isNarrowCookie);
+  const [isNarrow, setIsNarrow] = useState<boolean>(false);
 
   useEffect(() => {
     const updateScreenSize = () => {
       const narrow = globalThis.globalThis?.innerWidth <= 1422;
       setIsNarrow(narrow);
-      document.cookie = `isNarrow=${narrow}; path=/; max-age=31536000;`;
+
     };
 
     updateScreenSize(); // Initial check
@@ -37,6 +34,7 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
     const wideNavDiv = document.getElementById("wide-nav-container");
     const componentDiv = document.getElementById("component-container");
     const bottomNavDiv = document.getElementById("wide-bottom-or-narrow-nav-container");
+    const siteNavDiv = document.getElementById("site-nav-container");
   
     if (isNarrow) {
       // Narrow layout adjustments
@@ -54,8 +52,11 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
       }
       if (bottomNavDiv) {
         bottomNavDiv.classList.remove("h-12", "bg-bgPurple");
-        bottomNavDiv.classList.add("w-full", "max-w-4xl")
-        render(<SiteNavNarrow currentPage={currentPage} headingsSignal={headingsSignal} />, bottomNavDiv);
+        bottomNavDiv.classList.add("w-full", "max-w-4xl");
+        if (siteNavDiv) {
+          bottomNavDiv.appendChild(siteNavDiv); // Move the element
+          siteNavDiv.classList.remove("hidden"); // Make it visible
+        }
       }
     } else {
       // Wide layout adjustments
@@ -66,9 +67,11 @@ export default function ResizeDetector({ currentPage, headingsSignal, isNarrowCo
       }
       if (wideNavDiv) {
         wideNavDiv.className = "flex-2 w-[29rem] px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
-        render(
-            <SiteNav currentPage={currentPage} headingsSignal={headingsSignal} />,
-            wideNavDiv)
+        if (siteNavDiv) {
+          wideNavDiv.appendChild(siteNavDiv); // Move the element
+          siteNavDiv.classList.remove("hidden"); // Make it visible
+        }
+
       }
       if (componentDiv) {
         componentDiv.className = "flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg";
