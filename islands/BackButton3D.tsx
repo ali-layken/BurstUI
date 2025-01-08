@@ -5,7 +5,7 @@ import { burstColors } from "../static/colors.ts";
 const SIZE = [100, 75];
 
 export default function BackButton3D() {
-  const mountRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLAnchorElement>(null);
   const isHoveredRef = useRef(false); // Track hover state
 
   useEffect(() => {
@@ -99,15 +99,11 @@ export default function BackButton3D() {
     isHoveredRef.current = false;
   };
 
-  // Navigate back to the home page
-  const handleClick = () => {
-    globalThis.globalThis.location.href = "/";
-  };
-
   return (
-    <div
+    <a
+      href="/"
+      f-partial="/partials/home" // Specify the optimized partial endpoint
       ref={mountRef}
-      onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
