@@ -59,16 +59,10 @@ export default function BackButton3D() {
     scene.add(group);
 
     // Add hover animation
-    let direction = 1;
     const animate = (time: number) => {
       const deltaTime = (time - lastTime) / 1000; // Time in seconds
       lastTime = time;
 
-      // Add slight up-down hover animation
-      group.position.y += deltaTime * 0.3 * direction;
-      if (group.position.y > 1 || group.position.y < -1) {
-        direction *= -1;
-      }
 
       // Add slight rotation to show 3D depth
       group.rotation.x += deltaTime * 0.9;
