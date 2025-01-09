@@ -7,7 +7,6 @@ import { markedSmartypantsLite } from "marked-smartypants-lite";
 import { JSX } from "preact/jsx-runtime";
 import { TitleHeaderID } from "../routes/blog/[postname].tsx";
 import { burstTextColors } from "../static/colors.ts";
-import { linklist } from "../utils/linklist.ts";
 
 export interface HeadingInfo { id: string; text: string; level: number }
 interface RendererResult {
@@ -147,7 +146,6 @@ export default function BlogPostRenderer(content: string): RendererResult {
     }),
   );
   headings.unshift({  id: TitleHeaderID, text: "(Top)", level: 0})
-  linklist.value = headings
   return {
     renderedContent: (
       <article class="prose lg:prose-xl custom-prose mx-auto">

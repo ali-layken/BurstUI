@@ -1,36 +1,29 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 
-export type ResizeDetectorProps = {
-  currentPage: string;
-};
-
-enum PageType {
-  "/",
-  "/blog/:postname",
-}
-
-export default function ResizeDetector({ currentPage }: ResizeDetectorProps): JSX.Element {
-  if (globalThis.globalThis == undefined) {
+export default function ResizeDetector(): JSX.Element {
+  if (typeof globalThis === "undefined") {
     return <></>;
   }
 
   const [isNarrow, setIsNarrow] = useState<boolean>(false);
-  const [isOpen, setIsOpen] = useState(currentPage !== PageType[1]);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => setIsOpen((prev) => !prev);
 
   useEffect(() => {
     const updateScreenSize = () => {
-      const narrow = globalThis.globalThis?.innerWidth <= 1422;
+      const narrow = globalThis.innerWidth <= 1422;
       setIsNarrow(narrow);
     };
 
     updateScreenSize(); // Initial check
 
-    globalThis.globalThis.addEventListener("resize", updateScreenSize);
+    globalThis.addEventListener("resize", updateScreenSize);
 
-    return () => globalThis.globalThis.removeEventListener("resize", updateScreenSize);
+    return () => {
+      globalThis.removeEventListener("resize", updateScreenSize);
+    };
   }, []);
 
   useEffect(() => {
@@ -42,14 +35,13 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps): JS
     const bottomNavDiv = document.getElementById("wide-bottom-or-narrow-nav-container");
     const siteNavDiv = document.getElementById("site-nav-container");
 
-    if (!bottomNavDiv || !siteNavDiv) return;
-
     if (isNarrow) {
       // Narrow layout adjustments
       backgroundDiv?.classList.remove("justify-start");
       wideTopDiv?.classList.remove("h-12", "bg-bgPurple");
       if (mainDiv) {
-        mainDiv.className = "flex-1 w-full max-w-4xl px-5 py-8 bg-bgAqua rounded-md shadow-lg";
+        mainDiv.className =
+          "flex-1 w-full max-w-4xl px-5 py-8 bg-bgAqua rounded-md shadow-lg";
       }
       if (wideNavDiv) {
         wideNavDiv.innerHTML = "";
@@ -58,28 +50,28 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps): JS
       if (componentDiv) {
         componentDiv.className = "";
       }
+      if (bottomNavDiv) {
+        // Configure bottom nav with initial state offscreen
+        bottomNavDiv.innerHTML = ""; // Clear previous content
+        bottomNavDiv.className =
+          `fixed top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgPurple opacity-95 rounded-t-lg z-50 transition-transform duration-300 ${isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"}`;
 
-      // Append siteNavDiv to the narrow navigation
-      bottomNavDiv.innerHTML = ""; // Clear previous content
-      bottomNavDiv.className =
-        "fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-4xl bg-bgPurple opacity-95 rounded-t-lg z-50 transition-transform duration-300";
-      bottomNavDiv.appendChild(siteNavDiv); // Move the element
-      siteNavDiv.classList.remove("hidden");
+        // Add toggle button
+        const toggleButton = document.createElement("div");
+        toggleButton.className = "absolute -top-10 w-full flex justify-end px-6";
+        const button = document.createElement("button");
+        button.className = "bg-accRed text-white px-4 py-2 rounded-t-lg";
+        button.innerText = isOpen ? "⌄" : "⌃";
+        button.onclick = toggleMenu;
+        toggleButton.appendChild(button);
+        bottomNavDiv.appendChild(toggleButton);
 
-      // Handle dropdown toggle state
-      bottomNavDiv.insertAdjacentHTML(
-        "beforeend",
-        `
-        <div class="absolute top-[-2.5rem] w-full flex justify-end px-6">
-          <button
-            class="bg-accRed text-white px-4 py-2 rounded-t-lg"
-            onclick="document.querySelector('#wide-bottom-or-narrow-nav-container').classList.toggle('translate-y-full')"
-          >
-            ${currentPage === PageType[0] ? "≡ Posts" : isOpen ? "⌄" : "⌃"}
-          </button>
-        </div>
-      `,
-      );
+        if (siteNavDiv) {
+          bottomNavDiv.appendChild(siteNavDiv); // Move the element
+          siteNavDiv.classList.remove("hidden");
+          siteNavDiv.classList.add("px-4", "py-6");
+        }
+      }
     } else {
       // Wide layout adjustments
       backgroundDiv?.classList.add("justify-start");
@@ -90,20 +82,24 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps): JS
       if (wideNavDiv) {
         wideNavDiv.className =
           "flex-2 w-[29rem] px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
-        wideNavDiv.appendChild(siteNavDiv); // Move the element
-        siteNavDiv.classList.remove("hidden"); // Make it visible
+        if (siteNavDiv) {
+          wideNavDiv.appendChild(siteNavDiv); // Move the element
+          siteNavDiv.className = "";
+        }
       }
       if (componentDiv) {
-        componentDiv.className = "flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg";
+        componentDiv.className =
+          "flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg";
       }
-
-      // Clear narrow navigation
-      bottomNavDiv.innerHTML = "";
-      bottomNavDiv.className = "h-12 bg-bgPurple";
+      if (bottomNavDiv) {
+        // Clear narrow navigation
+        bottomNavDiv.innerHTML = "";
+        bottomNavDiv.className = "h-12 bg-bgPurple";
+      }
     }
 
     globalThis.dispatchEvent(new Event("resize"));
-  }, [isNarrow, currentPage, isOpen]);
+  }, [isNarrow, isOpen]);
 
   return <></>; // No visible output
 }

@@ -2,7 +2,6 @@ import { Partial } from "$fresh/runtime.ts";
 import { defineRoute } from "$fresh/server.ts";
 import { join } from "node:path";
 import AnimatedText3D from "../islands/AnimatedText3D.tsx";
-import { linklist } from "../utils/linklist.ts";
 
 export interface IndexLink {
   name: string;
@@ -27,14 +26,13 @@ export const homeRoute = async () => {
   }
 
   posts.sort((a, b) => a.modifiedAt.getTime() - b.modifiedAt.getTime());
-  linklist.value = posts;
 
   return (
     <>
       <Partial name="site-nav">
         <div id="site-nav-container" class="hidden">
           <ul class="space-y-4">
-            {(linklist.value as IndexLink[]).map((post, index) => {
+            {(posts).map((post, index) => {
               const isEven = index % 2 === 0;
               return (
                 <li

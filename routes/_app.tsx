@@ -28,9 +28,7 @@ export default function App(
             </div>
             <div id="wide-bottom-or-narrow-nav-container"></div>
           </div>
-          <ResizeDetector
-            currentPage={route}
-          />
+          <ResizeDetector />
         </div>
       </body>
     </html>

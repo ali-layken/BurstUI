@@ -1,13 +1,11 @@
 import { Partial } from "$fresh/runtime.ts";
 import { defineRoute, Handlers, RouteContext } from "$fresh/server.ts";
 import { join } from "$std/path/mod.ts";
-import BlogPostRenderer, {
-  HeadingInfo,
-} from "../../components/BlogRendererSS.tsx";
+import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import TableOfContents from "../../components/TableOfContents.tsx";
 import BackButton3D from "../../islands/BackButton3D.tsx";
 import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
-import { linklist } from "../../utils/linklist.ts";
+
 
 export interface BlogProps {
   content: string;
@@ -72,10 +70,8 @@ export const blogPostRoute = async (_req: Request, ctx: RouteContext) => {
     <>
       <Partial name="site-nav">
         <div id="site-nav-container" class="hidden">
-          <TableOfContents headings={linklist.value as HeadingInfo[]} />
-          <div class="flex items-center justify-center pl-5 pt-2 pb-6">
+          <TableOfContents headings={renderedMarkdown.headings} />
             <BackButton3D />
-          </div>
         </div>
       </Partial>
       <Partial name="main-component">

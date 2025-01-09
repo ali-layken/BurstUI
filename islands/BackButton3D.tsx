@@ -94,6 +94,7 @@ export default function BackButton3D() {
   };
 
   return (
+    <div class="flex items-center justify-center pt-2 pb-6">
     <a
       href="/"
       f-partial="/partials/home" // Specify the optimized partial endpoint
@@ -111,5 +112,6 @@ export default function BackButton3D() {
       }}
       title="Go Back"
     />
+    </div>
   );
 }

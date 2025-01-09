@@ -49,7 +49,7 @@ const AnimatedText3D = ({
         const textGeometry = new TextGeometry(text, {
           font,
           size,
-          height,
+          depth: height,
           bevelEnabled: true,
           bevelThickness: 1,
           bevelSize: 0.5,
@@ -58,7 +58,7 @@ const AnimatedText3D = ({
         const textMaterial = new THREE.MeshStandardMaterial({
           color,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.4,
         });
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 

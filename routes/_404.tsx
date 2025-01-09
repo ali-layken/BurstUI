@@ -1,11 +1,9 @@
-import { Head } from "$fresh/runtime.ts";
+import { Head, Partial } from "$fresh/runtime.ts";
 import { PageProps } from "$fresh/server.ts";
-import { linklist } from "../utils/linklist.ts";
 
 export default function Error404(props: PageProps) {
-  linklist.value.length = 0;
   return (
-    <>
+    <Partial name="main-component">
       <Head>
         <title>404 - Page not found</title>
       </Head>
@@ -24,6 +22,6 @@ export default function Error404(props: PageProps) {
           </p>
         </div>
       </div>
-    </>
+    </Partial>
   );
 }
