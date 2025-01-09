@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Head, Partial } from "$fresh/runtime.ts";
 import { defineRoute, Handlers, RouteContext } from "$fresh/server.ts";
 import { join } from "$std/path/mod.ts";
 import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
@@ -42,7 +42,7 @@ export const fetchBlogpost = async (
       : null;
 
     // Use the slug as the title
-    const title = slug.replace(/_/g, " ").toUpperCase();
+    const title = slug.replace(/_/g, " ");
 
     return {
       content,
@@ -75,14 +75,17 @@ export const blogPostRoute = async (_req: Request, ctx: RouteContext) => {
         </div>
       </Partial>
       <Partial name="main-component">
+        <Head>
+          <title>{blogpost.title}</title>
+        </Head>
         <header class="mb-2 text-center">
           <h1
             id="PostTitle"
-            class="text-5xl font-bold mb-2 scroll-mt-24 underline decoration-2"
+            class="text-5xl mb-2 scroll-mt-24 font-source4 underline decoration-2"
           >
-            {blogpost.title}
+            <strong>{blogpost.title.toUpperCase()}</strong>
           </h1>
-          <p class="text-sm text-subtitles">
+          <p class="text-sm font-fixel text-subtitles">
             Last Edited: {blogpost.modifiedTime || "N/A"}
           </p>
         </header>

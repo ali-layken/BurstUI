@@ -1,7 +1,11 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 
-export default function ResizeDetector(): JSX.Element {
+interface ResizeDetectorProps {
+  currentPage: string
+}
+
+export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): JSX.Element {
   if (typeof globalThis === "undefined") {
     return <></>;
   }
@@ -9,7 +13,7 @@ export default function ResizeDetector(): JSX.Element {
   const [isNarrow, setIsNarrow] = useState<boolean>(
     globalThis.innerWidth <= 1422,
   );
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(currentPage !== "/blog/:postname");
 
   const toggleMenu = () =>
     setIsOpen((prev) => {

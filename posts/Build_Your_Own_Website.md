@@ -11,7 +11,6 @@ If you want to reach the people who need you and your skills **the most** start 
 2. **An internet connection**. This means you need a wire (or any connection) from your computer to a chain of computers. These computers work together to find a route to every other computer connected to the internet via BGP. Typically, in America, these wires and computers are owned by organizations like Xfinity or Verizon, and you have to pay to use them. If you want to connect to a computer located across the world, these organizations hand off your request to [larger networks](https://en.wikipedia.org/wiki/Tier_1_network) that manage global connections, like undersea cables and satellites. 
 
 3. (optional) If you want others to be able to access your website, you’ll need **a [GitHub account](https://github.com/)** (it’s free).
-<br/><br/>
 
 # Exploring Website Technology
 
@@ -71,6 +70,7 @@ You can see this by visiting the insecure [`example.com:80/`](http://example.com
 The documentation for Fresh is easy to navigate and short. I recommend [checking it out](https://fresh.deno.dev/docs/getting-started/create-a-project) as they explain each step in detail and offer alternative configurations. Here are the minimal steps to get a website up that others can visit, just like this one! (without the blog or cube:sob:)
 
 #### Deno = [:goat:](https://www.merriam-webster.com/dictionary/GOATED) & Fresh = [:boat:](https://dictionary.reverso.net/english-definition/BOAT)
+
 1. First, we have to install Deno. Follow [this link](https://docs.deno.com/runtime/getting_started/installation/) for OS-specific instructions. To check if it installed correctly, open a terminal and try:
 
 ```shellsession

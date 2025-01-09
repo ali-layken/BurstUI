@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Head, Partial } from "$fresh/runtime.ts";
 import { defineRoute } from "$fresh/server.ts";
 import { join } from "node:path";
 import AnimatedText3D from "../islands/AnimatedText3D.tsx";
@@ -42,16 +42,16 @@ export const homeRoute = async () => {
                   {/* Left Section: Post Number and Name */}
                   <div class="flex items-baseline space-x-2">
                     <span
-                      class={`text-lg font-bold ${
+                      class={`text-xl font-fixel ${
                         isEven ? "text-subtitles" : "text-accYellow"
                       }`}
                     >
-                      {index + 1}.
+                      <strong>{index + 1}.</strong>
                     </span>
                     <a
                       href={`/blog/${post.name}`}
                       f-partial={`/partials/blog/${post.name}`}
-                      class="text-accGreen hover:text-accRed hover:underline text-base font-serif transition-colors duration-200"
+                      class="text-accGreen hover:text-accRed hover:underline text-lg font-source4 transition-colors duration-200"
                       data-action="close"
                     >
                       {post.name.replace(/_/g, " ")}
@@ -60,7 +60,7 @@ export const homeRoute = async () => {
 
                   {/* Right Section: Timestamp */}
                   <time
-                    class={`text-xs ${
+                    class={`text-sm font-fixel ${
                       isEven ? "text-subtitles" : "text-accYellow"
                     } ml-4 mt-1`}
                   >
@@ -73,9 +73,12 @@ export const homeRoute = async () => {
         </div>
       </Partial>
       <Partial name="main-component">
+      <Head>
+          <title>Home</title>
+      </Head>
         <AnimatedText3D
           text="Burst."
-          fontPath="/Teko/Teko-Light_Regular.json"
+          fontPath="/Source_Serif_4/Source Serif 4_Regular.json"
         />
         <p class="text-accLiteGreen text-2xl text-center font-fixel">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}

@@ -4,7 +4,7 @@ import ResizeDetector from "../islands/ResizeDetector.tsx";
 
 
 export default function App(
-  { Component,  }: PageProps,
+  { Component, route }: PageProps,
 ): JSX.Element {
   return (
     <html>
@@ -29,7 +29,7 @@ export default function App(
             </div>
             <div id="wide-bottom-or-narrow-nav-container"></div>
           </div>
-          <ResizeDetector />
+          <ResizeDetector currentPage={route} />
         </div>
       </body>
     </html>

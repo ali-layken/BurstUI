@@ -30,7 +30,9 @@ export default {
         css: {
           'h1, h2, h3, h4, h5, h6': {
             scrollMarginTop: '6rem', // Adjust for desired spacing
-            margin: "1rem 0rem"
+            marginTop: "2rem", 
+            marginBottom: "0.5rem",
+            fontFamily: "Fixel"
           },
           h1: {
             color: burstTextColors.subtitles,
@@ -71,14 +73,16 @@ export default {
           p: {
             color: burstColors.creamTan,
             lineHeight: "1.6",
-            fontSize: "1rem",
+            fontSize: "1.2rem",
+            fontFamily: "Fixel",
+            fontWeight: 500,
             code: {
               color: burstTextColors.white,
               backgroundColor: burstColors.transGray,
               padding: "0.1em 0.4em 0.15em",
               borderRadius: "0.25rem",
               fontFamily: "monospace",
-              fontSize: "0.90em",
+              fontSize: "0.85em",
             },
             pre: {
               backgroundColor: burstColors.termBack1,
@@ -160,6 +164,29 @@ export default {
             marginBottom: "0",
           },
           "ol > li": {
+            lineHeight: "1.6",
+            fontSize: "1.2rem",
+            fontFamily: "Fixel",
+            fontWeight: 400,
+            code: {
+              color: burstTextColors.white,
+              backgroundColor: burstColors.transGray,
+              padding: "0.1em 0.4em 0.15em",
+              borderRadius: "0.25rem",
+              fontFamily: "monospace",
+              fontSize: "0.85em",
+            },
+            pre: {
+              backgroundColor: burstColors.termBack1,
+              padding: "1rem",
+              borderRadius: "0.5rem",
+              color: burstTextColors.white,
+              overflowX: "auto",
+            },
+            strong: {
+              color: burstTextColors.transWhite,
+              fontWeight: "900"
+            },
             "margin-top": "0.5rem", // Add vertical spacing between list items
             "margin-bottom": "0.5rem", // Same for bottom spacing
             "&::marker": {
@@ -167,19 +194,39 @@ export default {
               fontWeight: "bold", // Optional: make markers bold
             },
             color: burstColors.creamTan2,
-            code: {
-              color: burstTextColors.white,
-              backgroundColor: burstColors.transGray,
-              padding: "0.1em 0.4em 0.15em",
-              borderRadius: "0.25rem",
-              fontFamily: "monospace",
-            },
           },
           "ol > li > p": {
             "margin-top": "0", // Remove extra top margin from nested <p>
             "margin-bottom": "0", // Remove extra bottom margin
             "display": "inline", // Ensure <p> inside <li> doesn't break flow
             color: burstColors.creamTan2,
+            lineHeight: "1.6",
+            fontSize: "1.2rem",
+            fontFamily: "Fixel",
+            fontWeight: 400,
+            code: {
+              color: burstTextColors.white,
+              backgroundColor: burstColors.transGray,
+              padding: "0.1em 0.4em 0.15em",
+              borderRadius: "0.25rem",
+              fontFamily: "monospace",
+              fontSize: "0.85em",
+            },
+            pre: {
+              backgroundColor: burstColors.termBack1,
+              padding: "1rem",
+              borderRadius: "0.5rem",
+              color: burstTextColors.white,
+              overflowX: "auto",
+            },
+            strong: {
+              color: burstTextColors.transWhite,
+              fontWeight: "900"
+            },
+            "&::marker": {
+              color: burstTextColors.subtitles, // Customize the marker color
+              fontWeight: "bold", // Optional: make markers bold
+            },
           },
           "img.marked-emoji-img": {
             display: "inline-block",
@@ -206,13 +253,14 @@ export default {
               padding: "0.1em 0.4em",
               borderRadius: "0.25rem",
               fontFamily: "monospace",
-              fontSize: "0.90em",
+              fontSize: "0.85em",
             },
             figcaption: {
               marginTop: "-1rem", // Small space between image and caption
               color: burstTextColors.subtitles,
               padding: "0.2rem 0", // Slight padding for clarity
-              fontSize: "0.875rem",
+              fontSize: "1rem",
+              fontFamily: "Source4",
               textAlign: "center",
               fontStyle: "italic",
               fontWeight: "400",

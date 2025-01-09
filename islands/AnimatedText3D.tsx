@@ -7,7 +7,7 @@ import { burstColors, burstTextColors } from "../static/colors.ts";
 const AnimatedText3D = ({
   text = "Hello, 3D!",
   fontPath = "/Teko/Teko-Light_Regular.json",
-  size = 90,
+  size = 70,
   height = 10,
   color = burstColors.accRed,
 }) => {
@@ -35,8 +35,8 @@ const AnimatedText3D = ({
       camera.position.z = 200;
 
       // Light setup
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(10, 10, 10);
+      const light = new THREE.DirectionalLight(0xffffff, 5);
+      light.position.set(10, -10, 5);
       scene.add(light);
 
       // Text Group
@@ -76,8 +76,8 @@ const AnimatedText3D = ({
         if (textGeometry.boundingBox) {
           const centerOffset =
             -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
-          textMesh.position.set(centerOffset, -40, 0);
-          edgeLines.position.set(centerOffset, -40, 0);
+          textMesh.position.set(centerOffset, -32, 0);
+          edgeLines.position.set(centerOffset, -30, 0);
         }
 
         textGroup.add(textMesh);
