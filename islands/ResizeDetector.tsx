@@ -54,13 +54,13 @@ export default function ResizeDetector(): JSX.Element {
         // Configure bottom nav with initial state offscreen
         bottomNavDiv.innerHTML = ""; // Clear previous content
         bottomNavDiv.className =
-          `fixed top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgPurple opacity-95 rounded-t-lg z-50 transition-transform duration-300 ${isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"}`;
+          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300 ${isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"}`;
 
         // Add toggle button
         const toggleButton = document.createElement("div");
         toggleButton.className = "absolute -top-10 w-full flex justify-end px-6";
         const button = document.createElement("button");
-        button.className = "bg-accRed text-white px-4 py-2 rounded-t-lg";
+        button.className = "hover:bg-accRed2 bg-accRed3 text-white px-4 py-2 rounded-t-lg";
         button.innerText = isOpen ? "⌄" : "⌃";
         button.onclick = toggleMenu;
         toggleButton.appendChild(button);
@@ -69,7 +69,7 @@ export default function ResizeDetector(): JSX.Element {
         if (siteNavDiv) {
           bottomNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.classList.remove("hidden");
-          siteNavDiv.classList.add("px-4", "py-6");
+          siteNavDiv.classList.add("px-6", "py-8");
         }
       }
     } else {
