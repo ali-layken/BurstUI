@@ -23,10 +23,10 @@ export default function TableOfContents({ headings }: TableOfContentsProps): JSX
             href={`#${id}`}
             data-action="close"
             dangerouslySetInnerHTML={{ __html: text }}
-            class="block text-accGreen font-serif font-medium hover:text-accRed transition-colors duration-300"
+            class="block text-accGreen font-source4 font-medium hover:text-accRed transition-colors duration-300"
             style={{
-              fontSize: `${1.25 - level * 0.1}rem`, // Dynamically adjust font size
-              fontWeight: `${700 - level * 100}`, // Make text weight lighter for deeper levels
+              fontSize: `${1.57 - level * 0.18}rem`, // Dynamically adjust font size
+              fontWeight: `${800 - level * 100}`, // Make text weight lighter for deeper levels
             }}
           />
         </li>

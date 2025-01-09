@@ -20,7 +20,7 @@ const headings: HeadingInfo[] = [];
 customRenderer.link = ({ href, title, text }): string => {
   try{
     const safeHref = href ?? "#";
-    const safeTitle = title ? `title="${title}"` : "";
+    const safeTitle = title ? `title="${title}"` : ``;
     text = marked.parseInline(text) as string;
     if(text.endsWith('notab')){
       return `<a href="${safeHref}" ${safeTitle} rel="noopener noreferrer">${text.replace('notab', '')}</a>`;
