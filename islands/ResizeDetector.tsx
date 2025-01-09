@@ -6,7 +6,7 @@ export default function ResizeDetector(): JSX.Element {
     return <></>;
   }
 
-  const [isNarrow, setIsNarrow] = useState<boolean>(false);
+  const [isNarrow, setIsNarrow] = useState<boolean>(globalThis.innerWidth <= 1422);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
@@ -16,8 +16,6 @@ export default function ResizeDetector(): JSX.Element {
       const narrow = globalThis.innerWidth <= 1422;
       setIsNarrow(narrow);
     };
-
-    updateScreenSize(); // Initial check
 
     globalThis.addEventListener("resize", updateScreenSize);
 
