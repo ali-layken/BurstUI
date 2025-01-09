@@ -6,10 +6,15 @@ export default function ResizeDetector(): JSX.Element {
     return <></>;
   }
 
-  const [isNarrow, setIsNarrow] = useState<boolean>(globalThis.innerWidth <= 1422);
+  const [isNarrow, setIsNarrow] = useState<boolean>(
+    globalThis.innerWidth <= 1422,
+  );
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleMenu = () => setIsOpen((prev) => !prev);
+  const toggleMenu = () =>
+    setIsOpen((prev) => {
+      return !prev;
+    });
 
   useEffect(() => {
     const updateScreenSize = () => {
@@ -30,8 +35,22 @@ export default function ResizeDetector(): JSX.Element {
     const mainDiv = document.getElementById("main-container");
     const wideNavDiv = document.getElementById("wide-nav-container");
     const componentDiv = document.getElementById("component-container");
-    const bottomNavDiv = document.getElementById("wide-bottom-or-narrow-nav-container");
+    const bottomNavDiv = document.getElementById(
+      "wide-bottom-or-narrow-nav-container",
+    );
     const siteNavDiv = document.getElementById("site-nav-container");
+
+    const handleSiteNavigation = (event: any) => {
+      const action = event.target.dataset.action;
+      console.log("sitenav menu action", action)
+      if (action === "toggle") {
+        toggleMenu();
+      }
+
+      if (action === "close") {
+        setIsOpen(false);
+      }
+    };
 
     if (isNarrow) {
       // Narrow layout adjustments
@@ -52,15 +71,19 @@ export default function ResizeDetector(): JSX.Element {
         // Configure bottom nav with initial state offscreen
         bottomNavDiv.innerHTML = ""; // Clear previous content
         bottomNavDiv.className =
-          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300 ${isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"}`;
-
+          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300 ${
+            isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"
+          }`;
+        bottomNavDiv.onclick = handleSiteNavigation;
         // Add toggle button
         const toggleButton = document.createElement("div");
-        toggleButton.className = "absolute -top-10 w-full flex justify-end px-6";
+        toggleButton.className =
+          "absolute -top-10 w-full flex justify-end px-6";
         const button = document.createElement("button");
-        button.className = "hover:bg-accRed2 bg-accRed3 text-white px-4 py-2 rounded-t-lg";
+        button.className =
+          "hover:bg-accRed2 bg-accRed3 text-white px-4 py-2 rounded-t-lg";
         button.innerText = isOpen ? "⌄" : "⌃";
-        button.onclick = toggleMenu;
+        button.setAttribute("data-action", "toggle");
         toggleButton.appendChild(button);
         bottomNavDiv.appendChild(toggleButton);
 

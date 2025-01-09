@@ -52,6 +52,7 @@ export const homeRoute = async () => {
                       href={`/blog/${post.name}`}
                       f-partial={`/partials/blog/${post.name}`}
                       class="text-accGreen hover:text-accRed hover:underline text-base font-serif transition-colors duration-200"
+                      data-action="close"
                     >
                       {post.name.replace(/_/g, " ")}
                     </a>
@@ -76,7 +77,7 @@ export const homeRoute = async () => {
           text="Burst."
           fontPath="/Teko/Teko-Light_Regular.json"
         />
-        <p class="text-accLiteGreen text-xl">
+        <p class="text-accLiteGreen text-2xl text-center font-fixel">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}
           visitor! This space is dedicated to turning my nonsensical &
           spontaneous adventures into something you can benefit from. If I ever

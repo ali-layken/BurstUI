@@ -2,8 +2,9 @@ import { PageProps } from "$fresh/server.ts";
 import { JSX } from "preact/jsx-runtime";
 import ResizeDetector from "../islands/ResizeDetector.tsx";
 
+
 export default function App(
-  { Component, route }: PageProps,
+  { Component,  }: PageProps,
 ): JSX.Element {
   return (
     <html>

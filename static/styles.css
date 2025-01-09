@@ -15,4 +15,12 @@
     font-family: 'Teko';
     src: url(./Teko/Teko-VariableFont_wght.ttf);
   }
+  @font-face {
+    font-family: 'Fixel';
+    src: url(./FixelAll/FixelVariable/FixelVariable.ttf);
+  }
+  @font-face {
+    font-family: 'Source4';
+    src: url(./Source_Serif_4/SourceSerif4-VariableFont_opsz\,wght.ttf);
+  }
 }

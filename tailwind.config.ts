@@ -1,7 +1,7 @@
-import { type Config } from "tailwindcss";
-import { burstColors, burstTextColors } from "./static/colors.ts";
 import typography from "@tailwindcss/typography";
 import twHLJS from "tailwind-highlightjs";
+import { type Config } from "tailwindcss";
+import { burstColors, burstTextColors } from "./static/colors.ts";
 
 
 export default {
@@ -17,7 +17,9 @@ export default {
       colors: burstColors,
       textColor: burstTextColors,
       fontFamily: {
-        'teko': ['Teko']
+        'teko': ['Teko'],
+        'source4': ['Source4'],
+        'fixel': ['Fixel']
       }
     },
     hljs: {

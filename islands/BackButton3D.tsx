@@ -23,6 +23,7 @@ export default function BackButton3D() {
     renderer.setSize(SIZE[0], SIZE[1]); // Small size for the button
     renderer.setClearColor(0x000000, 0); // Transparent background
     mount.appendChild(renderer.domElement);
+    renderer.domElement.setAttribute("data-action", "close");
 
     const group = new THREE.Group();
 
