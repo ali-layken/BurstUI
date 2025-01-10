@@ -120,7 +120,7 @@ const AnimatedText3D = ({
       // Smoothly animate camera zoom
       if (isTextVisible && Math.abs(cameraZoomRef.current - targetZoomRef.current) > 0.1) {
         cameraZoomRef.current +=
-          (targetZoomRef.current - cameraZoomRef.current) * deltaTime * 7; // Smooth interpolation
+          (targetZoomRef.current - cameraZoomRef.current) * deltaTime * 3; // Smooth interpolation
         camera.position.z = cameraZoomRef.current;
       }
 
