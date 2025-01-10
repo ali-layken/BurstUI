@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
@@ -7,28 +7,24 @@ import { isNarrowSignal } from "../utils/signals.ts";
 
 const AnimatedText3D = ({
   text = "Hello, 3D!",
-  widesize = 70,
-  narrowsize = 40
+  narrowZoom = 300,
+  wideZoom = 210,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [isNarrowText, setIsNarrowText] = useState<boolean>(false);
-
-  useEffect(() => {
-      // Subscribe to changes in the signal
-    const unsubscribe = isNarrowSignal.subscribe((newValue) => {
-        console.log("Signal value changed:", newValue);
-        setIsNarrowText(newValue);
-    });
-  
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
-  }, []);
+  const cameraZoomRef = useRef(0); // Tracks the current zoom level
+  const targetZoomRef = useRef(0); // Tracks the target zoom level
+  const isNarrowTextRef = useRef(false); // Tracks the state of isNarrowSignal
 
   useEffect(() => {
     let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
     let textGroup: THREE.Group;
     let isTextVisible = false; // Track visibility
     let lastTime = 0;
+
+    const unsubscribe = isNarrowSignal.subscribe((newValue) => {
+      isNarrowTextRef.current = newValue;
+      targetZoomRef.current = newValue ? narrowZoom : wideZoom; // Update target zoom
+    });
 
     const init = () => {
       // Renderer setup
@@ -43,7 +39,17 @@ const AnimatedText3D = ({
       // Camera setup
       const aspectRatio = mountRef.current!.offsetWidth / mountRef.current!.offsetHeight;
       camera = new THREE.PerspectiveCamera(50, aspectRatio, 1, 1000);
-      camera.position.z = 200;
+
+      // Conditional initialization based on isNarrowSignal
+      if (isNarrowTextRef.current) {
+        camera.position.z = 0; // Start wide if narrow
+        cameraZoomRef.current = 0;
+        targetZoomRef.current = narrowZoom; // Zoom to narrow
+      } else {
+        camera.position.z = 0; // Start narrow if wide
+        cameraZoomRef.current = 0;
+        targetZoomRef.current = wideZoom; // Zoom to wide
+      }
 
       // Text Group
       textGroup = new THREE.Group();
@@ -54,7 +60,7 @@ const AnimatedText3D = ({
       fontLoader.load("/Source_Serif_4/Source Serif 4_Regular.json", (font: any) => {
         const textGeometry = new TextGeometry(text, {
           font,
-          size: isNarrowText ? narrowsize : widesize,
+          size: 70, // Hardcoded size
           depth: 10,
           bevelEnabled: true,
           bevelThickness: 1,
@@ -62,17 +68,17 @@ const AnimatedText3D = ({
         });
 
         const textMaterial = new THREE.MeshStandardMaterial({
-          color: burstColors.accRed, // Base color of the text
-          emissive: burstColors.accRed, // Glow color
-          emissiveIntensity: 0.5, // Adjust glow intensity
+          color: burstColors.accRed,
+          emissive: burstColors.accRed,
+          emissiveIntensity: 0.5,
           transparent: true,
-          opacity: 0.7, // Adjust opacity if needed
+          opacity: 0.7,
         });
+
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
-        // Add white edges to the text
         const edges = new THREE.EdgesGeometry(textGeometry);
-        const emissiveMaterial = new THREE.MeshBasicMaterial({
+        const emissiveMaterial = new THREE. MeshStandardMaterial({
           color: burstColors.accRed, // Edge color
           emissive: burstColors.accRed2, // Emit light
           emissiveIntensity: 2.5, // Intensity of the glow
@@ -91,7 +97,6 @@ const AnimatedText3D = ({
         textGroup.add(textMesh);
         textGroup.add(edgeLines);
 
-        // Mark text as visible
         isTextVisible = true;
       });
 
@@ -114,6 +119,13 @@ const AnimatedText3D = ({
       const deltaTime = (time - lastTime) / 1000; // Convert time to seconds
       lastTime = time;
 
+      // Smoothly animate camera zoom
+      if (Math.abs(cameraZoomRef.current - targetZoomRef.current) > 0.1) {
+        cameraZoomRef.current +=
+          (targetZoomRef.current - cameraZoomRef.current) * deltaTime * 7; // Smooth interpolation
+        camera.position.z = cameraZoomRef.current;
+      }
+
       // Rotate text group only when it's fully visible
       if (isTextVisible && textGroup) {
         textGroup.rotation.y += deltaTime * 0.5; // 0.5 radians per second
@@ -126,7 +138,7 @@ const AnimatedText3D = ({
     init();
 
     return () => {
-      // Cleanup
+      unsubscribe();
       if (renderer) {
         renderer.dispose();
         if (mountRef.current) {
@@ -137,7 +149,7 @@ const AnimatedText3D = ({
       }
       globalThis.removeEventListener("resize", onResize);
     };
-  }, [isNarrowText]);
+  }, [text, narrowZoom, wideZoom]);
 
   return (
     <div

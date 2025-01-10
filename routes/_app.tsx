@@ -15,6 +15,7 @@ export default function App(
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body f-client-nav>
+      <ResizeDetector currentPage={route} />
         <div class="layout">
           <div
             id="background-container"
@@ -29,7 +30,6 @@ export default function App(
             </div>
             <div id="wide-bottom-or-narrow-nav-container"></div>
           </div>
-          <ResizeDetector currentPage={route} />
         </div>
       </body>
     </html>
