@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
+import { isNarrowSignal } from "../utils/signals.ts";
 
 interface ResizeDetectorProps {
   currentPage: string
@@ -24,6 +25,7 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): J
     const updateScreenSize = () => {
       const narrow = globalThis.innerWidth <= 1422;
       setIsNarrow(narrow);
+      isNarrowSignal.value = narrow;
     };
 
     globalThis.addEventListener("resize", updateScreenSize);

@@ -1,17 +1,28 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import * as THREE from "three";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
-import { burstColors, burstTextColors } from "../static/colors.ts";
+import { burstColors } from "../static/colors.ts";
+import { isNarrowSignal } from "../utils/signals.ts";
 
 const AnimatedText3D = ({
   text = "Hello, 3D!",
-  fontPath = "/Teko/Teko-Light_Regular.json",
-  size = 70,
-  height = 10,
-  color = burstColors.accRed,
+  widesize = 70,
+  narrowsize = 40
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const [isNarrowText, setIsNarrowText] = useState<boolean>(false);
+
+  useEffect(() => {
+      // Subscribe to changes in the signal
+    const unsubscribe = isNarrowSignal.subscribe((newValue) => {
+        console.log("Signal value changed:", newValue);
+        setIsNarrowText(newValue);
+    });
+  
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
@@ -34,42 +45,39 @@ const AnimatedText3D = ({
       camera = new THREE.PerspectiveCamera(50, aspectRatio, 1, 1000);
       camera.position.z = 200;
 
-      // Light setup
-      const light = new THREE.DirectionalLight(0xffffff, 5);
-      light.position.set(10, -10, 5);
-      scene.add(light);
-
       // Text Group
       textGroup = new THREE.Group();
       scene.add(textGroup);
 
       // Load font and create text
       const fontLoader = new FontLoader();
-      fontLoader.load(fontPath, (font: any) => {
+      fontLoader.load("/Source_Serif_4/Source Serif 4_Regular.json", (font: any) => {
         const textGeometry = new TextGeometry(text, {
           font,
-          size,
-          depth: height,
+          size: isNarrowText ? narrowsize : widesize,
+          depth: 10,
           bevelEnabled: true,
           bevelThickness: 1,
           bevelSize: 0.5,
         });
 
         const textMaterial = new THREE.MeshStandardMaterial({
-          color,
+          color: burstColors.accRed, // Base color of the text
+          emissive: burstColors.accRed, // Glow color
+          emissiveIntensity: 0.5, // Adjust glow intensity
           transparent: true,
-          opacity: 0.4,
+          opacity: 0.7, // Adjust opacity if needed
         });
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
         // Add white edges to the text
         const edges = new THREE.EdgesGeometry(textGeometry);
-        const lineMaterial = new THREE.LineBasicMaterial({
-          color: burstTextColors.white,
-          transparent: true,
-          opacity: 0.2,
+        const emissiveMaterial = new THREE.MeshBasicMaterial({
+          color: burstColors.accRed, // Edge color
+          emissive: burstColors.accRed2, // Emit light
+          emissiveIntensity: 2.5, // Intensity of the glow
         });
-        const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+        const edgeLines = new THREE.LineSegments(edges, emissiveMaterial);
 
         // Center the text
         textGeometry.computeBoundingBox();
@@ -77,7 +85,7 @@ const AnimatedText3D = ({
           const centerOffset =
             -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
           textMesh.position.set(centerOffset, -32, 0);
-          edgeLines.position.set(centerOffset, -30, 0);
+          edgeLines.position.set(centerOffset, -32, 5);
         }
 
         textGroup.add(textMesh);
@@ -129,7 +137,7 @@ const AnimatedText3D = ({
       }
       globalThis.removeEventListener("resize", onResize);
     };
-  }, [text, fontPath, size, height, color]);
+  }, [isNarrowText]);
 
   return (
     <div

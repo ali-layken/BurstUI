@@ -3,6 +3,7 @@ import { defineRoute } from "$fresh/server.ts";
 import { join } from "node:path";
 import AnimatedText3D from "../islands/AnimatedText3D.tsx";
 
+
 export interface IndexLink {
   name: string;
   modifiedAt: Date;
@@ -29,56 +30,55 @@ export const homeRoute = async () => {
 
   return (
     <>
-<Partial name="site-nav">
-  <div id="site-nav-container" class="hidden">
-    <ul class="space-y-4">
-      {(posts).map((post, index) => {
-        const isEven = index % 2 === 0;
-        return (
-          <li
-            key={post.name}
-            class="flex justify-between items-center w-full"
-          >
-            {/* Left Section: Post Number and Name */}
-            <div class="flex items-center space-x-2">
-              <span
-                class={`text-3xl font-fixel ${
-                  isEven ? "text-subtitles" : "text-accYellow"
-                }`}
-              >
-                <strong>{index + 1}.</strong>
-              </span>
-              <a
-                href={`/blog/${post.name}`}
-                f-partial={`/partials/blog/${post.name}`}
-                class="text-accGreen hover:text-accRed hover:underline text-xl font-source4 transition-colors duration-200"
-                data-action="close"
-              >
-                {post.name.replace(/_/g, " ")}
-              </a>
-            </div>
+      <Partial name="site-nav">
+        <div id="site-nav-container" class="hidden">
+          <ul class="space-y-4">
+            {posts.map((post, index) => {
+              const isEven = index % 2 === 0;
+              return (
+                <li
+                  key={post.name}
+                  class="flex justify-between items-center w-full"
+                >
+                  {/* Left Section: Post Number and Name */}
+                  <div class="flex items-center space-x-2">
+                    <span
+                      class={`text-3xl font-fixel ${
+                        isEven ? "text-subtitles" : "text-accYellow"
+                      }`}
+                    >
+                      <strong>{index + 1}.</strong>
+                    </span>
+                    <a
+                      href={`/blog/${post.name}`}
+                      f-partial={`/partials/blog/${post.name}`}
+                      class="text-accGreen hover:text-accRed hover:underline text-xl font-source4 transition-colors duration-200"
+                      data-action="close"
+                    >
+                      {post.name.replace(/_/g, " ")}
+                    </a>
+                  </div>
 
-            {/* Right Section: Timestamp */}
-            <time
-              class={`text-lg font-fixel ${
-                isEven ? "text-subtitles" : "text-accYellow"
-              }`}
-            >
-              {new Date(post.modifiedAt).toLocaleString()}
-            </time>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-</Partial>
- <Partial name="main-component">
-      <Head>
+                  {/* Right Section: Timestamp */}
+                  <time
+                    class={`text-lg font-fixel ${
+                      isEven ? "text-subtitles" : "text-accYellow"
+                    }`}
+                  >
+                    {new Date(post.modifiedAt).toLocaleString()}
+                  </time>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </Partial>
+      <Partial name="main-component">
+        <Head>
           <title>Home</title>
-      </Head>
+        </Head>
         <AnimatedText3D
           text="Burst."
-          fontPath="/Source_Serif_4/Source Serif 4_Regular.json"
         />
         <p class="text-accLiteGreen text-2xl text-center font-fixel">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}
