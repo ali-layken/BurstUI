@@ -7,7 +7,7 @@ import { isNarrowSignal } from "../utils/signals.ts";
 
 const AnimatedText3D = ({
   text = "Hello, 3D!",
-  narrowZoom = 300,
+  narrowZoom = 320,
   wideZoom = 210,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -39,15 +39,13 @@ const AnimatedText3D = ({
       // Camera setup
       const aspectRatio = mountRef.current!.offsetWidth / mountRef.current!.offsetHeight;
       camera = new THREE.PerspectiveCamera(50, aspectRatio, 1, 1000);
+      camera.position.z = 1000; // Start narrow if wide
+      cameraZoomRef.current = 1000;
 
       // Conditional initialization based on isNarrowSignal
       if (isNarrowTextRef.current) {
-        camera.position.z = 0; // Start wide if narrow
-        cameraZoomRef.current = 0;
         targetZoomRef.current = narrowZoom; // Zoom to narrow
       } else {
-        camera.position.z = 0; // Start narrow if wide
-        cameraZoomRef.current = 0;
         targetZoomRef.current = wideZoom; // Zoom to wide
       }
 
@@ -90,8 +88,8 @@ const AnimatedText3D = ({
         if (textGeometry.boundingBox) {
           const centerOffset =
             -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
-          textMesh.position.set(centerOffset, -32, 0);
-          edgeLines.position.set(centerOffset, -32, 5);
+          textMesh.position.set(centerOffset, -32, -10);
+          edgeLines.position.set(centerOffset, -32, -9);
         }
 
         textGroup.add(textMesh);
@@ -120,7 +118,7 @@ const AnimatedText3D = ({
       lastTime = time;
 
       // Smoothly animate camera zoom
-      if (Math.abs(cameraZoomRef.current - targetZoomRef.current) > 0.1) {
+      if (isTextVisible && Math.abs(cameraZoomRef.current - targetZoomRef.current) > 0.1) {
         cameraZoomRef.current +=
           (targetZoomRef.current - cameraZoomRef.current) * deltaTime * 7; // Smooth interpolation
         camera.position.z = cameraZoomRef.current;
