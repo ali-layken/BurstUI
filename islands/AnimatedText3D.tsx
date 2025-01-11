@@ -5,6 +5,8 @@ import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { burstColors } from "../static/colors.ts";
 import { isNarrowSignal } from "../utils/signals.ts";
 
+const twoPi = 2 * Math.PI;
+
 const AnimatedText3D = ({
   text = "Hello, 3D!",
   narrowZoom = 320,
@@ -14,12 +16,14 @@ const AnimatedText3D = ({
   const cameraZoomRef = useRef(0); // Tracks the current zoom level
   const targetZoomRef = useRef(0); // Tracks the target zoom level
   const isNarrowTextRef = useRef(false); // Tracks the state of isNarrowSignal
+  const isMouseOverRef = useRef(false); // Tracks mouse hover state
 
   useEffect(() => {
     let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
     let textGroup: THREE.Group;
     let isTextVisible = false; // Track visibility
     let lastTime = 0;
+    let pauseTime = 2;
 
     const unsubscribe = isNarrowSignal.subscribe((newValue) => {
       isNarrowTextRef.current = newValue;
@@ -32,6 +36,18 @@ const AnimatedText3D = ({
       renderer.setSize(mountRef.current!.offsetWidth, mountRef.current!.offsetHeight);
       renderer.setPixelRatio(globalThis.devicePixelRatio);
       mountRef.current!.appendChild(renderer.domElement);
+
+      // Mouse events
+      const onMouseEnter = () => {
+        isMouseOverRef.current = true;
+      };
+
+      const onMouseLeave = () => {
+        isMouseOverRef.current = false;
+      };
+
+      renderer.domElement.addEventListener("mouseenter", onMouseEnter);
+      renderer.domElement.addEventListener("mouseleave", onMouseLeave);
 
       // Scene setup
       scene = new THREE.Scene();
@@ -76,7 +92,7 @@ const AnimatedText3D = ({
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
         const edges = new THREE.EdgesGeometry(textGeometry);
-        const emissiveMaterial = new THREE. MeshStandardMaterial({
+        const emissiveMaterial = new THREE.MeshStandardMaterial({
           color: burstColors.accRed, // Edge color
           emissive: burstColors.accRed2, // Emit light
           emissiveIntensity: 2.5, // Intensity of the glow
@@ -89,7 +105,7 @@ const AnimatedText3D = ({
           const centerOffset =
             -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
           textMesh.position.set(centerOffset, -32, -10);
-          edgeLines.position.set(centerOffset, -32, -9);
+          edgeLines.position.set(centerOffset, -32, -8);
         }
 
         textGroup.add(textMesh);
@@ -102,6 +118,12 @@ const AnimatedText3D = ({
       globalThis.addEventListener("resize", onResize);
 
       animate(0);
+
+      // Cleanup mouse events
+      return () => {
+        renderer.domElement.removeEventListener("mouseenter", onMouseEnter);
+        renderer.domElement.removeEventListener("mouseleave", onMouseLeave);
+      };
     };
 
     const onResize = () => {
@@ -117,16 +139,34 @@ const AnimatedText3D = ({
       const deltaTime = (time - lastTime) / 1000; // Convert time to seconds
       lastTime = time;
 
+      if(isTextVisible) {
+        pauseTime -= deltaTime
+        if (isMouseOverRef.current) {
+          const remainder = textGroup.rotation.y % twoPi
+          const withinTolerance = Math.abs(remainder) < 0.1 || Math.abs(remainder - twoPi) < 0.1;
+          if (!withinTolerance) {
+            if (Math.ceil(textGroup.rotation.y / Math.PI) % 2 === 0) {
+              textGroup.rotation.y -= deltaTime * -3; // Normalize angle
+            } else {
+              textGroup.rotation.y -= deltaTime * 3; // Normalize angle
+            }
+              
+          } else {// Stop rotation when close enough to target
+            textGroup.rotation.y = 0;
+          }
+        } else { // Normal spin when mouse is not over the canvas
+          if (isTextVisible && pauseTime < 0 && textGroup) {
+            textGroup.rotation.y += deltaTime * 0.5; // Normal speed
+          }
+        }
+      }
+
+
       // Smoothly animate camera zoom
       if (isTextVisible && Math.abs(cameraZoomRef.current - targetZoomRef.current) > 0.1) {
         cameraZoomRef.current +=
           (targetZoomRef.current - cameraZoomRef.current) * deltaTime * 3; // Smooth interpolation
         camera.position.z = cameraZoomRef.current;
-      }
-
-      // Rotate text group only when it's fully visible
-      if (isTextVisible && textGroup) {
-        textGroup.rotation.y += deltaTime * 0.5; // 0.5 radians per second
       }
 
       renderer.render(scene, camera);
@@ -147,7 +187,7 @@ const AnimatedText3D = ({
       }
       globalThis.removeEventListener("resize", onResize);
     };
-  }, [text, narrowZoom, wideZoom]);
+  }, []);
 
   return (
     <div
