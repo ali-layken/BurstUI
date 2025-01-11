@@ -137,10 +137,26 @@ export default {
             paddingLeft: "1rem",
             paddingRight: "1rem",
             "code.hljs": {
-              "@apply rounded-t-lg": {},
+              "@apply rounded-t-lg": {}, // Add the rounded-t-lg only for non-Mermaid blocks
+              padding: "1.75rem 2rem 0rem",
+            },
+            "code.language-mermaid": {
+              "@apply rounded-lg": {}, // Add the rounded-t-lg only for non-Mermaid blocks
               padding: "1.75rem 2rem 0rem",
             },
           },
+          "pre.mermaid":{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+            border: `1px solid ${burstColors.subtitles2}`,
+            borderRadius: "4px",
+            overflow: "auto",
+            whiteSpace: "normal",
+            minHeight: "100px",
+          },
+
           ".code-line": {
             "@apply flex items-center": {},
             lineHeight: "1.75",

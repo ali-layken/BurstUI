@@ -1,7 +1,10 @@
+import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { render } from "preact";
 import CopyableCodeBlock from "./CopyableCodeBlock.tsx";
+import mermaid from "mermaid";
+import { burstColors, burstTextColors } from "../static/colors.ts";
+
 
 
 type ComponentCache = Record<string, JSX.Element>;
@@ -11,6 +14,7 @@ export default function DynamicMarkdownItem() {
 
   useEffect(() => {
     const placeholders = document.querySelectorAll("[data-component]");
+    let runMermaid = true;
 
     placeholders.forEach(async (placeholder) => {
       const componentName = placeholder.getAttribute("data-component");
@@ -22,14 +26,34 @@ export default function DynamicMarkdownItem() {
 
       // Special case for `CopyableCodeBlock`
       if (componentName === "CopyableCodeBlock") {
-        const container = document.createElement('div');
+        const container = document.createElement("div");
         const lang = placeholder.getAttribute("data-lang") || "plaintext";
-        const code = decodeURIComponent(placeholder.getAttribute("data-code") || "");
-        placeholder.parentElement!.parentElement!.appendChild(container)
+        const code = decodeURIComponent(
+          placeholder.getAttribute("data-code") || "",
+        );
+        placeholder.parentElement!.parentElement!.appendChild(container);
         render(<CopyableCodeBlock lang={lang} code={code} />, container);
         return;
       }
 
+      // Special case for Mermaid diagrams
+      if (componentName === "MermaidBlock") {
+        placeholder.classList.remove("invisible");
+        if(runMermaid){
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: "dark",
+            themeVariables: {
+              fontFamily: "Fixel",
+              textColor: burstColors.subtitles2,
+              pieLegendTextColor: burstColors.creamTan2,
+              
+            }
+          });
+          mermaid.run();
+          runMermaid = false;
+        }
+      }
 
       // Dynamic import for other components
       if (cache[componentName]) {
@@ -44,15 +68,13 @@ export default function DynamicMarkdownItem() {
         if (Component) {
           const element = <Component />;
           setCache((prevCache) => ({ ...prevCache, [componentName]: element }));
-          render(element, placeholder,);
+          render(element, placeholder);
         }
       } catch (error) {
         console.error(`Failed to load component: ${componentName}`, error);
       }
     });
   }, [cache]);
-
-
 
   return null;
 }

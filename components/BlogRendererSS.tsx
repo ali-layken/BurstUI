@@ -1,12 +1,13 @@
 import { Octokit } from "@octokit/rest";
 import hljs from "highlight.js";
-import { Marked, Renderer, Tokens } from "marked";
+import  { marked, Renderer, Tokens } from "marked";
 import { markedEmoji, MarkedEmojiOptions } from "marked-emoji";
 import { markedHighlight } from "marked-highlight";
 import { markedSmartypantsLite } from "marked-smartypants-lite";
 import { JSX } from "preact/jsx-runtime";
 import { TitleHeaderID } from "../routes/blog/[postname].tsx";
 import { burstTextColors } from "../static/colors.ts";
+
 
 export interface HeadingInfo { id: string; text: string; level: number }
 interface RendererResult {
@@ -71,38 +72,37 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
   }
 };
 
-const marked = new Marked(
-  markedHighlight({
-    emptyLangClass: "hljs",
-    langPrefix: "hljs language-",
-    highlight: (code, lang) => {
-      const language = hljs.getLanguage(lang) ? lang : "plaintext";
-      const highlighted = hljs.highlight(code, { language }).value;
+const hlExt = markedHighlight({
+  emptyLangClass: "hljs",
+  langPrefix: "hljs language-",
+  highlight: (code, lang) => {
+    if (lang === 'mermaid') {
+      return `<pre class="mermaid invisible" data-component="MermaidBlock">${code}</pre>`
+    }
+    const language = hljs.getLanguage(lang) ? lang : "plaintext";
+    const highlighted = hljs.highlight(code, { language }).value;
 
-      // Split the highlighted code into lines
-      const lines = highlighted.split("\n");
+    // Split the highlighted code into lines
+    const lines = highlighted.split("\n");
 
-      const linesWithButtons = lines.map((line, index) => {
-        return `<div class="code-line relative group">
-                  <span 
-                    class="absolute group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style="top: 8px; left: -12px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
-                  </span>
-                  <span class="pl-2 text-base">${line}</span>
-                  <span 
-                    class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
-                    data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
-                    title="Copy Button">📋</span>
-                </div>`;
-      });
+    const linesWithButtons = lines.map((line, index) => {
+      return `<div class="code-line relative group">
+                <span 
+                  class="absolute group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style="top: 8px; left: -12px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
+                </span>
+                <span class="pl-2 text-base">${line}</span>
+                <span 
+                  class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
+                  data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
+                  title="Copy Button">📋</span>
+              </div>`;
+    });
 
-      return `<div data-component="CopyableCodeBlock" data-lang="${language}" data-code="${encodeURIComponent(code)}">${linesWithButtons.join("")}</div>`;
-    },
-  }),
-  {
-    renderer: customRenderer,
-  }
-);
+    return `<div data-component="CopyableCodeBlock" data-lang="${language}" data-code="${encodeURIComponent(code)}">${linesWithButtons.join("")}</div>`;
+  },
+})
+
 
 const octokit = new Octokit();
 const res = await octokit.rest.emojis.get();
@@ -135,7 +135,15 @@ const options: MarkedEmojiOptions = {
 };
 
 
-marked.use(markedSmartypantsLite(), markedEmoji(options));
+marked.use(
+  hlExt,
+  {
+    renderer: customRenderer
+  }, 
+  markedSmartypantsLite(),
+  markedEmoji(options)
+);
+
 
 
 export default function BlogPostRenderer(content: string): RendererResult {
