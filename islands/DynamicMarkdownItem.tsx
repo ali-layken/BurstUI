@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import CopyableCodeBlock from "./CopyableCodeBlock.tsx";
-import mermaid from "mermaid";
+//import mermaid from "mermaid";
 import { burstColors, burstTextColors } from "../static/colors.ts";
 
 
@@ -40,7 +40,7 @@ export default function DynamicMarkdownItem() {
       if (componentName === "MermaidBlock") {
         placeholder.classList.remove("invisible");
         if(runMermaid){
-          mermaid.initialize({
+          /*mermaid.initialize({
             startOnLoad: false,
             theme: "dark",
             themeVariables: {
@@ -50,7 +50,7 @@ export default function DynamicMarkdownItem() {
               
             }
           });
-          mermaid.run();
+          mermaid.run();*/
           runMermaid = false;
         }
       }

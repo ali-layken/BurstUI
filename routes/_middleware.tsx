@@ -9,7 +9,6 @@ export async function handler(req: Request, ctx: FreshContext) {
     // Add required headers for Godot Web projects
     headers.set("Cross-Origin-Opener-Policy", "same-origin");
     headers.set("Cross-Origin-Embedder-Policy", "require-corp");
-    console.log(ctx.url.href)
 
     // Return the modified response
     return resp;
