@@ -1,15 +1,5 @@
 import { Partial } from "$fresh/runtime.ts";
-import { Handlers } from "$fresh/server.ts";
 import BackButton3D from "../islands/BackButton3D.tsx";
-
-export const handler: Handlers = {
-  async GET(_req, ctx) {
-    const resp = await ctx.render();
-    resp.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-    resp.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
-    return resp;
-  },
-};
 
 
 export default function snakeRoute() {

@@ -1,7 +1,7 @@
 import { FreshContext } from "$fresh/server.ts";
 
 export async function handler(req: Request, ctx: FreshContext) {
-  if(ctx.url.pathname.startsWith("/snake/")){
+  if(ctx.url.pathname.startsWith("/snake") || ctx.url.pathname === "/"){
     // Process the response and set necessary headers
     const resp = await ctx.next();
     const headers = resp.headers;
