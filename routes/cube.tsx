@@ -2,7 +2,7 @@ import { Partial } from "$fresh/runtime.ts";
 import BackButton3D from "../islands/BackButton3D.tsx";
 import SpinningCube from "../islands/SpinningCube.tsx";
 
-export default function Cube() {
+export default function cubeRoute() {
   return (
     <>
       <Partial name="site-nav">

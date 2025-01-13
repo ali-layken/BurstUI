@@ -12,9 +12,10 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): J
   }
 
   const [isNarrow, setIsNarrow] = useState<boolean>(
-    globalThis.innerWidth <= 1422,
+    globalThis.innerWidth <= 1463,
   );
-  const [isOpen, setIsOpen] = useState(currentPage !== "/blog/:postname");
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () =>
     setIsOpen((prev) => {
@@ -23,7 +24,7 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): J
 
   useEffect(() => {
     const updateScreenSize = () => {
-      const narrow = globalThis.innerWidth <= 1422;
+      const narrow = globalThis.innerWidth <= 1463;
       setIsNarrow(narrow);
       isNarrowSignal.value = narrow;
     };
@@ -108,7 +109,7 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): J
       }
       if (wideNavDiv) {
         wideNavDiv.className =
-          "flex-2 w-[29rem] px-4 py-4 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
+          "flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
         if (siteNavDiv) {
           wideNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.className = "";

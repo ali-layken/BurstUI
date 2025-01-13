@@ -1,17 +1,18 @@
 import { Head, Partial } from "$fresh/runtime.ts";
-import { defineRoute } from "$fresh/server.ts";
 import { join } from "node:path";
 import AnimatedText3D from "../islands/AnimatedText3D.tsx";
 
 
 export interface IndexLink {
   name: string;
-  modifiedAt: Date;
+  route?: string;
+  modifiedAt?: Date;
 }
 
-export const homeRoute = async () => {
+export default async function homeRoute() {
   const postsDirectory = join(Deno.cwd(), "posts");
   const posts: IndexLink[] = [];
+  const demos: IndexLink[] = [];
 
   for await (const entry of Deno.readDir(postsDirectory)) {
     if (
@@ -26,12 +27,19 @@ export const homeRoute = async () => {
     }
   }
 
-  posts.sort((a, b) => a.modifiedAt.getTime() - b.modifiedAt.getTime());
+  demos.push({
+    name: "Snake 2.5",
+    route: "/snake"
+  });
+
+
+  posts.sort((a, b) => a.modifiedAt!.getTime() - b.modifiedAt!.getTime());
 
   return (
     <>
       <Partial name="site-nav">
         <div id="site-nav-container" class="hidden">
+          <h2 class="font-fixel ml-4.0 mb-2 text-accRed text-4xl font-semibold">Posts: </h2>
           <ul class="space-y-4">
             {posts.map((post, index) => {
               const isEven = index % 2 === 0;
@@ -43,7 +51,7 @@ export const homeRoute = async () => {
                   {/* Left Section: Post Number and Name */}
                   <div class="flex items-center space-x-2">
                     <span
-                      class={`text-3xl font-fixel ${
+                      class={`text-3xl font-fixel mr-1 ${
                         isEven ? "text-subtitles" : "text-accYellow"
                       }`}
                     >
@@ -52,7 +60,7 @@ export const homeRoute = async () => {
                     <a
                       href={`/blog/${post.name}`}
                       f-partial={`/partials/blog/${post.name}`}
-                      class="text-accGreen hover:text-accRed hover:underline text-xl font-source4 transition-colors duration-200"
+                      class="text-accGreen hover:text-accRed hover:underline text-2xl italic font-source4 transition-colors duration-200"
                       data-action="close"
                     >
                       {post.name.replace(/_/g, " ")}
@@ -65,13 +73,48 @@ export const homeRoute = async () => {
                       isEven ? "text-subtitles" : "text-accYellow"
                     }`}
                   >
-                    {new Date(post.modifiedAt).toLocaleString()}
+                    {new Date(post.modifiedAt!).toLocaleString()}
                   </time>
                 </li>
               );
             })}
           </ul>
-        </div>
+          <hr class="mx-2 my-4"/>
+          <h2 class="font-fixel ml-4.0 mb-2 text-accRed text-4xl font-semibold">Demos: </h2>
+          <ul class="space-y-4">
+            {demos.map((post, index) => {
+              const isEven = index % 2 === 0;
+              return (
+                <li
+                  key={post.name}
+                  class="flex justify-between items-center w-full"
+                >
+                  {/* Left Section: Post Number and Name */}
+                  <div class="flex items-center space-x-2">
+                    <span
+                      class={`text-3xl font-fixel mr-1 ${
+                        isEven ? "text-subtitles" : "text-accYellow"
+                      }`}
+                    >
+                      <strong>{index + 1}.</strong>
+                    </span>
+                    <a
+                      href={post.route!}
+                      f-partial={`/partials${post.route!}`}
+                      class="text-accGreen hover:text-accRed hover:underline text-2xl italic font-source4 transition-colors duration-200"
+                      data-action="close"
+                    >
+                      {post.name.replace(/_/g, " ")}
+                    </a>
+                  </div>
+
+                </li>
+              );
+            })}
+          </ul>
+          
+          
+      </div>
       </Partial>
       <Partial name="main-component">
         <Head>
@@ -91,4 +134,3 @@ export const homeRoute = async () => {
   );
 };
 
-export default defineRoute(homeRoute);

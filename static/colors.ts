@@ -6,7 +6,7 @@ export const burstColors = {
     accOrange:     "rgb(244, 96, 54)",
     accYellow:     "rgb(205, 205, 31)",
     accRed:        "rgb(231, 29, 54)",
-    accRed2:       "rgba(231, 29, 54, 0.90)",
+    accRed2:       "rgb(231, 29, 54)",
     accRed3:       "rgba(231, 29, 54, 0.40)",
     accGreen:      "rgb(58, 158, 21)",
     accGreen2:     "rgb(194, 214, 120)",

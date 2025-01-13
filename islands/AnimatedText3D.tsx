@@ -82,9 +82,6 @@ const AnimatedText3D = ({
         });
 
         const textMaterial = new THREE.MeshStandardMaterial({
-          color: burstColors.accRed,
-          emissive: burstColors.accRed,
-          emissiveIntensity: 0.5,
           transparent: true,
           opacity: 0.7,
         });

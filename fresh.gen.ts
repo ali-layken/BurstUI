@@ -4,12 +4,16 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_middleware from "./routes/_middleware.tsx";
 import * as $api_joke from "./routes/api/joke.ts";
 import * as $blog_postname_ from "./routes/blog/[postname].tsx";
 import * as $cube from "./routes/cube.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $partials_blog_postname_ from "./routes/partials/blog/[postname].tsx";
+import * as $partials_cube from "./routes/partials/cube.tsx";
 import * as $partials_home from "./routes/partials/home.tsx";
+import * as $partials_snake from "./routes/partials/snake.tsx";
+import * as $snake from "./routes/snake.tsx";
 import * as $AnimatedText3D from "./islands/AnimatedText3D.tsx";
 import * as $BackButton3D from "./islands/BackButton3D.tsx";
 import * as $CopyableCodeBlock from "./islands/CopyableCodeBlock.tsx";
@@ -22,12 +26,16 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/_middleware.tsx": $_middleware,
     "./routes/api/joke.ts": $api_joke,
     "./routes/blog/[postname].tsx": $blog_postname_,
     "./routes/cube.tsx": $cube,
     "./routes/index.tsx": $index,
     "./routes/partials/blog/[postname].tsx": $partials_blog_postname_,
+    "./routes/partials/cube.tsx": $partials_cube,
     "./routes/partials/home.tsx": $partials_home,
+    "./routes/partials/snake.tsx": $partials_snake,
+    "./routes/snake.tsx": $snake,
   },
   islands: {
     "./islands/AnimatedText3D.tsx": $AnimatedText3D,

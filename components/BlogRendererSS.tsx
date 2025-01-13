@@ -63,7 +63,7 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
     case 3:
       return `
         <${tag} id="${id}" ${leftPad}>${text}</${tag}>
-        <hr style="margin: -0.9rem 2rem 1rem 1.75rem; text-align: left;" />
+        <hr style="margin: -0.5rem 1.75rem 0.9rem 1.75rem; text-align: left;" />
     `;
     default:
       return `

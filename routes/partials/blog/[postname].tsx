@@ -1,5 +1,5 @@
 import { defineRoute, Handlers, RouteConfig } from "$fresh/server.ts";
-import { blogPostRoute, BlogProps, fetchBlogpost, } from "../../blog/[postname].tsx";
+import blogPostRoute, { BlogProps, fetchBlogpost} from "../../blog/[postname].tsx";
 
 export const config: RouteConfig = {
   skipAppWrapper: true,

@@ -1,5 +1,5 @@
 import { defineRoute, RouteConfig } from "$fresh/server.ts";
-import { homeRoute } from "../index.tsx";
+import homeRoute  from "../index.tsx";
 
 
 export const config: RouteConfig = {

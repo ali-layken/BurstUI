@@ -1,5 +1,5 @@
 import { Head, Partial } from "$fresh/runtime.ts";
-import { defineRoute, Handlers, RouteContext } from "$fresh/server.ts";
+import { Handlers, RouteContext } from "$fresh/server.ts";
 import { join } from "$std/path/mod.ts";
 import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import TableOfContents from "../../components/TableOfContents.tsx";
@@ -55,7 +55,7 @@ export const fetchBlogpost = async (
   }
 };
 
-export const blogPostRoute = async (_req: Request, ctx: RouteContext) => {
+export default async function blogPostRoute (_req: Request, ctx: RouteContext)  {
   const { postname } = ctx.params;
   const blogpost = await fetchBlogpost(postname);
 
@@ -97,4 +97,3 @@ export const blogPostRoute = async (_req: Request, ctx: RouteContext) => {
   );
 };
 
-export default defineRoute(blogPostRoute);
