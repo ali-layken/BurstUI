@@ -60,7 +60,7 @@ export default async function homeRoute() {
                     <a
                       href={`/blog/${post.name}`}
                       f-partial={`/partials/blog/${post.name}`}
-                      class="text-accGreen hover:text-accRed hover:underline text-2xl italic font-source4 transition-colors duration-200"
+                      class="text-accGreen hover:text-accRed hover:underline text-xl md:text-2xl italic font-source4 transition-colors duration-200"
                       data-action="close"
                     >
                       {post.name.replace(/_/g, " ")}
@@ -69,11 +69,11 @@ export default async function homeRoute() {
 
                   {/* Right Section: Timestamp */}
                   <time
-                    class={`text-lg font-fixel ${
+                    class={`text-sm md:text-lg font-fixel ${
                       isEven ? "text-subtitles" : "text-accYellow"
                     }`}
                   >
-                    {new Date(post.modifiedAt!).toLocaleString()}
+                    {new Date(post.modifiedAt!).toLocaleDateString()}
                   </time>
                 </li>
               );
@@ -101,7 +101,7 @@ export default async function homeRoute() {
                     <a
                       href={post.route!}
                       f-partial={`/partials${post.route!}`}
-                      class="text-accGreen hover:text-accRed hover:underline text-2xl italic font-source4 transition-colors duration-200"
+                      class="text-accGreen hover:text-accRed hover:underline text-xl md:text-2xl italic font-source4 transition-colors duration-200"
                       data-action="close"
                     >
                       {post.name.replace(/_/g, " ")}
