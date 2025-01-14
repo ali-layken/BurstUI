@@ -14,7 +14,7 @@ export default function snakeRoute() {
               <div class="flex justify-center items-start flex-wrap w-full">
                 <div class="mx-4">
                   <div class="text-left">
-                    <span>NE (E)</span>
+                    <span>NE (W)</span>
                   </div>
                   <div class="text-center ml-1 mt-1">
                     <span>↖️</span>
@@ -22,7 +22,7 @@ export default function snakeRoute() {
                 </div>
                 <div class="mx-4">
                   <div class="text-left">
-                    <span>NW (W)</span>
+                    <span>NW (E)</span>
                   </div>
                   <div class="text-center mt-1">
                     <span>↗️</span>
@@ -35,7 +35,7 @@ export default function snakeRoute() {
                     <span>↙️</span>
                   </div>
                   <div class="text-left mt-1">
-                    <span>SE (D)</span>
+                    <span>SE (A)</span>
                   </div>
                 </div>
                 <div class="mx-4">
@@ -43,7 +43,7 @@ export default function snakeRoute() {
                     <span>↘️</span>
                   </div>
                   <div class="text-left mt-1">
-                    <span>SW (A)</span>
+                    <span>SW (D)</span>
                   </div>
                 </div>
               </div>
@@ -51,16 +51,16 @@ export default function snakeRoute() {
 
             <div class="ml-4">
               <div class="text-center text-subtitles text-xl font-medium font-fixel">
-                <span>Spacebar (JUMP)</span>
+                <span>Jump (Space)</span>
               </div>
-              <div class="text-center mt-1">
+              <div class="text-center mt-1 mb-2">
                 <span>🦘</span>
               </div>
-              <div class="mt-1 text-left text-accRed2 text-xl font-medium font-fixel">
-                <span>Mouse / Touch:</span>
+              <div class="mt-4 -ml-1 text-left text-accRed2 text-xl font-medium font-fixel underline">
+                <span>Mouse / Touch</span>
               </div>
-              <div class="mt-1 ml-4 text-left text-accYellow text-md font-medium font-fixel">
-                <ul class="list-disc space-y-1">
+              <div class="ml-4 mt-0.5 text-left text-accYellow text-md font-medium font-fixel">
+                <ul class="list-disc -space-y-1">
                   <li>Drag = Direction</li>
                   <li>Tap = Jump</li>
                 </ul>
@@ -100,7 +100,7 @@ export default function snakeRoute() {
               <h2 class="font-fixel mb-2 text-accRed2 text-4xl font-semibold">
                 Winning:
               </h2>
-              <ul class="space-y-1 text-lg font-medium font-fixel text-accRed2">
+              <ul class="space-y-1 text-lg font-medium font-fixel text-accLiteGreen">
                 <li class="flex justify-between items-center">
                   <span class="text-right flex-grow">???</span>
                   <span class="ml-2 text-[8px]">●</span>
