@@ -7,7 +7,7 @@ interface TableOfContentsProps {
 
 export default function TableOfContents({ headings }: TableOfContentsProps): JSX.Element {
   return (
-    <ul class="space-y-2 px-5">
+    <ul class="space-y-1 md:space-y-2 px-1 md:px-5">
       {headings.map(({ id, text, level }) => (
         <li key={id} class="relative" style={{ paddingLeft: `${level * 1.2}rem` }}>
           {/* Vertical Line for Tree */}
@@ -23,7 +23,7 @@ export default function TableOfContents({ headings }: TableOfContentsProps): JSX
             href={`#${id}`}
             data-action="close"
             dangerouslySetInnerHTML={{ __html: text }}
-            class="block text-accGreen font-source4 font-medium hover:text-accRed transition-colors duration-300"
+            class={`block text-accGreen font-source4 hover:text-accRed transition-colors duration-300`}
             style={{
               fontSize: `${1.57 - level * 0.18}rem`, // Dynamically adjust font size
               fontWeight: `${800 - level * 100}`, // Make text weight lighter for deeper levels
