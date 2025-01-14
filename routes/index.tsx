@@ -39,7 +39,7 @@ export default async function homeRoute() {
     <>
       <Partial name="site-nav">
         <div id="site-nav-container" class="hidden">
-          <h2 class="font-fixel ml-4.0 mb-2 text-accRed2 text-4xl font-semibold">Posts: </h2>
+          <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-4xl font-semibold">Posts: </h2>
           <ul class="space-y-4">
             {posts.map((post, index) => {
               const isEven = index % 2 === 0;
@@ -80,7 +80,7 @@ export default async function homeRoute() {
             })}
           </ul>
           <hr class="mx-2 my-4"/>
-          <h2 class="font-fixel ml-4.0 mb-2 text-accRed2 text-4xl font-semibold">Demos: </h2>
+          <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-4xl font-semibold">Demos: </h2>
           <ul class="space-y-4">
             {demos.map((post, index) => {
               const isEven = index % 2 === 0;

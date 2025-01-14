@@ -17,7 +17,7 @@ export default function BackButton3D() {
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-    camera.position.z = 3;
+    camera.position.z = 2.5;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(SIZE[0], SIZE[1]); // Small size for the button
@@ -56,6 +56,8 @@ export default function BackButton3D() {
     const rectangle = new THREE.Mesh(rectangleGeometry, rectangleMaterial);
     rectangle.position.set(0, 0, 0); // Connect to triangle's point
     group.add(rectangle);
+
+    group.position.set(0.3, 0, 0)
 
     scene.add(group);
 
