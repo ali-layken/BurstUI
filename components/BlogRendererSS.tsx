@@ -57,7 +57,6 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
   const tocHtml = text.replace(/<a[^>]*>(.*?)<\/a>/g, "$1");
   headings.push({ id, text: tocHtml, level: depth }); // Add heading to TOC array
 
-  const leftPad = `style="padding-left: ${depth}rem"`;
 
   switch (depth) {
     case 1:
@@ -66,12 +65,12 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
     `;
     case 3:
       return `
-        <${tag} id="${id}" ${leftPad}>${text}</${tag}>
-        <hr style="margin: -0.5rem 1.75rem 0.9rem 1.75rem; text-align: left;" />
+        <${tag} id="${id}">${text}</${tag}>
+        <hr style="margin: -0.5rem 1.75rem 0.9rem -1.23rem;" />
     `;
     default:
       return `
-      <${tag} id="${id}" ${leftPad}>${text}</${tag}>
+      <${tag} id="${id}">${text}</${tag}>
       `;
   }
 };
@@ -152,7 +151,7 @@ export default function BlogPostRenderer(content: string): RendererResult {
   headings.unshift({ id: TitleHeaderID, text: "(Top)", level: 0 });
   return {
     renderedContent: (
-      <article class="prose lg:prose-xl custom-prose mx-auto">
+      <article class="prose-lg md:prose-xl mx-auto">
         <div dangerouslySetInnerHTML={{ __html: renderedContent as string }} />
       </article>
     ),
