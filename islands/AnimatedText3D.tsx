@@ -13,9 +13,8 @@ const AnimatedText3D = ({
   wideZoom = 210,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const cameraZoomRef = useRef(0); // Tracks the current zoom level
+  const cameraZoomRef = useRef(1000); // Tracks the current zoom level
   const targetZoomRef = useRef(0); // Tracks the target zoom level
-  const isNarrowTextRef = useRef(false); // Tracks the state of isNarrowSignal
   const isMouseOverRef = useRef(false); // Tracks mouse hover state
 
   useEffect(() => {
@@ -26,7 +25,6 @@ const AnimatedText3D = ({
     let pauseTime = 2;
 
     const unsubscribe = isNarrowSignal.subscribe((newValue) => {
-      isNarrowTextRef.current = newValue;
       targetZoomRef.current = newValue ? narrowZoom : wideZoom; // Update target zoom
     });
 

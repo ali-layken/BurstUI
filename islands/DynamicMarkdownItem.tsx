@@ -36,13 +36,13 @@ export default function DynamicMarkdownItem() {
 
           // MermaidBlock logic
           if (componentName === "MermaidBlock") {
-            placeholder.classList.remove("invisible");
             if (runMermaid) {
               runMermaid = false;
 
               mermaid.initialize({
                 startOnLoad: false,
                 theme: "dark",
+                securityLevel: 'loose',
                 themeVariables: {
                   fontFamily: "Fixel",
                   fontSize: "1.3em",
@@ -53,6 +53,7 @@ export default function DynamicMarkdownItem() {
 
               await mermaid.run();
             }
+            placeholder.classList.remove("invisible");
             return;
           }
 
@@ -78,26 +79,48 @@ export default function DynamicMarkdownItem() {
       );
     };
 
-    const rerenderMermaid = () => {
-      // Find all Mermaid diagrams and trigger re-render
+    const rerenderMermaid = async () => {
       const mermaidBlocks = document.querySelectorAll("[data-component='MermaidBlock']");
-      if (mermaidBlocks.length > 0) {
-        // Remove the 'data-processed' attribute to reset Mermaid charts
-        mermaidBlocks.forEach((block) => {
-          block.removeAttribute('data-processed');
-        });
-        
-        // Reinitialize and trigger Mermaid re-rendering
-        mermaid.contentLoaded();
+        for (const block of mermaidBlocks) {
+          if (block instanceof HTMLElement) {
+            const parent = block.parentElement!;
+            const originalHeight = parent.clientHeight;
+    
+            // Preserve the parent's height and hide it
+            parent.style.height = `${originalHeight}px`;
+            parent.style.opacity = "0";
+    
+            // Prepare the block for rendering
+            block.removeAttribute("data-processed");
+            const code = decodeURIComponent(block.getAttribute("data-code") || "");
+            block.style.color = burstColors.bgAqua; // Hide text visually
+            block.innerHTML = code;
+            block.style.visibility = "hidden";
+    
+            // Wait for Mermaid to render the diagrams
+            await mermaid.run({
+              querySelector: `[data-component='MermaidBlock']`,
+            });
+    
+            console.log(parent.style.opacity)
+            // Restore the parent's appearance after rendering
+            parent.style.height = "auto"; // Reset height
+            setTimeout(() => {
+              parent.style.opacity = "1";
+              block.style.visibility = "visible";
+            }, 300)
+          } else {
+            console.warn("Skipped rendering for a non-HTMLElement or non-code parent:", block);
+          }
       }
     };
-
+    
     // Run hydration initially
     hydrateComponents();
-
+    
     // Add a resize listener to re-render Mermaid diagrams
     globalThis.addEventListener("resize", rerenderMermaid);
-
+    
     return () => {
       globalThis.removeEventListener("resize", rerenderMermaid);
     };
