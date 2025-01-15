@@ -125,9 +125,7 @@ export default async function homeRoute() {
         />
         <p class="text-accLiteGreen text-2xl text-center font-fixel">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}
-          visitor! This space is dedicated to turning my nonsensical &
-          spontaneous adventures into something you can benefit from. If I ever
-          do something cool, I truly want you to be able to do it too!
+          visitor! This space is for sharing knowledge that I hope you can benefit from.
         </p>
       </Partial>
     </>
