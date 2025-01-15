@@ -79,7 +79,9 @@ const hlExt = markedHighlight({
   langPrefix: "hljs language-",
   highlight: (code, lang) => {
     if (lang === "mermaid") {
-      return `<pre class="mermaid invisible" data-component="MermaidBlock">${code}</pre>`;
+      return `<pre class="mermaid invisible" data-component="MermaidBlock" data-code="${
+      encodeURIComponent(code)
+    }">${code}</pre>`;
     }
   
     const language = hljs.getLanguage(lang) ? lang : "plaintext";
