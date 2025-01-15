@@ -2,11 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-.marked-emoji-img {
+.marked-emoji-img:not(.prose-lg img):not(.prose-xl img) {
   display: inline-block;
-  width: 1em; /* Adjust size */
-  height: 1em; /* Match width */
-  vertical-align: -0.2em; /* Align with text */
+  font-size: inherit; /* Match text size */
+  width: 1.1em; /* Scale with inherited font size */
+  height: 1.1em;
+  vertical-align: -0.2em;
 }
 
 

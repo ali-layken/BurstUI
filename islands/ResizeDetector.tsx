@@ -2,11 +2,9 @@ import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { isNarrowSignal } from "../utils/signals.ts";
 
-interface ResizeDetectorProps {
-  currentPage: string
-}
 
-export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): JSX.Element {
+
+export default function ResizeDetector(): JSX.Element {
   if (typeof globalThis === "undefined") {
     return <></>;
   }
@@ -49,7 +47,6 @@ export default function ResizeDetector({ currentPage }: ResizeDetectorProps ): J
 
     const handleSiteNavigation = (event: any) => {
       const action = event.target.dataset.action;
-      console.log("sitenav menu action", action)
       if (action === "toggle") {
         toggleMenu();
       }

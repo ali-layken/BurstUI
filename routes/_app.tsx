@@ -4,7 +4,7 @@ import ResizeDetector from "../islands/ResizeDetector.tsx";
 
 
 export default function App(
-  { Component, route }: PageProps,
+  { Component }: PageProps,
 ): JSX.Element {
   return (
     <html>
@@ -15,7 +15,7 @@ export default function App(
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body f-client-nav>
-      <ResizeDetector currentPage={route} />
+      <ResizeDetector />
         <div class="layout">
           <div
             id="background-container"

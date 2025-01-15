@@ -58,13 +58,6 @@ const AnimatedText3D = ({
       camera.position.z = 1000; // Start narrow if wide
       cameraZoomRef.current = 1000;
 
-      // Conditional initialization based on isNarrowSignal
-      if (isNarrowTextRef.current) {
-        targetZoomRef.current = narrowZoom; // Zoom to narrow
-      } else {
-        targetZoomRef.current = wideZoom; // Zoom to wide
-      }
-
       // Text Group
       textGroup = new THREE.Group();
       scene.add(textGroup);
