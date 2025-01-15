@@ -2,8 +2,8 @@ import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import CopyableCodeBlock from "./CopyableCodeBlock.tsx";
-import mermaid from "mermaid";
-import { burstColors, burstTextColors } from "../static/colors.ts";
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+import { burstColors } from "../static/colors.ts";
 
 
 

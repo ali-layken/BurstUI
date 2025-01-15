@@ -32,7 +32,6 @@
     "marked-highlight": "npm:marked-highlight@^2.2.1",
     "marked-smartypants": "npm:marked-smartypants@^1.1.9",
     "marked-smartypants-lite": "npm:marked-smartypants-lite@^1.0.2",
-    "mermaid": "npm:mermaid@^11.4.1",
     "preact": "https://esm.sh/preact@10.22.0",
     "preact/": "https://esm.sh/preact@10.22.0/",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
