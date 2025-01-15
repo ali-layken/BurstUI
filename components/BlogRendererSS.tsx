@@ -26,7 +26,7 @@ customRenderer.link = ({ href, title, text }): string => {
     const safeTitle = title ? `title="${title}"` : ``;
     text = marked.parseInline(text) as string;
     if (text.endsWith("notab")) {
-      return `<a href="${safeHref}" ${safeTitle} rel="noopener noreferrer">${
+      return `<a href="${safeHref}" ${safeTitle}>${
         text.replace("notab", "")
       }</a>`;
     }

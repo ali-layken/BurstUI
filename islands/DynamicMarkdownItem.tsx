@@ -86,7 +86,6 @@ export default function DynamicMarkdownItem() {
             const parent = block.parentElement!;
             const originalHeight = parent.clientHeight;
     
-            // Preserve the parent's height and hide it
             parent.style.height = `${originalHeight}px`;
             parent.style.opacity = "0";
     
@@ -103,12 +102,12 @@ export default function DynamicMarkdownItem() {
             });
     
             console.log(parent.style.opacity)
-            // Restore the parent's appearance after rendering
-            parent.style.height = "auto"; // Reset height
+
+            parent.style.height = "auto";
             setTimeout(() => {
               parent.style.opacity = "1";
               block.style.visibility = "visible";
-            }, 300)
+            }, 400)
           } else {
             console.warn("Skipped rendering for a non-HTMLElement or non-code parent:", block);
           }

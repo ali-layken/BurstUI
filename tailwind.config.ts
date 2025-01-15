@@ -119,7 +119,7 @@ const deCSS = {
     "code.language-mermaid": {
       "@apply rounded-lg": {}, // Add the rounded-t-lg only for non-Mermaid blocks
       padding: "1.75rem 0.2rem 0rem",
-      transition: "opacity 0.2s ease", 
+      transition: "opacity 0.3s ease", 
     },
   },
   "pre.mermaid":{
