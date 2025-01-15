@@ -118,21 +118,22 @@ const deCSS = {
     },
     "code.language-mermaid": {
       "@apply rounded-lg": {}, // Add the rounded-t-lg only for non-Mermaid blocks
-      padding: "1.75rem 2rem 0rem",
+      padding: "1.75rem 0.2rem 0rem",
     },
   },
   "pre.mermaid":{
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "16px",
     border: `1px solid ${burstColors.subtitles2}`,
     borderRadius: "4px",
     overflow: "auto",
     whiteSpace: "normal",
     minHeight: "100px",
   },
-
+  "pre:has(.mermaid)": {
+    "@apply overflow-hidden p-0": {},
+  },
   ".code-line": {
     "@apply flex items-center": {},
     lineHeight: "1.75",
@@ -220,7 +221,7 @@ const deCSS = {
       fontWeight: "bold", // Optional: make markers bold
     },
   },
-  "img.marked-emoji-img": {
+  ".marked-emoji-img": {
     display: "inline-block",
     width: "1.1em",
     height: "1.1em",

@@ -1,9 +1,8 @@
 import { Octokit } from "@octokit/rest";
 import hljs from "highlight.js";
 import { marked, Renderer, Tokens } from "marked";
-import { markedEmoji, MarkedEmojiOptions } from "marked-emoji";
+import { EmojiToken, markedEmoji, MarkedEmojiOptions } from "marked-emoji";
 import { markedHighlight } from "marked-highlight";
-import { markedSmartypantsLite } from "marked-smartypants-lite";
 import { JSX } from "preact/jsx-runtime";
 import { TitleHeaderID } from "../routes/blog/[postname].tsx";
 import { burstTextColors } from "../static/colors.ts";
@@ -82,12 +81,13 @@ const hlExt = markedHighlight({
     if (lang === "mermaid") {
       return `<pre class="mermaid invisible" data-component="MermaidBlock">${code}</pre>`;
     }
+  
     const language = hljs.getLanguage(lang) ? lang : "plaintext";
     const highlighted = hljs.highlight(code, { language }).value;
-
-    // Split the highlighted code into lines
+  
+    // Rest of the highlight logic
     const lines = highlighted.split("\n");
-
+  
     const linesWithButtons = lines.map((line, index) => {
       return `<div class="code-line relative group">
                 <span 
@@ -97,17 +97,15 @@ const hlExt = markedHighlight({
                 <span class="pl-2 text-base">${line}</span>
                 <span 
                   class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
-                  data-line="${
-        encodeURIComponent(code.split("\n")[index] || "")
-      }"
+                  data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
                   title="Copy Button">📋</span>
               </div>`;
     });
-
+  
     return `<div data-component="CopyableCodeBlock" data-lang="${language}" data-code="${
       encodeURIComponent(code)
     }">${linesWithButtons.join("")}</div>`;
-  },
+  }
 });
 
 const octokit = new Octokit();
@@ -126,10 +124,12 @@ const customEmojis = {
   "podman_logo": "/emojis/podman.webp",
 };
 
+const emojiRenderer = (token: EmojiToken) =>
+  `<img alt="${token.name}" src="${token.emoji}" class="marked-emoji-img">`
+
 const options: MarkedEmojiOptions = {
   emojis: { ...gitEmojis, ...customEmojis },
-  renderer: (token) =>
-    `<img alt="${token.name}" src="${token.emoji}" class="marked-emoji-img">`,
+  renderer: emojiRenderer
 };
 
 marked.use(
@@ -137,7 +137,6 @@ marked.use(
   {
     renderer: customRenderer,
   },
-  markedSmartypantsLite(),
   markedEmoji(options),
 );
 

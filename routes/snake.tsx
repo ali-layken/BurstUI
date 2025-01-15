@@ -58,7 +58,8 @@ export default function snakeRoute() {
                 <span>🦘</span>
               </div>
               <div class="mt-4 -ml-1 text-left text-accRed2 text-base md:text-xl font-medium font-fixel">
-                <span class="underline">Mouse</span> / <span class="underline">Touch</span>
+                <span class="underline">Mouse</span> /{" "}
+                <span class="underline">Touch</span>
               </div>
               <div class="ml-4 mt-0.5 text-left text-accYellow font-fixel">
                 <ul class="list-disc -space-y-1 text-sm md:text-base">
@@ -138,6 +139,19 @@ export default function snakeRoute() {
             title="Godot Game"
           >
           </iframe>
+        </div>
+        <div className="flex items-center justify-center pt-5">
+          <a
+            href="https://github.com/ali-layken/Snake-2.5"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/emojis/github.png"
+              alt="GitHub"
+              className="w-24 h-24"
+            />
+          </a>
         </div>
       </Partial>
     </>
