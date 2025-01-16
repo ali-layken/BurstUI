@@ -46,8 +46,8 @@ We are witnessing our first most basic twist :twisted_rightwards_arrows: on the 
 <br/><br/>
 In the following sections, we will see how to:
 
-1. Download Deno and Fresh and use them to create a website and make it accessible over the internet [(skip to section)notab](https://burst.deno.dev/blog/Build_Your_Own_Website#deno--goathttpswwwmerriam-webstercomdictionarygoated--fresh--boathttpsdictionaryreversonetenglish-definitionboat).
-2. Use Deno and Fresh as the software to generate the HTML files and send them along with JS code to run in the browser as a response to build a cohesive website [(skip to section)notab](https://burst.deno.dev/blog/Build_Your_Own_Website#website-building).
+1. Download Deno and Fresh and use them to create a website and make it accessible over the internet [(skip to section)jump](#deno--goathttpswwwmerriam-webstercomdictionarygoated--fresh--boathttpsdictionaryreversonetenglish-definitionboat).
+2. Use Deno and Fresh as the software to generate the HTML files and send them along with JS code to run in the browser as a response to build a cohesive website [(skip to section)jump](#website-building).
 
 #### Wait, It’s all Computers & File Systems? :earth_africa::man_astronaut: :gun::woman_astronaut:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`example.com` is like a name for a computer that my browser can use to find and connect to over the internet. The software running on that computer, *serving* the file, is considered; *The Server*. Our greedy, needy browser software requesting so many files would be *The Client*. *Server* & *Client* are sometimes used to [refer to the machine](https://en.wikipedia.org/wiki/Server_(computing)#Operation), causing confusion with [server computers](https://en.wikipedia.org/wiki/PowerEdge), which are computers optimized to run server software. As we move into a computing landscape where most computers are running server and client software, [I suggest](https://www.ling.upenn.edu/courses/Fall_2003/ling001/language_change.html), when needed, we use **Host** when referring to computers running server software and **Guest** for computers running client software.
