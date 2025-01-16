@@ -119,20 +119,19 @@ const deCSS = {
     "code.language-mermaid": {
       "@apply rounded-lg": {}, // Add the rounded-t-lg only for non-Mermaid blocks
       padding: "1.75rem 0.2rem 0rem",
+      transition: "opacity 0.3s ease", 
     },
   },
   "pre.mermaid":{
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    border: `1px solid ${burstColors.subtitles2}`,
-    borderRadius: "4px",
     overflow: "auto",
     whiteSpace: "normal",
     minHeight: "100px",
   },
   "pre:has(.mermaid)": {
-    "@apply overflow-hidden p-0": {},
+    "@apply overflow-hidden p-0 my-4": {},
   },
   ".code-line": {
     "@apply flex items-center": {},
