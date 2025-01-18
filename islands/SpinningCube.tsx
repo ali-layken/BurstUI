@@ -39,10 +39,10 @@ export default function SpinningCube() {
 
     // Animation loop
     const animate = () => {
-      cubeGroup.rotation.x += 0.01; // Directly tied to frame rate
+      cubeGroup.rotation.x += 0.01;
       cubeGroup.rotation.y += 0.01;
       renderer.render(scene, camera);
-      requestAnimationFrame(animate); // Tied to refresh rate
+      requestAnimationFrame(animate); 
     };
 
     animate(); // Start the animation loop

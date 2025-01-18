@@ -26,9 +26,7 @@ customRenderer.link = ({ href, title, text }): string => {
     const safeTitle = title ? `title="${title}"` : ``;
     text = marked.parseInline(text) as string;
     if (text.endsWith("jump")) {
-      console.log(text);
       return `<a href=${href}>${text.replace("jump", "")}</a>`;
-
     }
     return `<a href="${safeHref}" ${safeTitle} target="_blank" rel="noopener noreferrer">${text}</a>`;
   } catch (error) {
