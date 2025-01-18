@@ -83,23 +83,26 @@ const hlExt = markedHighlight({
     }
   
     const language = hljs.getLanguage(lang) ? lang : "plaintext";
-    const highlighted = hljs.highlight(code, { language }).value;
+    const codeLines = code.split('\n');
   
-    // Rest of the highlight logic
-    const lines = highlighted.split("\n");
-  
-    const linesWithButtons = lines.map((line, index) => {
-      return `<div class="code-line relative group">
-                <span 
-                  class="absolute group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style="top: 8px; left: -12px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
-                </span>
-                <span class="pl-2 text-base">${line}</span>
-                <span 
-                  class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
-                  data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
-                  title="Copy Button">📋</span>
-              </div>`;
+    const linesWithButtons = codeLines.map((code, index) => {
+      if (code === ""){
+        return `<br/>`
+      } else{
+        const line = hljs.highlight(code, { language }).value;
+        return `<div class="code-line relative group">
+        <span 
+          class="absolute group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style="top: 8px; left: -12px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
+        </span>
+        <span class="pl-2 text-base">${line}</span>
+        <span 
+          class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
+          data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
+          title="Copy Button">📋</span>
+      </div>`;
+      }
+
     });
   
     return `<div data-component="CopyableCodeBlock" data-lang="${language}" data-code="${
