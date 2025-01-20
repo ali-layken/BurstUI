@@ -1,17 +1,14 @@
 # How Did We End Up Here?
 
-### How Did I End Up Here
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Well this page is just [a markdown file](/blog/Build_Your_Own_Website#dynamic-routing) on a computer controlled by [Deno Deploy](https://deno.com/deploy). I uploaded this file to Github and Deno Deploy [grabbed it and uploaded it](https://github.com/ali-layken/BurstUI/actions) to that computer.
+### Sending Files Over the Internet :page_facing_up:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Well this page is just [a markdown file](/blog/Build_Your_Own_Website#dynamic-routing) :page_facing_up: on a computer controlled by [Deno Deploy](https://deno.com/deploy). I uploaded this file to Github and Deno Deploy [grabbed it and uploaded it](https://github.com/ali-layken/BurstUI/actions) to that computer. When you clicked the link to visit this post, your request traveled through **several** systems, just like my uploaded file, before reaching the Deno's computer. The file you loaded was sent as [`Network packets`](https://en.wikipedia.org/wiki/Network_packet), which is what we call sections of data we send over the internet. These `packets` are usually structured according to a protocols and these protocols serve different purposes. This website's `packets` follow [`HTTPS`](https://en.wikipedia.org/wiki/HTTPS) and specifically form an *`HTTPS` Response* which means the message they make when put together and given to your browser display is a website. Deno's computer is listening for `packets` that look like *`HTTPS` Requests* and responding to them. We call computers that do this *web servers*.
 
-### How Did You End Up at This File :page_facing_up: ?
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When you clicked the link to visit this post, your request traveled through **several** systems, just like my uploaded file, before reaching the Deno's computer. The file you loaded was sent as [`Network packets`], which is what we call sections of data we send over the internet. These `packets` are usually structured according to a protocols and these protocols serve different purposes. This website's `packets` follow [`HTTPS`] and specifically form an [`HTTPS` Response] which means the message they make when put together and given to your browser display is a website. Deno's computer is listening for `packets` that look like [`HTTPS` Requests] and responding to them, and we call computers that do this web servers.
-
-### Where is Here?
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Computers need to be physically connected in some way in order to communicate. This physical connection is sometimes wireless but nonetheless required to transmit and receive data. When many computers are all physically connected typically one of them is assigned to handle receiving and sending all messages to the right person like a post office. This computer is called the router and just like the post office it assigns addresses called `IP Addresses` to each computer so that `packets` with their destination address can be delivered to them. Once a computer is physically connected to a network it can get an `IP Address` by sending out `packets` that make up a [`DHCP` request]. The router hears the request and responds with the address that others can use to send packets to the newly connected computer.
+### Where is Here? :earth_africa:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Computers :computer: need to be physically connected in some way in order to communicate. This physical connection is sometimes wireless 🛜 but nonetheless required to transmit and receive data. When multiple computers are physically connected, typically one of them is assigned to handle receiving and sending out messages to the right person like a post office. This computer is called the router and [just like the post office](https://en.wikipedia.org/wiki/House_numbering) it assigns addresses called `IP Addresses` to each computer so that `packets` with their destination address can be delivered to them. Once a computer is physically connected to a network it can get an `IP Address` by sending out `packets` that make up a *[`DHCP`](https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top) Request*. The router hears the request and responds with the address that others can use to send packets to the newly connected computer.
 
 <br/>
 
-How were you able to send `packets` to `burst.deno.dev`, a [hostname] without knowing its `IP`? Just like the protocols for getting website content from web servers, and `IP`s from routers, some computers called [`DNS` Servers] are listening for `hostnames` in the form of [`DNS` requests] so they can respond with the corresponding `IP address`. Every computer's internet settings has an area where you can see what DNS Servers are being used:
+`burst.deno.dev` is a [hostname](https://en.wikipedia.org/wiki/Hostname), a human readable and memorable label we give to computers. Hostnames are not `IPs`, so how were you able to send `packets` to Deno's Computer without knowing its `IP`?: Just like the protocols for getting website content from *web servers*, and `IP`s from routers, some computers called *[`DNS`](https://en.wikipedia.org/wiki/Domain_Name_System) servers* which listening for `hostnames` in the form of [`DNS` requests] so they can respond with the corresponding `IP address`. Every computer's internet settings has an area where you can see what DNS Servers are being used:
 
 ![someimage](/2/dnssettings.png)
 
@@ -178,7 +175,7 @@ $ podman-compose -v
 Another way to mitigate the risk of a pihole hack is to simply take a look at [this list of people](https://github.com/pi-hole/pi-hole/graphs/contributors). If you can't trust the 221+ people who wrote pihole you can spend 10 minutes checking [their code](https://github.com/pi-hole/pi-hole) for [crazy hax](https://www.youtube.com/watch?v=zEd4Vw2bmBE). If you're really paranoid show your worth and just rewrite the whole thing using vim in assembly yourself. The same people that could find an exploit in pihole could very well also just submit it as a patch and become a contributor:100: #opensourcegang. Security again, is fundamentally about understanding your adversary: if you don't know your enemy, you won't know what to defend against. If your enemy is Nintendo then do not post any of your teams personal information online because they will find you anywhere in the world. If your enemy is Open AI... [run](https://www.pbs.org/newshour/nation/openai-whistleblower-who-raised-legal-concerns-about-chatgpts-datasets-has-died). Real security however is not about attaccs and haxors its about **trust**. The prevailing modern network security isn't about preventing the enemy attack. It's about not even letting them get the chance by [trusting no one](https://en.wikipedia.org/wiki/Zero_trust_architecture). This is great you can build a whole OS on your own, but after making software everyone arrives at the same next step; how do I share this? 
 <br/>
 
-### Building the Containers
+### Building the Containers (Any OS)
 I started by combining the compose scripts for [pihole compose](https://hub.docker.com/r/pihole/pihole) and unbound [unbound](https://hub.docker.com/r/klutchell/unbound). Compose scripts are used to describe to podman how you want your containers brought up. Theres a couple of important pieces so lets take a look at our `docker-compose.yml` file:
 
 ```yml
@@ -253,9 +250,9 @@ It is not needed to actually mount an `unbound.conf`, I just included the volume
 
 The pihole folders should create themselves but you can create them manually if needed using `mkdir etc-pihole etc-dnsmasq`, but be mindful of the [rwx permissions] since rootless containers don't have many.
 
-### Running & Stopping
+### Running & Stopping (Linux)
 
-Since we aren't using rootful containers podman-compose will have a hard time starting pihole on port 53 which is the special privileged default DNS port. There are many ways to setup linux environments that depend on your enemies. I'll just share what I did to allow podman-compose to run these rootless containers:
+Since we aren't using rootful containers podman-compose linux will give us a hard time starting pihole on port 53 which is the special privileged default DNS port. There are many ways to setup linux environments that depend on your enemies. I find no security related difference between letting pihole use 53 or mapping pihole to 1053 and then forwarding all 53 requests to 1053 so I wont setup port forwarding. Here's how to start the softwares:
 
 ```shellsession
 $ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=0
@@ -272,33 +269,31 @@ $ podman-compose --verbose down #Stopping
 $ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=1024
 ```
 
-### Automating
+### Automating (Linux)
 
-To automate this process after reboot is a little more tricky but this is the desirable setup for any server, things happen computers crash and shutdown, its best to make sure everything is easy to get back up again. I find no difference between letting pihole use 53 or mapping pihole to 1053 and then forwarding all 53 requests to 1053 so I wont setup port forwarding. This setup does have lower unprivileged ports on boot so a very specifically timed attack could start a user process on a privileged port before I set it back to 1024.  Adding linux capabilities in the compose didn't work so we will have to do this somehow. Adjust this linux system configuration section for your own needs:
+To automate this process after reboot is a little more tricky, but this is the desirable setup for any server: things happen, computers crash and shutdown. Its best to make sure everything is easy to get back up again. This setup does have lower unprivileged ports on boot so a very specifically timed attack could start a user process on a privileged port before I set it back to 1024. Adding linux capabilities in the compose didn't work so we will have automate this configuration. Adjust this linux system configuration section for your own needs:
 
 <br/>
 
-First we have to set the unprivileged ports to 0 in `/etc/sysctl.d/99-sysctl.conf` so that on boot podman-compose can start pihole:
-
+1. First we have to set the unprivileged ports to 0 in `/etc/sysctl.d/99-sysctl.conf` so that on boot podman-compose can start pihole:
 ```ini
 net.ipv4.ip_unprivileged_port_start=0 
 ```
-
-Next we will start our rootless containers on boot. I used [this article](https://www.it-hure.de/2024/02/podman-compose-and-systemd/) to understand podman-compose's relationship with systemd since this command is pretty undocumented. In the folder with the docker-compose run:
+2. Next we will start our rootless containers on boot. I used [this article](https://www.it-hure.de/2024/02/podman-compose-and-systemd/) to understand podman-compose's relationship with systemd since this command is pretty undocumented. In the folder with the docker-compose run:
 
 ```shellsession
 $ podman-compose systemd
 $ systemctl --user enable --now 'podman-compose@pihole'
 ```
 
-This creates a systemd user unit file that describes to systemd how we want pihole to start on boot. After a reboot with this service enabled you can see if it started ok and check the logs using:
+3. This creates a systemd user unit file that describes to systemd how we want pihole to start on boot. After a reboot with this service enabled you can see if it started ok and check the logs using:
 
 ```shellsession
 $ systemctl --user status 'podman-compose@pihole' #Startup status
 $ journalctl --user -xeu 'podman-compose@pihole' #Logs
 ```
 
-The problem is now that our unprivileged ports are set to 0. To fix this I just made another user unit file that runs after podman-compose@pihole at `~/.config/systemd/user/unpriv.service`:
+4. The problem is now that our unprivileged ports are set to 0. To fix this I just made another user unit file that runs after podman-compose@pihole at `~/.config/systemd/user/unpriv.service`:
 
 ```ini
 [Unit]
@@ -315,11 +310,87 @@ RemainAfterExit=yes
 WantedBy=default.target
 ```
 
-Now on boot pihole is listening for DNS requests on port 53. But DNS Request by default go to port 53 so now we need a firewall rule to send all 1053 traffic ot 53
+#### Firewall (Linux)
+
+5. Now on boot pihole is listening for DNS requests on port 53. In the configuration below we will turn off pihole's security filtering so lets build some of our own. First, install ufw (probably `sudo apt install ufw`) and then make a file at `~/ufw.sh` with the following contents:
+
+```shellsession
+#!/bin/bash
+
+ufw disable
+echo "y" | ufw reset
+
+ufw default deny incoming
+ufw default allow outgoing
+
+
+
+# Allow SSH from LAN and Tailscale
+ufw allow in on eth0 to any port 22 proto tcp
+ufw allow in on tailscale0 to any port 22 proto tcp
+
+
+# Allow Pi-hole Admin Panel from LAN and Tailscale
+ufw allow in on eth0 to any port 30080 proto tcp
+ufw allow in on tailscale0 to any port 30080 proto tcp
+
+# Allow DNS (Ports 53 TCP/UDP)
+ufw allow in on eth0 to any port 53 proto tcp
+ufw allow in on eth0 to any port 53 proto udp
+
+ufw allow in on tailscale0 to any port 53 proto tcp
+ufw allow in on tailscale0 to any port 53 proto udp
+
+ufw allow in on podman1 to any port 53 proto any
+ufw allow out on podman1 to any port 53 proto any
+
+
+# Allow communication between Podman network and host
+ufw route allow in on podman1 out on eth0 proto any
+ufw route allow in on eth0 out on podman1 proto any
+ufw route allow in on podman1 out on tailscale0 proto any
+ufw route allow in on tailscale0 out on podman1 proto any
+
+
+
+# Deny Comcast IPv6 DNS servers
+ufw deny out to 75.75.75.75
+ufw deny out to 75.75.76.76
+ufw deny out to 2001:558:feed::1
+ufw deny out to 2001:558:feed::2
+
+
+echo enabling
+ufw enable
+ufw reload
+ufw status verbose
+```
+
+This allows `packets` over ethernet and the tailscale network to go SSH, DNS. and the pihole Admin website which we will be using next section. Adjust the interface names from your own connections that you can typically see by running `ip address`. 
+
+6. Run these commands to start, debug, stop, and automate the firewall in the folder that `ufw.sh` is in:
+
+```shellsession
+$ sudo ./ufw.sh          # Start the firewall
+$ sudo dmesg | grep UFW  # Check ufw's block logs
+$ sudo ufw disable       # Stop the firewall
+# -- Edit the rules and run the script again (start).
+
+$ sudo systemctl enable ufw  # Automate ufw on boot
+```
+
+7. To get podman to start without logging into your user requires using [`loginctl`](https://www.freedesktop.org/software/systemd/man/latest/loginctl.html) but I won't so reboot and login to check if everything is running. Give podman a second to start everything back up again then run:
+
+```shellsession
+$ sudo sysctl net.ipv4.ip_unprivileged_port_start # 1024
+$ sudo ufw status # Show firewall rules
+$ podman ps       # Show pihole's & unbound's container status
+```
+
 
 ### Configuration
 
-The compose file above also contains a `WEBPASSWORD` and forward pihole's port 80 to the host. Check if pihole started up fine by visiting `10.0.0.2/admin` in a web browser. You should be greeted with an admin portal where you can login using `WEBPASSWORD`. After logging in there are a couple settings we will need to modify:
+The compose file above also contains a `WEBPASSWORD` and forward pihole's port 80 to the host. Check if pihole started up fine by visiting `<proxy ip>:30080/admin` in a web browser. You should be greeted with an admin portal where you can login using `WEBPASSWORD`. After logging in there are a couple settings we will need to modify:
 <br/>
 
 1. Under *Settings* > *DNS* > *Upstream DNS Servers* we will have to tell pihole where to find unbound. The upstream DNS Server should be set by the compose file but in case it isn't make sure you put `unbound_IP#unbound_port`.
@@ -338,16 +409,37 @@ nameserver 127.0.0.1
 
 so that all local DNS Requests go through pihole. This completes the loop so that requests over the tailnet are fed into pihole + unbound :) 
 
-# Whats next (Web3)
+# What's next...
 
-This article won't particularly help with the United States Government's TikTok ban. The U.S. government won't mess with DNS directly because that would be blatantly oppressive and cause backlash from a larger computing community that isn't impacted by the removal of TikTok. Instead they'll ask Apple, Google, and ByteDance, the organizations with actual power, to take the app off the app store and make it non-functional. Yes, there are alternative app stores on iOS and [Android](https://f-droid.org/en/), but most normal people won't bother so the damage has been done: the people's autonomy has been stolen. The power comes not in actions like DNS manipulation, or App Removals but rather but in the human reliance on monopolistically controlled of centralized platforms. Theres no other way to put it, companies already ran the world, but now its specifically the companies that own the resources needed in the modern world, we already live in a Global Technocracy.
+This article won't particularly help with the United States Government's TikTok ban. The U.S. government won't mess with DNS directly because that would be blatantly oppressive and cause backlash from a larger computing community that isn't impacted by the removal of TikTok. Instead they'll pressure Apple, Google, and ByteDance, the organizations with the actual power over people, to take the app off the app store and make it non-functional. Yes, there are alternative app stores on iOS and [Android](https://f-droid.org/en/), but most normal people won't bother so the damage has been done: the people's autonomy has been stolen. Power doesn't come from small abilities like DNS manipulation or App Removals but rather from our human reliance on monopolistically controlled capitalist centralized platforms.
+
+Web2-the internet of `.com`s, we all know, was owned and controlled by corporations and the organizations they comply with. Web3 is a buzzword, that despite it's decentralized connotations, risks being being abused the same way. Instead of glorifying and chasing a futuristic aesthetic by investing in useless Web3 projects lets think, when looking for systems that work, why do we have to buy the new shiny internet these guys are selling, not go back? Web1 thrived with its simplicity: encrypted connections between two IPs. Companies trying to sell you `Web3` are trying again to cause reliance on them for decentralized tools, which by nature are available to you too. Real Web3 is technology that solves the issues of Web1, the same issues that caused us to rely on companies and their Web2 for years, but now, there are enough people with powerful computers, for us to just rely on each other.
+
+### What's Web3? (Defining "Truth")
+
+Imagine the concept of an "apple". If everyone suddenly disappeared would the concept of the word "apple" still exist? Well, apples would still exist without our labeling of them. Let's imagine that you were born into this world and explore how to establish the truth of apples in 3 different scenarios:
+
+1. **1 Human Survived**: If only 1 person survived you could ask them what the word for *that fruit* is and they would tell you "apple". You have to trust this person to tell you the truth. This situation would be like Web2, where you have to rely on one person and trust them to tell you that its not called an "orange", or has decided to not tell you at all, so you can never have one since you can never request for one or understand what it is without a label for it. 
+2. **2 Humans Survived**: If 2 people survived, Rob and Bob, and both told you "apple" you live in peace for eternity. However, If Bob says "orange" you are cooked. You could say "pass me the orange" when talking to Bob, but what happens when a new human shows up? You could tell them to ask Bob for "oranges" and Rob for "apples" when you want *that fruit*. But if they want an apple from you what do they tell you? It sure would be complicated to ask them to say "give me the thing Bob calls oranges but Rob calls apples". In this situation you are stuck in a terrible situation where you as a person in this system can't verify the truth of what an apple/"apple" is when asked for it or asking for it.
+3. **100 Humans Survived**: 100 people survive and set out on a journey to solve the issues of verification. They find 2 wells connected to an *enchanted* aquifer that contains everything in the universe and also 10 computers. Removing the entire universe was deemed impossible as the engineers as they couldn't build a container big enough, so a designer stepped in and created a system: 
+    * All 100 agree on a memorable hash function that can uniquely hash everything in the universe and compress it so many copies can exist.
+    * The entire universe would be lifted up from the well bucket by bucket and hashed by all 100 of them on their computers in sections called blocks. 
+    * Over 500 days the 100 citizens would sit and create their own copy of hashes.
+
+    On the 6th day a child shows up. You offer them schooling and they take it, you build a computer together and spend 1000 learning and hashing each thing in the well to learn everything in the universe. Yay the truth prevails! In Web3 this is called a full node. On the 7th day a nutritionist from another continent arrives and needs to understand apples and oranges. The don't have any paper or money for a computer so they ask anyone to look up all fruit hashes and use them to recreate a section of the universe; all fruits. The nutritionist thanks them for sharing the truth and then hurries back to solve a crisis. On the 8th day an old man appears that isn't too bad off. He has built a computer for his family and wants the hashes of all fish so he can show his kids. He copies the hash function and 5 pages of the 100 on fishes and then visits one other person to double check then leaves. In Web3 this is called a light node and the nutritionist and the father show different kinds of trust in the system. 
+    
+In Web3 there is no well, but rather each network with its own hash verification system and full nodes. Imagine our full node as a subset of the universe's full node. Blockchains like bitcoin and ethereum are collections of thousands of people with full and light nodes that have recorded data. Crypto-currency is not the data but is the reward for verifying or storing data. Humans can get notoriously evil around money so I wanted to explore a special blockchain circumstance and use it to explore how we define *the truth*.
+
+#### Social Mutability
+
+New things need to enter the full node and light nodes all the time like a new fish species spotting, so when something new comes through we all hash it and record it. Let's say 70% of nodes want to collude and change their hash functions so that all new fish species are owned by the US Government. Everyone's block history would start to change, and going to 70% of verifiers would give you false information about fishes... or is it true? In a decentralized system who decides the hash function? Well this is where the different networks come in. Each network offers a different way to store, retrieve, and verify data. Let's say this shift actually happens and 70% of the computer owners that constitute this blockchain change how it works. This is exactly what happened in 2016 when a major Ethereum holder was hacked and stolen from. One group of Ethereum owners voted to fork the chain and change the code to allow for block rewrites. Some sucker got his money back and this chain now continues now as Ethereum the popular crypto currency. Another group of Ethereum owners valued immutability of the chain and were anti-censorship so the transaction of stolen funds was not rewritten in the transaction history, continuing as Ethereum Classic. This is a weird result where the truths of 2 peoples have permanently diverged like Bob and his "oranges" but Ethereum's efforts allowed for major improvements to blockchain technologies at large.
 
 The path forward is about rethinking the entire infrastructure of the internet. Decentralized systems like the [Etherum Name Service](https://ens.domains/) offer a future where reliance on centralized entities like root nameservers, Apple, Google and their cozy government partnerships is no longer a given. Instead of trusting organizations that can dictate access to apps and services, we could store DNS records on blockchains governed by decentralized protocols, making them immutable, censorship-resistant, and globally accessible.
 
-But ENS alone isn't the solution. It's one piece of a broader puzzle. The real revolution lies in building encrypted peer-to-peer (P2P) networks and applications that bypass traditional DNS and ISP filtering entirely. Think `.onion` routing, but at scale and accessible to everyone—not just privacy enthusiasts or dissidents. The U.S. government originally released `.onion` routing technology to obscure military traffic by mixing it with civilian use. Why can't we take that same principle and flood ISP networks with encrypted, decentralized traffic to proxied IPs to create a world where tracking, blocking, or censoring becomes the exception, not the rule?
+But ENS alone isn't the solution. It's one piece of a broader puzzle. The real revolution lies in building encrypted peer-to-peer (P2P) networks and applications that bypass traditional DNS and ISP filtering entirely. ByteDance wouldn't have to play these political games if their application was more secure like [Telegram] or [Mastodon] since these softwares gave governance to their users, so the company does not have the power, to just "shut it down", even under pressure. With Web3 there is no 1 DNS Server to rely on thats blockable. Every full or light node could get us the data we are looking for.
 
-Despite all of this, I'm still relying on Deno Deploy and its ISP to serve this article—for free. That's the unfortunate truth of decentralization today: it's expensive because its new so it's hard to prove its a good investment. The infrastructural and economic incentives for truly decentralized systems are starting to take shape like the [FDA's DSCSA](https://www.fda.gov/drugs/drug-supply-chain-integrity/drug-supply-chain-security-act-dscsa), but these systems aren't really impacting people yet, so as a society we haven't understood the benefits and differences with traditional centralized systems. We haven't experienced it yet. And while ENS offers a decentralized alternative, it costs money which is not the enemy, it costs money to make good systems. ENS is just an example, the real beauty of decentralization is: it's permissiveness. If you don't like how ENS or `$ENS` holders govern their system, you can fork it. Build your own decentralized DNS on any blockchain or decentralized network. Experiment. Fail. Try again. The goal isn't perfection, it's progress towards a decentralized future.
+Despite all of this, I'm still relying on Deno Deploy and its ISP to serve this article—for free. That's the unfortunate truth of decentralization today: it's expensive because its new so it's hard to prove its a good investment. The infrastructural and economic incentives for truly decentralized systems are starting to take shape like the [FDA's DSCSA](https://www.fda.gov/drugs/drug-supply-chain-integrity/drug-supply-chain-security-act-dscsa), but these systems aren't really impacting people yet, so as a society we haven't understood the benefits and differences with traditional centralized systems. We haven't experienced it yet. And while ENS offers a decentralized alternative, it costs money which is not the enemy, it costs money to make good systems. ENS is just an example, the real beauty of decentralization is: it's permissiveness. If you don't like how ENS or `$ENS` holders govern their system, you can fork it. Build your own decentralized DNS on any blockchain or decentralized network. Experiment. Learn from Mastodon, Telegram, and Ethereum. Fail. Try again. The goal isn't perfection, it's progress towards a decentralized future.
 
-Web2-the internet of `.com`s, we all know, was owned and controlled by corporations and the organizations they comply with. Web3 is a buzzword, that despite it's decentralized connotations, risks being being abused the same way. Instead of glorifying and chasing a futuristic aesthetic by investing in useless Web3 projects lets think, when looking for systems that work, why do we have to buy the new shiny internet these guys are selling, not go back? Web1 was fine with its normal encrypted connections between 2 IPs, its nothing new. These companies trying to sell you `Web3` are just trying to cause reliance again on them for decentralized tools, which by nature are available to you too.
+The U.S. government originally released `.onion` routing technology to obscure military traffic by mixing it with civilian use. Why can't we take that same principle and flood ISP networks with encrypted, decentralized traffic to create a world where tracking, blocking, or censoring becomes the exception, not the rule? With Web3 there is no 1 DNS Server to rely on thats blockable. Every full or light node could get us the data we are looking for. Let's build infrastructure that relies on Web3 so that enough money is poured in and one day, networks will exist that are big enough for someone just like me to be able to host a decentralized website for free!
 
-This isn't just about TikTok, DNS, or even censorship. It's about reshaping the fabric of the internet. A world where you control your data, your domains, and your applications, without needing the approval of corporations or governments shouldn't sound like a utopian ideal. So let's encrypt everything, decentralize everything, and even encrypt traffic for no reason stuff that doesn't need to be. Because every byte of encrypted traffic helps shift the balance of power toward the people. The reign of centralization doesn't end overnight—but every encrypted and oddly routed `packet` can be a step towards a decentralized future brings us closer to a web that belongs to everyone including the people that built it, not just a privileged few with enough money. 
+This isn't just about TikTok, DNS, or even censorship. It's about reshaping the fabric of the internet. A world where you control your data, your domains, and your applications, without needing the approval of corporations or governments shouldn't sound like a utopian ideal. So let's encrypt and decentralize everything, encrypt traffic for no reason, change nodes for no reason. Because every byte of encrypted traffic helps shift the balance of power toward the people. The reign of centralization doesn't end overnight—but every encrypted and oddly routed `packet` can be a step towards a decentralized future brings us closer to a web that belongs to everyone including the people that built it, not just a privileged few with enough money. 

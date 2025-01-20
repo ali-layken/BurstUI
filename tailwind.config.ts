@@ -168,13 +168,6 @@ const deCSS = {
       fontFamily: "monospace",
       fontSize: "0.85em",
     },
-    pre: {
-      backgroundColor: burstColors.termBack1,
-      padding: "1rem",
-      borderRadius: "0.5rem",
-      color: burstTextColors.white,
-      overflowX: "auto",
-    },
     strong: {
       color: burstTextColors.transWhite,
       fontWeight: "900"
@@ -186,6 +179,16 @@ const deCSS = {
       fontWeight: "bold", // Optional: make markers bold
     },
     color: burstColors.creamTan2,
+    
+  },
+  "ol ul": {
+    "list-style-type": "disc", // Explicitly enable bullets
+    "margin-left": "2rem", // Ensure proper indentation
+    "padding-left": "1rem", // Adjust spacing
+    "li::marker": {
+      color: burstTextColors.subtitles, // Customize the marker color
+      fontWeight: "bold", // Optional: make markers bold
+    },
   },
   "ol > li > p": {
     "margin-top": "0", // Remove extra top margin from nested <p>

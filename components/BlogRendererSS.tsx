@@ -115,6 +115,7 @@ const octokit = new Octokit();
 const res = await octokit.rest.emojis.get();
 const gitEmojis = res.data;
 
+
 // Custom emoji set
 const customEmojis = {
   "arch_linux": "/emojis/arch.png",
@@ -125,6 +126,14 @@ const customEmojis = {
   "red_hat_logo": "/emojis/redhat.ico",
   "chromium_logo": "/emojis/chromium.png",
   "podman_logo": "/emojis/podman.webp",
+  "deno_logo": "/emojis/deno.svg",
+  "github_logo": "/emojis/github.png",
+  "rust_logo": "/emojis/rust.png",
+  "html_logo": "/emojis/html5.png",
+  "css_logo": "/emojis/css.png",
+  "fresh_logo": "/emojis/fresh.ico",
+  "typescript_logo": "/emojis/ts.png",
+  "python_logo": "/emojis/python.png",
 };
 
 const emojiRenderer = (token: EmojiToken) =>
