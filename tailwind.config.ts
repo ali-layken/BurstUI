@@ -71,18 +71,27 @@ const deCSS = {
       color: burstTextColors.transWhite,
       fontWeight: "900"
     },
+    em: {
+      color: burstColors.subtitles2
+    },
   },
   a: {
     color: burstColors.accGreen,
     textDecoration: "underline",
+    code: {
+      color: burstColors.accGreen,
+    },
     "&:visited": {
       color: burstColors.accLitePurple,
+      code: {
+        color: burstColors.accLitePurple,
+      },
       "&:hover": {
         color: burstColors.accRed,
       },
     },
     "&:hover": {
-      color: burstColors.accRed, // Change on hover
+      color: burstColors.accRed,
     },
     "& img": {
       borderBottom: `1px solid ${burstColors.accGreen}`, // Add underline for images in links
@@ -106,7 +115,7 @@ const deCSS = {
   },
   ol: {
     "list-style-type": "decimal", // Ensure ordered list numbering
-    padding: "0rem 3rem"
+    padding: "0rem 3rem",
   },
   pre: {
     "@apply overflow-hidden whitespace-pre-wrap break-words p-4": {},
@@ -171,6 +180,9 @@ const deCSS = {
     strong: {
       color: burstTextColors.transWhite,
       fontWeight: "900"
+    },
+    em: {
+      color: burstColors.subtitles2
     },
     "margin-top": "0.5rem", // Add vertical spacing between list items
     "margin-bottom": "0.5rem", // Same for bottom spacing

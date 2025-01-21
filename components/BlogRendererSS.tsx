@@ -134,6 +134,11 @@ const customEmojis = {
   "fresh_logo": "/emojis/fresh.ico",
   "typescript_logo": "/emojis/ts.png",
   "python_logo": "/emojis/python.png",
+  "xfinity_logo": "/emojis/xfinity.ico",
+  "tailscale_logo": "/emojis/tail.svg",
+  "android_logo": "/emojis/android.png",
+  "ms_logo": "/emojis/ms.png",
+  "linux_logo": "/emojis/tux.png",
 };
 
 const emojiRenderer = (token: EmojiToken) =>
