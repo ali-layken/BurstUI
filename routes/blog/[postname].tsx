@@ -78,13 +78,14 @@ export default async function blogPostRoute (_req: Request, ctx: RouteContext)  
         <Head>
           <title>{blogpost.title}</title>
         </Head>
-        <header class="mb-2 text-center">
+        <header class=" text-center">
           <h1
             id="PostTitle"
-            class="text-5xl mb-2 scroll-mt-24 font-source4 underline decoration-2"
+            class="text-5xl scroll-mt-24 font-source4 underline decoration-2"
           >
-            <strong>{blogpost.title.toUpperCase()}</strong>
+            <strong>{blogpost.title.split(':')[0]}</strong>
           </h1>
+          <p class="text-3xl mt-4 mb-2 scroll-mt-24 font-source4 italic text-accLiteGreen">{blogpost.title.split(':')[1]}</p>
           <p class="text-sm font-fixel text-subtitles">
             Last Edited: {blogpost.modifiedTime || "N/A"}
           </p>

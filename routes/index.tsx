@@ -4,7 +4,8 @@ import AnimatedText3D from "../islands/AnimatedText3D.tsx";
 
 export interface IndexLink {
   name: string;
-  route?: string;
+  subtitle?: string;
+  route: string;
   modifiedAt?: Date;
 }
 
@@ -19,8 +20,11 @@ export default async function homeRoute() {
     ) {
       const filePath = join(postsDirectory, entry.name);
       const stat = await Deno.stat(filePath);
+      const fullname = entry.name.slice(0, -3)
       posts.push({
-        name: entry.name.slice(0, -3),
+        route: fullname,
+        name: fullname.split(':')[0],
+        subtitle: fullname.split(':')[1],
         modifiedAt: stat.mtime ?? new Date(),
       });
     }
@@ -58,12 +62,15 @@ export default async function homeRoute() {
                       <strong>{index + 1}.</strong>
                     </span>
                     <a
-                      href={`/blog/${post.name}`}
-                      f-partial={`/partials/blog/${post.name}`}
-                      class="text-accGreen hover:text-accRed hover:underline text-xl md:text-2xl italic font-source4 transition-colors duration-200 ml-2"
+                      href={`/blog/${post.route}`}
+                      f-partial={`/partials/blog/${post.route}`}
+                      class="text-accGreen hover:text-accRed hover:underline text-lg md:text-xl font-fixel transition-colors duration-200 ml-2"
                       data-action="close"
                     >
-                      {post.name.replace(/_/g, " ")}
+                      {post.name.replace(/_/g, " ")}:<br/>
+                      <p class="italic font-source4 ml-4">
+                      {post.subtitle && post.subtitle?.replace(/_/g, " ")}
+                      </p>
                     </a>
                   </div>
 
@@ -106,7 +113,7 @@ export default async function homeRoute() {
                       class="text-accGreen hover:text-accRed hover:underline text-xl md:text-2xl italic font-source4 transition-colors duration-200 ml-2"
                       data-action="close"
                     >
-                      {post.name.replace(/_/g, " ")}
+                      {post.name.replace(/_/g, " ")}<br/>
                     </a>
                   </div>
                 </li>
