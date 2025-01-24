@@ -1,4 +1,4 @@
-# Why Build Anything at All?
+# Why Build Anything at All? :thinking:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If you genuinely care about *anything* and want to avoid sounding like a mad scientist when you talk about it, I highly recommend you start forming your thoughts and efforts into digestible pieces of content. Engineers are notoriously horrible with communication, but we care and want to build something that truly *works*. To make something work, then, means to make something that *works for people*. But, if **no one can understand** what we are doing or why, we haven’t actually made anything that *works*. We’ve made something else, which is fine; there are many things we can do for ourselves or our own benefit, and the world doesn’t have to understand them completely. Instead, making something that works starts with correctly identifying real people’s issues. We have to spend time talking to them about their difficulties and perspectives and listen when they tell us what they need or what we aren’t providing. If we do all this and still fail, it’s okay; you were just trying to *help*.
 
 <br/>
@@ -13,7 +13,7 @@ If you want to reach the people who need you and your skills *the most* start *s
 
 3. (optional) If you want others to be able to access your website, you will need a :github_logo: [GitHub account](https://github.com/).
 
-# Exploring Website Technology
+# Exploring Website Technology :mag_right:
 
 ### 2 Kinds of Software: [Servers & Clients](https://youtu.be/lVhJ_A8XUgc?si=9zisuNGSqZ51tvLY)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All websites and website technologies, of every language and scale, *boil down* :stew: to 3 main ingredients. These ingredients are just different kinds of :page_facing_up:**text** we store in **files**:
@@ -30,7 +30,7 @@ The *boiling down* gets complicated as the three ingredients start to mix. Brows
 
 After I hit `↵ Enter`, my browser requests the `/` HTML file to display in its main window and `favicon.ico` to fill in the icon in the tab title bar. In the image above, my browser’s favicon request [404s](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404) (~~file~~ *not found*), but the `/` response is a document of type HTML. `example.com` is a minimal example, so it doesn’t have a favicon; without it, the main page will still load fine since `/` did not 404 and instead was "*found*".
 
-### A New Dish
+### A New Dish :spaghetti:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Next, let’s examine how intense relationships :twisted_rightwards_arrows: between website technologies and the three main ingredients can get. Our minimal `example.com` has sent 1 HTML file:
 
 ![Open a new tab and paste this into your address bar: `view-source:https://example.com/`](/1/exsource.png)
@@ -75,7 +75,7 @@ Other than 80 and 443 for website content, there are [many default ports](https:
 
 You can see this by visiting the insecure [`example.com:80/`](http://example.com:80/) or [`example.com:443/`](https://example.com:443/) and seeing that sending an HTTPS request to port 80 would fail since that port is expecting HTTP traffic: [`https://example.com:80`](https://example.com:80). Since that link cant be visited in my browser, [Firefox by Mozilla](https://www.mozilla.org/en-US/firefox/), my browser will never put it in its browser history, so the browser will never make the underline purple, which has been set in the CSS as the *visited* link color. Not all browsers *boil down* :curry: the same; on my phone, the last *visited* link is the *hover* color until I tap something else, then the link loses focus and displays the *visited* color purple. The Mozilla reference tries its best to [keep track](https://developer.mozilla.org/en-US/docs/Web/CSS/:visited#browser_compatibility) of these browser differences.
 ## Website: **Publishing**
-### Enter the Twisted World
+### Enter the Twisted World :twisted_rightwards_arrows:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Server software and the hosts they run on are very diverse. Using JavaScript-based server software provides a smooth experience because you can easily craft HTML, CSS, and JS in JavaScript, which the language was built to do. However, there are [some definitive drawbacks](https://www.typescriptlang.org/why-create-typescript/) to writing code in JavaScript as it was originally intended to only ever run in the browser. I prefer using TypeScript :typescript_logo:, which extends JavaScript to make it more like a traditional programming language and addresses these drawbacks. [Deno](https://deno.com/) is a growing and promising JavaScript, TypeScript, and WebAssembly runtime, meaning we can use it to run code we write in `.ts` files and have it *boil down* into JS code for clients. [Fresh](https://fresh.deno.dev/) is a set of server software and tools written in TypeScript that we will run using Deno. `burst.deno.dev` is the name of a computer on the internet that is using Deno to run TypeScript code that listens for website requests and dishes back responses. You can view the [public GitHub repo](https://github.com/ali-layken/BurstUI), where the code for this website is stored. Whenever it is updated, [GitHub runs a script](https://github.com/ali-layken/BurstUI/actions) that packs up all my files and sends them to [Deno Deploy](https://deno.com/deploy). Deno Deploy starts running the code on a computer named `burst.deno.dev`, and you can connect to it the same way you can connect to [`deno.dev`](https://deno.dev).
 <br/><br/>
 The documentation for Fresh is easy to navigate and short. I recommend [checking it out](https://fresh.deno.dev/docs/getting-started/create-a-project) as they explain each step in detail and offer alternative configurations. Here are the minimal steps to get a website up that others can visit, just like this one! ( without the blog or cube:sob: )
@@ -104,8 +104,8 @@ $ deployctl deploy
 ```
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Step 4 is also technically optional since there are many [free hosting options](https://github.com/cloudcommunity/Cloud-Free-Tier-Comparison) available on the internet. This means many companies will give you access to a computer that has a URL that can be found on the internet. This is nice because you usually have to pay to put your URL in a public registry that maps names like `example.com` to actual computers. For example, you can ask the world to connect to your personal computer :face_with_peeking_eye: for all the files :smiling_imp::page_facing_up:. There are many ways to host files securely, and Deno Deploy [has its limitations](https://deno.com/blog/anatomy-isolate-cloud) as to what it can host, but it is a good introduction to cloud hosting and immediately offers a URL everyone can use easily. If you don’t want to send everyone the default Fresh lemon `index.html`, let’s check out how I used Fresh to send you this blog post:
 
-## Website: **Building**
-### Islands
+## Website: **Building** :building_construction:
+### Islands :beach_umbrella:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Fresh focuses on [a feature called Islands](https://deno.com/blog/intro-to-islands), which makes it easy to specify what code should be run on the server versus the Client. I want to write blog posts like the one you are reading now in [Markdown](https://commonmark.org/help/). Markdown is a simple language that simplifies text formatting, like wrapping words with \* for *italics*. This simplicity makes it the preferred language for text posts across the internet; [GitHub READMES](https://github.com/markedjs/marked), ChatGPT Conversations, and [Discord Messages](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline) all use Markdown. However, I also want to send you non-text content that Markdown cannot describe, like the cube below. For this to work smoothly, I’ll have to convert the Markdown into HTML partially over here and have you fill out the rest over there on an :beach_umbrella: **Island**:
 
 {{SpinningCube}}

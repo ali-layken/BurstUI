@@ -6,7 +6,7 @@
 <br/>
 
 ### Where is Here? :earth_africa:
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Computers :computer: need to be physically connected in some way in order to communicate. This physical connection is sometimes [wireless](https://en.wikipedia.org/wiki/Wireless_network) 🛜, but nonetheless **required** to transmit and receive data over [the internet](https://en.wikipedia.org/wiki/Internet_Protocol). When multiple computers are physically connected, typically one of them is assigned to handle receiving and sending all messages like a post office. This computer is called the [Router](https://en.wikipedia.org/wiki/Router_(computing)) :computer: and [just like the post office](https://en.wikipedia.org/wiki/House_numbering) it assigns addresses called [IP Addresses](https://en.wikipedia.org/wiki/IP_address) to each computer so they can receive packets destined for them :mailbox_with_mail:. Once a computer is physically connected to a network it can get an *IP Address* by sending out *packets* that constitute up a [*DHCP*](https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top) *Request*. The router hears the request and responds with an address that other connected computers :desktop_computer: can use to send packets :incoming_envelope: to the newly connected computer :computer:.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Computers :computer: need to be physically connected in some way in order to communicate. This physical connection is sometimes [wireless](https://en.wikipedia.org/wiki/Wireless_network) 🛜, but nonetheless **required** to transmit and receive data over [the internet](https://en.wikipedia.org/wiki/Internet_Protocol). When multiple computers are physically connected, typically one of them is assigned to be a messenger and handle receiving and delivering all packets. This computer is called the [Router](https://en.wikipedia.org/wiki/Router_(computing)) :computer:, and [just like the post office](https://en.wikipedia.org/wiki/House_numbering) it assigns addresses called [IP Addresses](https://en.wikipedia.org/wiki/IP_address) to each computer so they can receive packets destined for them :mailbox_with_mail:. Once a computer is physically connected to a network it can get one of these IP Addresses by sending out packets that constitute up a [*DHCP*](https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top) *Request*. The router hears the request and responds with an address that other connected computers :desktop_computer: can use to send packets :incoming_envelope: to the newly connected computer :computer:.
 
 <br/>
 
@@ -14,7 +14,7 @@
 
 ![someimage](/2/dnssettings.png)
 
-My iPad :apple_logo: sets all *DNS Request packets* to be delivered to `75.75.75.75` and 3 other addresses of Xfinity computers because when my iPad got its IP from my Xfinity router :computer: it additionally set these 4 addresses as [part of its *DHCP Response*](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol#Options). After the computer at `75.75.75.75` translates ("resolves") `burst.deno.dev` ->  `34.120.54.55 (.eg)` my iPad can craft *HTTPS Request packets* with that IP set as the destination IP. Handing these request packets to my router will properly retrieve website content from the IP resolved by this DNS. I'll explain more about how Xfinity actually delivers :flight_departure: these packets after addressing another pressing issue...
+My iPad :apple_logo: sets all *DNS Request packets* to be delivered to `75.75.75.75` :computer: and 3 other [redundant](https://en.wikipedia.org/wiki/Redundancy_(engineering)) addresses of Xfinity computers in case `75.75.75.75` is unreachable. This is because when my iPad got its IP from my Xfinity router :computer: it additionally set these 4 addresses as [part of its *DHCP Response*](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol#Options). After the computer at `75.75.75.75` translates ("resolves") `burst.deno.dev` :arrow_right:  `34.120.54.55 (.eg)` my iPad can craft *HTTPS Request packets* with that IP set as the destination IP. Handing these request packets to my router will properly retrieve website content from the IP resolved by this DNS. I'll explain more about how Xfinity actually delivers :flight_departure: these packets after addressing another pressing issue...
 
 #### The Domain Name System :globe_with_meridians:
 
@@ -31,13 +31,13 @@ When your router assigns IPs, it does so from [specific IP ranges](https://en.wi
 
 <br/>
 
-To get `burst.deno.dev`'s IP Xfinity reached out to one of the [13 Root DNS Servers](https://en.wikipedia.org/wiki/Root_name_server) whose IPs are well known just like `75.75.75.75`. Connecting to any 1 of these 13 servers will guarantee a *DNS Response* if that hostname really exists on the internet. These Root Servers send us to [Top Level Domain](https://en.wikipedia.org/wiki/Top-level_domain) *DNS Servers*, in our case one of Google's computers that is responding to all requests for `.dev` hostnames. When Deno registered with Google, they told them to send all `deno.dev` requests to another *DNS Server* called an [Authoritative Name Server](https://en.wikipedia.org/wiki/Name_server#Authoritative_name_server), in this case also owned by Google, which is defined by its role; serving the **final** and **most accurate** record of `burst.deno.dev`'s IP. All other records, cached or otherwise, are considered non-authoritative. This Domain Name System is sometimes referred to as the **_Phonebook of the Internet_**.
+To get the IP of `burst.deno.dev`, Xfinity reached out to one of the [13 Root DNS Servers](https://en.wikipedia.org/wiki/Root_name_server) :computer: whose IPs are well known just like `75.75.75.75`. Connecting to any 1 of these 13 servers will **guarantee** a DNS Response if that hostname really exists on the internet. These Root Servers send us to [Top Level Domain](https://en.wikipedia.org/wiki/Top-level_domain) DNS Servers :computer:, in our case one of Google's computers that is responding to all requests for `.dev` hostnames. When Deno registered with Google, they told them to send all `deno.dev` requests to another DNS Server :computer: called an [Authoritative Name Server](https://en.wikipedia.org/wiki/Name_server#Authoritative_name_server), in this case also owned by Google, which is defined by its role; serving the **final** and **most accurate** record of `burst.deno.dev`'s IP. All other records, cached or otherwise, are considered non-authoritative. This Domain Name System :computer::computer::computer: is sometimes referred to as the **_Phonebook of the Internet_**.
 
 ![Google computers serving authoritative requests for `burst.deno.dev`](/2/authns.png)
 
 <br/>
 
-`burst.deno.dev`'s IP can come from many places, as we will explore in [the final sectionjump](/) on alternatives to this traditional [Web2](https://en.wikipedia.org/wiki/Web_2.0) *Root Nameserver*-based *DNS*. For now let's continue exploring [Recursive Name Servers](https://en.wikipedia.org/wiki/Name_server#Recursive_Resolver) like `75.75.75.75` and other [Public DNS Servers](https://en.wikipedia.org/wiki/Public_recursive_name_server) that cache and server authoritative records.
+`burst.deno.dev`'s IP can come from many places, as we will explore in [the final sectionjump](/) on alternatives to this traditional [Web2](https://en.wikipedia.org/wiki/Web_2.0) *Root Nameserver-based DNS*. For now let's continue exploring [Recursive Name Servers](https://en.wikipedia.org/wiki/Name_server#Recursive_Resolver) like `75.75.75.75` and other [Public DNS Servers](https://en.wikipedia.org/wiki/Public_recursive_name_server) that cache and server authoritative records.
 
 <br/>
 
@@ -47,7 +47,7 @@ One of the largest services ISPs provide other than selling IP Addresses is [BGP
 
 ## Getting Here Safely
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A large aspect of security is knowing your enemy :bust_in_silhouette: and what they are capable of but also knowing the same about yourself :bust_in_silhouette:. This post is so long because there are too many enemies on the internet that are all interested in stealing different **valuables** :gem: depending on what you have. I wanted this post to still work for people that have different internet access issues than my own. You'll need to start thinking about what is valuable to *you* and consider what *your* enemies can do:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A large aspect of security is knowing your enemy :bust_in_silhouette: and what they are capable of but also knowing the same about yourself :bust_in_silhouette:. This post is so long because there are too many enemies on the internet that are all interested in stealing different **valuables** :gem: depending on what you have. I wanted this post to still work for people that have different internet access issues than my own so what are building today is customizable. I will show an example of modifying what we build, but for now you'll need to start thinking about what is valuable to *you* and consider what *your* enemies can do:
 
 1. Some enemies are simple and just want to steal our **bank accounts** :bank: by stealing from people who have [bank logins](https://malpedia.caad.fkie.fraunhofer.de/details/apk.joker). This could be done by anyone by *reading insecure packets*.
 2. Some enemies are craftier and want to [mine crypto currency](https://github.com/cazala/coin-hive) :pick: by stealing from people with good **GPUs**. This could be done by anyone by *editing insecure packets*.
@@ -57,7 +57,7 @@ One of the largest services ISPs provide other than selling IP Addresses is [BGP
 
 Not all VPNs function the same, so before we can even get started building anything, I want to just scratch the surface of *realistic threats* & *potential attacks*. Lets see how many vulnerabilities our simple connection has opened us up to. Network security is tricky because our enemy's malicious computer could be hiding on any network at any step between us and `burst.deno.dev`. Let's examine our *DNS Request*:
 
-### Vulnerabilities
+### Vulnerabilities :broken_heart:
 
 ```mermaid
 ---
@@ -81,8 +81,6 @@ graph TD
 
 <br/>
 
-Let's say if your *DNS Response* is [poisoned](https://en.wikipedia.org/wiki/DNS_spoofing) instead of `burst.deno.dev` the IP returned sends you to a funnier blog [techaro](https://xeiaso.net/blog/series/techaro/). Our enemy is Xe since they want to steal my **valuable** website visitors :index_pointing_at_the_viewer:. A more malicious hacker could send us **anywhere** and load code into our browser.
-
 1. **LAN** *-* This physical connection is typically the only one that you are responsible for:
     * A router with no wireless security or old security (WPA2 / WEP) can easily be spoofed using a cheap Wi-fi chip [ESP32](https://en.wikipedia.org/wiki/ESP32) combined with the [marauder](https://github.com/justcallmekoko/ESP32Marauder) software. This attack would mean that *all* our packets would be sent to another computer on the network that could edit them as they wish before sending them to the router.
     * [A similar attack](https://en.wikipedia.org/wiki/ARP_spoofing) can be done over wired connections in which another computer on the LAN accepts *DHCP Requests* and pretends to be a router. A [common solution](https://en.wikipedia.org/wiki/Network_behavior_anomaly_detection#Commercial_products) to this MITM-type of attack over LAN is to have a program running that watches for suspicious activity on the network that a malicious computer would make and blocks that machine from the network. The idea of networks owners watching and filtering *behavior* is an important technology that will come up again when we discuss internet censorship methods ([below](#what-will-you-do)).
@@ -96,30 +94,30 @@ Let's say if your *DNS Response* is [poisoned](https://en.wikipedia.org/wiki/DNS
 
 4. **Response** *-* Responses will have to go back through all the same steps.
 
-### What Can We Do?
+### What Can We Do? :adhesive_bandage:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Without any configuration, like my iPad, all my DNS Requests on my home LAN will be sent to `75.75.75.75` in plaintext, meaning the data is completely readable and editable. Luckily [Taher Elgamal](https://en.wikipedia.org/wiki/Transport_Layer_Security#SSL_1.0,_2.0,_and_3.0) invented [SSL](https://en.wikipedia.org/wiki/Transport_Layer_Security) which we now know and use as TLS. TLS puts the S in HTTPS and its what makes a secure in contrast with using plaintext HTTP. Encryption is the **second wonder of the internet** :milky_way:; enabling *security*; by importing the ability to *trust each other* to computers. Content sent over HTTPS is encrypted so that only the web server it is destined for can read the request. HTTPS covers encrypting *requests* and *responses* after we figure out the web server's IP; meaning our ISP can't read or edit data between us :computer: and the web server :computer: with some exceptions. However, before then, we still have to secure our DNS Request...
-
-<br/>
-
-2 common ways to protect DNS traffic is to turn your *DNS Request* into an *HTTPS Request* called [DoH](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/encrypted-dns-browsers/) or encrypting your DNS with TLS called [DoT](https://www.cloudflare.com/learning/dns/dns-over-tls/). DoH is useful for situations where DoT is being blocked as it *hides* DNS as if it were regular HTTPS traffic. *DoH*, *DoT* & *HTTPS* all fail if the [destination IP is blocked](https://en.wikipedia.org/wiki/Deep_packet_inspection) since the ISPs have to be able to read the destination too in order to deliver the packet. We will have to think of alternative ways to connect to both web **&** DNS Serverss...
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Without any configuration, like my iPad, all my DNS Requests on my home LAN will be sent to `75.75.75.75` in plaintext, meaning the data is completely readable and editable. Luckily [Taher Elgamal](https://en.wikipedia.org/wiki/Transport_Layer_Security#SSL_1.0,_2.0,_and_3.0) invented [SSL](https://en.wikipedia.org/wiki/Transport_Layer_Security) which we now know and use as TLS. TLS puts the S in HTTPS and its what makes a secure in contrast with using plaintext HTTP. Encryption is the **second wonder of the internet** :milky_way:; enabling *security*; by importing the ability to *trust each other* to computers. Content sent over HTTPS is encrypted so that only the web server it is destined for can read the request. HTTPS covers encrypting *requests* and *responses* after we figure out the web server's IP; meaning our ISP can't read or edit data between us :computer: and the web server :computer: with some exceptions... Let's check them out as we try to secure our DNS Request:
 
 <br/>
 
-A **large** problem in *secure routing* is that Root Nameservers do not support any encrypted DNS protocols like DoH or DoT meaning the DNS system forces plaintext communication. Most Nameservers only offer [DNSSEC](https://en.wikipedia.org/wiki/Domain_Name_System_Security_Extensions), which ensure the integrity and authenticity of the *DNS Records* they serve, but nothing to secure data over the connection leaving DNS extremely vulnerable to censorship. There are only a few *Public DNS Servers* that support DoH or DoT. Using these relies on Google or Cloudfare to be a secure provider, while also creating an easily blockable bottleneck, dooming access to DoH and DoT to blocked easily blocked in some places. I won't cover this in this post but the currently accepted way to anonymously connect to a computer and have them anonymously send content back is by forgoing DNS to instead use Tor's [`.onion` routing](https://en.wikipedia.org/wiki/Onion_routing). `.onion` routing provides anonymity and access to the internet behind heavy firewalls through features like [Pluggable Transports](https://tb-manual.torproject.org/circumvention/) and [Bridge Relays](https://support.torproject.org/censorship/censorship-7/). 
+2 common ways to protect DNS traffic is to turn your *DNS Request* into an *HTTPS Request* called [DoH](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/encrypted-dns-browsers/) or encrypting your DNS with TLS called [DoT](https://www.cloudflare.com/learning/dns/dns-over-tls/). DoH is useful for situations where DoT is being blocked as it *hides* DNS as if it were regular HTTPS traffic. *DoH*, *DoT* & *HTTPS* all fail if the [destination IP is blocked](https://en.wikipedia.org/wiki/Deep_packet_inspection) since the ISPs have to be able to read the destination too in order to deliver the packet. We will have to think of alternative ways to connect to both *web **&** DNS Servers*...
+
+<br/>
+
+A **large** problem in *secure routing* and consequently *internet censorship* is that Root Nameservers do not support **any** encrypted DNS protocols like DoH or DoT meaning DNS forces plaintext communication. Most Nameservers only offer [DNSSEC](https://en.wikipedia.org/wiki/Domain_Name_System_Security_Extensions), which ensure the integrity and authenticity of the DNS Records they serve, but nothing to secure the visibility of data over the connection leaving *Authoritative DNS Requests* especially vulnerable to censorship by **anyone** :bust_in_silhouette: along the journey. There are only a few Public DNS Servers that support DoH or DoT. Using these relies on Google or Cloudfare to be a secure provider, while also creating an easily blockable bottleneck, dooming access to DoH and DoT to blocked easily blocked in some places. I won't cover this in this post but the currently accepted way to anonymously connect to a computer and have them anonymously send content back is by forgoing DNS to instead use Tor's [`.onion` routing](https://en.wikipedia.org/wiki/Onion_routing). `.onion` routing provides anonymity and access to the internet behind heavy firewalls through features like [Pluggable Transports](https://tb-manual.torproject.org/circumvention/) and [Bridge Relays](https://support.torproject.org/censorship/censorship-7/). 
 
 <br/>
 
 When sticking with DNS :two_women_holding_hands: in these scenarios with high internet censorship; [the goal](https://en.wikipedia.org/wiki/Deep_packet_inspection#Encryption_and_tunneling_subverting_DPI) is to securely connect to a computer that has *free access to the internet*, often called a [proxy](https://en.wikipedia.org/wiki/Proxy_server) :computer:. I will offer some examples of how to modify the proxy we make to fit your needs. This encrypted proxy is the beating heart :heartbeat: that constitutes the VPNs like the one we will be building. The rest of this article relies on encrypted traffic and is completely  useless in situations where all encrypted traffic is blocked like probably North Korea. Realistically, the easiest way to get internet in North Korea would be if a South Korean could just throw a wire across the line and have a North Korean catch it and wire it up to all their friends and families houses. Routing is a *physical* problem and both of our goals will be to connect (in any way) to a proxy with the level of internet security and freedom that *we each need*. Let's examine some proxy setups and think of one that works for you...
 
-### What Will You Do?
+### What Will Do :muscle:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To move on, by now, you *must* have some enemies in mind so you can follow these building sections with a specific *defense system* in mind. The 2 building blocks :bricks: of our *customizable* VPN are:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To move on, by now, you *must* have some enemies in mind so you can follow these building sections with a specific *defense system* in mind. The internet is always changing so if you can't think of an enemy still just copy my setup so that if one appears you are have something ready and adaptable. The 2 building blocks :bricks: of our *customizable* VPN are:
 
 1. An [end-to-end encrypted](https://en.wikipedia.org/wiki/End-to-end_encryption) connection between 2 nodes :computer:. All communication between them is private including any requests, responses, and destinations. This is the **VPN**, and to make it we will be using a software called *tailscale* that uses the WireGuard protocol to create encrypted connections between computers.
 2. A **Recursive Name Server** that caches DNS so we only have to rely on ourselves, root nameservers, and our connections to them. This is the *DNS Server*, and we will use pihole + unbound. *Pihole* will take care of DNS Caching, filtering, and even hosting some custom DNS Records. *Unbound* will take care of communicating with root servers and verifying the DNSSEC of the responses.
 
-The *The Journey of a DNS Request* only covered getting a *DNS Request* from a *Recursive Server*. Since we will be running our own *Recursive Server* just like those *Public DNS Servers* and Xfinity's, lets take a deeper look :mag_right: at what our setup and what the *Recursive Server* will be responsible for exactly:
+The *The Journey of a DNS Request* only covered getting a DNS Request from a Recursive Server. Since we will be running our own Recursive Server just like those Public DNS Servers and Xfinity's, lets take a deeper look :mag_right: at what our setup and what the Recursive Server will be responsible for exactly:
 
 ```mermaid
 ---
@@ -138,36 +136,41 @@ graph LR
 ```
 <br/>
 
-Ultimately, if the IP of the *Root Nameserver*, *TLD server*, *Authoritative Server*, or end *Web Server* is blocked you are cooked. You will have to send your request to a proxy computer who can communicate with these computers. For me, I am using the VPN to carry requests I make over 5G and public free Wi-fi to my house securely because the enemy I am protecting against are people on networks outside my house ([`1b`jump](#vulnerabilities)). DNS Requests will go to our own recursive server which visits root nameservers to cache authoritative results. This setup trusts Xfinity to not log, block, or modify my plaintext *DNS Requests* over trusting random public networks and their security measures.
+If the IP of the *Root Nameserver*, *TLD server*, *Authoritative Server*, or end *Web Server* is blocked you are cooked :stew:. You will have to send your request to a proxy :computer: that can communicate with these servers :computer:. For me, I am using the VPN to carry requests I make over 5G and public free Wi-fi to my house securely. The enemy I am protecting myself from are people :bust_in_silhouette: on networks outside my house ([`1b`jump](#vulnerabilities)) that could block me or edit my data. DNS Requests will go to our own recursive server which visits root nameservers to cache authoritative results. This setup most notably trusts:
+1. *Xfinity:* to not *log*, *block*, or *modify* my plaintext authoritative requests over trusting random public networks and their security measures. 
+2. *Public Network Owners:* to not flag and block me for tunneling behavior.
+
+If there are no networks near you that you can trust, an amazing way to rethink this guide is to instead; start imagining your allies and thinking about who *you* can trust. We are halfway through explaining Web2's DNS system which is easier explained using enemies. The aforementioned [finale](#whats-next) about Web3 is much easier explained using allies so start thinking about it :brain:
 
 <br/>
 
-*DNS Records*, *HTTP/S Communication*, and any other internet activity will be completely encrypted until it reaches the proxy at my house and then then unencrypted by one layer so my request can go through my router normally as if I was at home. Although I'll still be relying on Xfinity's network to deliver my plaintext *DNS Requests* to *Root Nameservers* I'll be filtering connections to ad content servers and tracker websites that collect data as you visit them, effectively circumventing any reliance on Xfinity's `75.75.75.75` server which [pihole recommends](https://docs.pi-hole.net/guides/dns/unbound/). This setup is a VPN-to-Recursive-Server but let's see how we can arrange this for your enemies.
+*DNS Records*, *HTTP/S Communication*, and any other internet activity will be completely encrypted until it reaches the proxy :computer: at my house and then then unencrypted by one layer so my request can go through my router normally as if I was at home. I'll still be relying on Xfinity's network to deliver my plaintext DNS Requests to Root Nameservers and the others but pihole will filter some connections to some ad content servers and tracker websites that collect data as you visit them. Additionally, using unbound effectively circumvents any reliance on Xfinity's `75.75.75.75` server which [pihole recommends](https://docs.pi-hole.net/guides/dns/unbound/). This setup is a *VPN-to-Recursive-Server* but let's see how we can rearrange this for *your* enemies:
 
 <br/>
 
-This combination of a VPN to proxy that has trustable access to the needed resources is a pattern that can be adapted for other scenarios. These scenarios are some examples that grow increasingly worse in what is blocked:
+This combination of a VPN to proxy :computer: that has trustable access to the needed resources is a pattern that can be adapted for other scenarios. Here are some examples that grow increasingly worse in what is blocked:
 1. **Root Nameserver**: If you can't trust your ISP to allow connections to Root Nameservers, use a *Public DoH/DoT*, which act like an encrypted proxy to Root nameservers. This shifts trust from your ISP to a third-party resolver like Google or Cloudflare, but the ISP can still block access to these proxies by filtering their IPs or traffic patterns. (DoH)
 2. **DoH/DoT**: If your ISP blocks DoH/DoT providers, you can use a *VPN* to tunnel traffic to a computer outside your ISP's network that can access *Public DNS Servers*. (VPN-to-DNS)
 3. **Specific IPs**, If your DNS is coming back fine but access to the web server is blocked then you'll need to *VPN* to a computer that can *access that server*. (VPN)
-4. **VPNs**: Don't use it to connect to the proxy, just connect using *DoH/DoT*. For example, the Private DNS option on Android uses DNS-over-TLS (DoT) on port 853 to securely send DNS requests to a specified DNS server. In this case it would be useful to use [stunnel](https://www.stunnel.org/) to accept *DoT* requests and forward them to a DNS Server available to the proxy like the *pihole + unbound* setup. I will try to include some setup for this at bottom of this post. (DoH / DoT)
-5. **Encrypted Traffic**: If traffic to 853 is too *suspicious* and could be potentially blocked you have to use *DoH* to make DNS requests *look* like website requests. This post contains no instructions to accept DoH on port 443. If you need this method: setup [cloudflared](https://github.com/cloudflare/cloudflared) on a proxy that can connect to Cloudflare, or use [coredns](https://coredns.io/) to accept requests on 443 and forward them to pihole + unbound. (DoH / DoH-to-DNS)
-6. **VPNs & Encrypted Traffic**: You'll need a third item that also unfortunately wont be covered in this post: an *HTTPS Proxy*. This setup is a bit difficult, so I recommend setting up 2 separate proxies for DNS and HTTPS respectively, using something like [squid](https://www.squid-cache.org/) to proxy https requests. In places where encrypted traffic is banned you will be flagged for sending all your traffic to the same 1 or 2 IPs so at this point you will need *multiple https proxies* and *multiple dns proxies*, or better yet, *proxies behind IPs* of seemingly normal websites like hiding an *HTTPS Proxy* in a Minecraft server so it looks like you are just connecting to; a Minecraft server. Creative solutions protect being blocked on networks with tough policies by obfuscate the quantity and variability of requests. (DoH + HTTPS Proxy)
+4. **VPNs**: Don't use VPN to connect to the proxy, just connect using *DoH/DoT* & *HTTPS*. For example, the Private DNS option on Android uses DNS-over-TLS (DoT) on port 853 to securely send DNS requests to a specified DNS server. In this case it would be useful to use [stunnel](https://www.stunnel.org/) to accept *DoT* requests and forward them to a DNS Server available to the proxy like the *pihole + unbound* setup. I will try to include some setup for this at bottom of this post. (DoT / HTTPS)
+5. **Network Behavior**: If traffic to 853 is too *suspicious* and could be potentially blocked you have to use *DoH* to make DNS requests *look* like website requests. This post contains no instructions to accept DoH on port 443. If you need this method: setup [cloudflared](https://github.com/cloudflare/cloudflared) on a proxy that can connect to Cloudflare, or use [coredns](https://coredns.io/) to accept requests on 443 and forward them to pihole + unbound. (DoH / DoH-to-DNS)
+6. **VPN + Network Behavior**: If VPNs are blocked you could alternatively use a third item that unfortunately wont be covered in this post: an *HTTPS Proxy*. This setup is a bit difficult, so I recommend setting up 2 separate proxies for DNS and HTTPS respectively, using something like [squid](https://www.squid-cache.org/) to proxy https requests. In places where VPNs are banned you will be flagged for sending all your traffic to the same 1 or 2 IPs constituting *tunneling behavior*. At this point you will need *multiple https proxies* and *multiple dns proxies*, or better yet, *proxies behind IPs* of seemingly normal websites like hiding an *HTTPS Proxy* in a Minecraft server so it looks like you are just connecting to; a Minecraft server. Creative solutions [like this](https://en.wikipedia.org/wiki/The_Uncensored_Library) protect being blocked on networks with tough policies by obfuscate the quantity and variability of requests. (HTTPS Proxy/s)
 
 <br/>
 
-Some companies offer [free access to computers](https://github.com/cloudcommunity/Cloud-Free-Tier-Comparison) :desktop_computer: that might be available depending on where you live that can be used to follow the rest of this guide and proxy to a "safe" network where the servers you need are unblocked and unmonitored. All of us have to trust someone at some point since *Root Nameservers* don't support encryption. None of us knows where all of the rest of us are (no one has all the DNS Records) and none of us can get to each other alone, no one has a directly wired connection to `burst.deno.dev`, so you we all have to work with other people to get here.
+Some companies offer [free access to computers](https://github.com/cloudcommunity/Cloud-Free-Tier-Comparison) :desktop_computer: that might be available depending on where you live that can be used to follow the rest of this guide and build multiple proxies to a "safe" networks where connections are unblocked and unmonitored. All of us *have to* trust someone at some point since Root Nameservers don't support encryption. The unavoidable and driving fact of this whole post is that none of us alone knows where all of the rest of us are (no one has all the DNS Records) and none of us can get to each other alone, no one has a directly wired connection to `burst.deno.dev`, so you we all have to work together to get here.
 
 <br/>
 
-By combining these methods, you can create systems to navigate through restrictive firewalls. You have to know what you are fighting :fist_oncoming: in order to make a setup that works. If nothing works, I am sorry, and I hope the final section of this post gives you some hope for a censorship-resilient future :rainbow::sunrise_over_mountains: where redundant proxies are ample.
+By combining these methods, you can create systems to navigate through restrictive firewalls. You have to know what you are fighting :fist_oncoming: in order to make a setup that works. If nothing works, I am sorry, and I hope the final section of this post gives you some hope for a censorship-resilient future :rainbow::sunrise_over_mountains: where encrypted redundant proxies are ample.
 
-# VPN Building
+# VPN Building :building_construction:
 
-## *Step 1:* Tailscale VPN
+## *Step 1:* **Tailscale VPN**
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;First I installed :tailscale_logo: [tailscale](https://tailscale.com/download) on my :r_pi: [Raspberry Pi 4 B](https://www.raspberrypi.com/products/) :computer: and started it using:
 ```shellsession
  $ tailscale up --accept-dns=false --advertise-exit-node
+ $ ip address
  ```
 
 On my Pixel 6 :google_logo: I downloaded the tailscale app and set some network settings:
@@ -176,42 +179,44 @@ On my Pixel 6 :google_logo: I downloaded the tailscale app and set some network 
 3. In the WiFi connection settings I have *Static DHCP* with the pi's tailscale [ipv4](https://en.wikipedia.org/wiki/IPv4) address since it only takes ipv4s.
 4. In the tailscale app, I set my pi as the `exit-node`
 
-Tailscale now starts when my pi boots and tunnels all traffic from any other device that has it set as the `exit-node`. This means that all the internet traffic on my phone first is encrypted and sent to my pi, after which, it is handed to my router normally. The pi won't be using the *Tailscale DNS* since we are hosting out own *DNS Server*. Now we have but an effective encrypted proxy. You can tap-out at this point if you trust your ISP's *DNS Servers*. If you are continuing, in the tailscale admin panel, set the IP of the `exit-node` as a `Global Nameserver`. 
+Tailscale now starts when my pi boots and tunnels all traffic from any other device that has it set as the `exit-node`. This means that all the internet traffic on my phone first is encrypted and sent to my pi, after which, it is handed to my router normally. The pi won't be using the *Tailscale DNS* since we are hosting out own *DNS Server*. Now we have an effective encrypted proxy. You can tap-out at this point if you trust the proxy's ISP and their *DNS Servers*. If you are continuing, in the tailscale admin panel under [:globe_with_meridians: DNS]((https://login.tailscale.com/admin/dns)), set the IP of the `exit-node` as a `Global Nameserver`. 
 
-## *Step 2:* Containers
+## *Step 2:* **Pi-Hole + Unbound**
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I love [containers](https://en.wikipedia.org/wiki/LXC) for their security, diversity, and portability. Containers [can get very complex](https://hub.docker.com/r/microsoft/windows) but the basic idea for us today is that they are like mini OS environments that run inside your OS. These environments can easily be customized and brought up & down with a script. Having a separate computing environments helps keep things simple and efficient.
+### Containers :package:
 
-<br/>
-
-Lets say my pi is using :python_logo:Python `3.12`  located at `/usr/bin/python`, I won't have to mess with this binary or path at all if pihole asks for say Python `3.10`. Instead, the alternate Python version will just be installed inside the container and found when pihole tries to run `$ python`. Lets say tomorrow, after running pihole, I wake up and decide I want to maintain a [Mailing List](https://meta.wikimedia.org/wiki/Mailing_lists/Overview). Well then I would pretty much have to run [mailman2](https://github.com/Koumbit/mailman2) of course, which requires an ancient :moyai: deprecated Python `2.7.9` which would really cause issues with anyone on my pi depending on `$ python`.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I :heart: [containers](https://en.wikipedia.org/wiki/LXC) :package: for their security, diversity, and portability. Containers [can get very complex](https://hub.docker.com/r/microsoft/windows) but the basic idea for us today is that they are like mini OS environments that run inside your OS. These environments can easily be customized and managed. Creating separate computing environments helps keep things simple and efficient:
 
 <br/>
 
-Containers typically have less [overhead](https://en.wikipedia.org/wiki/Overhead_(computing)) than [Virtual Machines](https://en.wikipedia.org/wiki/Virtual_machine): because they don't emulate hardware or run a separate [kernel](https://en.wikipedia.org/wiki/Kernel_(operating_system)) (OS + Services). However, poorly optimized containers can sometimes have performance issues that make them less efficient than well-optimized VMs. If used properly however, people have reported being able to run over 50+ containers simultaneously on a Pi 4. The *finesse* of a container comes from its special ability to choose which dependencies it should get it self and which dependencies to reuse from the host machine. Pihole might need a different Python version but it would reuse my pi's :debian_logo: Raspbian kernel functions, for example, to read files. 
+Lets say my pi is using :python_logo: Python `3.12`  located at `/usr/bin/python`, I won't have to mess with this binary or path at all if pihole asks for say Python `3.10`. Instead, the alternate Python version will just be installed inside the container and found when pihole tries to run `$ python`. Lets say tomorrow, after running pihole, I wake up and decide I want to maintain a [Mailing List](https://meta.wikimedia.org/wiki/Mailing_lists/Overview). Well then of course, I would pretty much have to run; [mailman2](https://github.com/Koumbit/mailman2), which requires an ancient :moyai: deprecated Python `2.7.9` which would really cause issues with any softwares on my pi depending on `$ python`.
 
 <br/>
 
-The [details of how containers work](https://opensource.com/article/18/8/sysadmins-guide-containers) and their optimizations are beyond the scope here, container technology [runs very deep](https://opencontainers.org/about/overview/), so for today I give you permission to imagine them as tiny custom linux envs. Containers make it easy to slowly build up and test the custom environment needed by some software, but there is always the option to just install pihole normally in one command like any other application on your [computer](https://github.com/pi-hole/pi-hole/?tab=readme-ov-file#one-step-automated-install) or [phone](https://github.com/DesktopECHO/Pi-hole-for-Android) if you're not [worried about your environment](https://en.wikipedia.org/wiki/Climate_change). It would be a really funny alternate setup to instead install pihole + tailscale on an :android_logo: Android and leave it on some network to act as a `exit-node` proxy :computer:.
+Containers typically have less [overhead](https://en.wikipedia.org/wiki/Overhead_(computing)) than [Virtual Machines](https://en.wikipedia.org/wiki/Virtual_machine): because they don't emulate hardware or run a separate [kernel](https://en.wikipedia.org/wiki/Kernel_(operating_system)) (OS + Services). Poorly optimized containers can have performance issues that make them less efficient than well-optimized VMs. If used properly however, people have reported being able to run over 50+ containers simultaneously on a Pi 4. The *finesse* of a container comes from its special ability to choose which dependencies it should get it self and which dependencies to reuse from the host machine. Pihole might need a different Python version but it would reuse my pi's :debian_logo: Raspbian kernel functions, for example, to read files. 
 
 <br/>
 
-You can run containers on Windows :ms_logo: using a Linux kernel from [WSL](https://learn.microsoft.com/en-us/windows/wsl/install), and on macOS :apple_logo: using a Linux kernel from [Lima](https://lima-vm.io/). At the minimum I recommend having an wired (not wireless) connection to the internet on the proxy :computer: you decide to host the DNS software. The code blocks below are work best with [ARM](https://en.wikipedia.org/wiki/ARM_architecture_family) :computer:s but I will include links and instructions for other OSes. Let's gather all the tools we will need to run containers:
+The [details of how containers work](https://opensource.com/article/18/8/sysadmins-guide-containers) and their optimizations are beyond the scope here, container technology [runs very deep](https://opencontainers.org/about/overview/), so for today I give you permission to imagine them as tiny custom linux envs. Containers make it easy to slowly build up and test the custom environment needed by each software, but there is always the option to just install pihole normally in one command like any other application on your [computer](https://github.com/pi-hole/pi-hole/?tab=readme-ov-file#one-step-automated-install) or [phone](https://github.com/DesktopECHO/Pi-hole-for-Android)... if you're not [worried about your environment](https://en.wikipedia.org/wiki/Climate_change)! It would be a really funny alternate setup to instead install *pihole + tailscale* on an :android_logo: Android and leaving it on a train :train: to act as constantly moving `exit-node` proxy :computer:.
 
 <br/>
 
-1. First we will need podman. [Other OSes](https://podman.io/docs/installation). Raspbian:
+You can run containers on Windows :ms_logo: using a Linux kernel from [WSL](https://learn.microsoft.com/en-us/windows/wsl/install), and on macOS :apple_logo: using a Linux kernel provided by [Lima](https://lima-vm.io/). At the minimum I recommend having an wired (not wireless) connection to the internet on the proxy :computer: hosting the DNS software. The code blocks below are intended for Linux, but they should work anywhere and I'll try include alternate OS instructions when I can. Let's gather all the tools we will need to run containers:
+
+<br/>
+
+1. First we will need podman. ([Other OSes](https://podman.io/docs/installation)) (Raspbian):
 ```shellsession
 $ sudo apt-get -y install podman
 ```
 
-2. Next, to make working with podman simple, we will be using `podman-compose` to run scripts we will use to configure the containers. [Other OSes & Alternate Methods](https://github.com/containers/podman-compose?tab=readme-ov-file#installation). Raspbian.
+2. Next, to make working with podman simple, we will be using `podman-compose` to run scripts we will use to configure the containers. ([Other OSes & Alternate Methods](https://github.com/containers/podman-compose?tab=readme-ov-file#installation)) (Raspbian):
 ```shellsession
 $ sudo curl -o /usr/local/bin/podman-compose https://raw.githubusercontent.com/containers/podman-compose/main/podman_compose.py
 $ sudo chmod +x /usr/local/bin/podman-compose
 ```
 
-3. Finally, lets just make sure that everything is working fine. All OSes:
+3. Finally, lets just make sure that everything is working fine. (All OSes):
 ```shellsession
 $ podman-compose -v
 # Expected Output:
@@ -219,62 +224,59 @@ $ podman-compose -v
 #   podman version xxx
 ```
 
-## *Step 3:* Pi-Hole
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hackers are crafty and its hard to tell where attacks might come from. Instead of losing to infinite attacks and their infinite solutions lets always focus on the biggest threats. Pi-Hole is open-source software, meaning that anyone could analyze its code and potentially discover vulnerabilities to exploit, such as gaining shell access on the computer running the software. Using [rootless containers](https://www.redhat.com/en/blog/rootless-containers-podman) would be beneficial here because a shell exploit would not grant the attacker full root access to the host, only access to the container which has its own very limited user which wouldn't let them do much except change the containers contents. In this case, gaining access to pihole or unbound containers specifically could be dangerous because the content being change would be the DNS configuration files possibly mixing up DNS requests to send us to a malicious computer's IP. In a [later sectionjump](#firewall-linux) we will cover how to further mitigate this risk by limiting who can access pihole to prevent malicious actors from even trying this.
-
 #### Computer Security
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Another way to mitigate the risk of a pihole hack is to simply take a look at [this list of people](https://github.com/pi-hole/pi-hole/graphs/contributors). If you can't trust the 221+ people who wrote pihole you can spend 10 minutes checking [their code](https://github.com/pi-hole/pi-hole) for [crazy hax](https://www.youtube.com/watch?v=zEd4Vw2bmBE) or ask software to [scan it](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning) and look for vulnerabilities. If you're really paranoid show your worth and just rewrite the whole thing using vim in assembly yourself. The same people that could find an exploit in pihole could very well also just submit it as a patch and become a contributor:100: #opensourcegang. Security again, is fundamentally about understanding your adversary: if you don't know your enemy, you won't know what to defend against. If your enemy is Nintendo then do not post any of your teams personal information online because they will find you anywhere in the world. If your enemy is Open AI... [run](https://www.pbs.org/newshour/nation/openai-whistleblower-who-raised-legal-concerns-about-chatgpts-datasets-has-died). Real security however is not about attaccs and haxors its about **trust**. The prevailing philosophy of modern network security isn't about preventing enemy attacks. It's about not even letting them get the chance by [trusting no one](https://en.wikipedia.org/wiki/Zero_trust_architecture). This is great you can build a whole OS on your own, but after making software everyone arrives at the same next step; how do I share this? 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hackers are crafty and its hard to tell where attacks might come from. Instead of losing to infinite attacks and their infinite solutions lets *always* focus on the biggest threats. Pi-Hole is open-source software, meaning that anyone could analyze its code and potentially discover vulnerabilities to exploit, such as gaining shell access on the computer running the software. Using [rootless containers](https://www.redhat.com/en/blog/rootless-containers-podman) would be beneficial here because a shell exploit would not grant the attacker full root access to the host, only access to the container which has its own very limited user which wouldn't let them do much except change the containers contents. In this case, gaining access to pihole or unbound containers specifically could be dangerous because the content being change would be the DNS configuration files possibly mixing up DNS requests to send us to a malicious computer's IP. There are many ways to [hide servers](https://doorman.sourceforge.net/), but in a [later sectionjump](#firewall-fire) we will cover how to further defend against this risk by limiting who can access pihole over the internet to prevent malicious actors from even trying this.
 
 <br/>
 
-### Building the Containers (Any OS)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I started by combining the compose scripts for [pihole compose](https://hub.docker.com/r/pihole/pihole) and unbound [unbound](https://hub.docker.com/r/klutchell/unbound). These containers are for *ARM Computers* so you might have to change the image and edit the configuration below depending on your CPU architecture. On Linux, you can check your CPU by running `$ lscpu` and then filtering by that architecture while [looking for container images](https://hub.docker.com/search). Compose scripts are used to describe to podman how you want your containers brought up. Theres a couple of important pieces so lets take a look at our `docker-compose.yml` file:
+Another way to mitigate the risk of a pihole hack is to simply take a look at [this list of people](https://github.com/pi-hole/pi-hole/graphs/contributors). If you can't trust the 221+ people who wrote pihole, you can spend 10 minutes checking [their code](https://github.com/pi-hole/pi-hole) for [crazy hax](https://www.youtube.com/watch?v=zEd4Vw2bmBE), or ask software to [scan it](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning) and look for vulnerabilities. If you're really paranoid show your worth and just rewrite the whole thing using :vim_logo: Vim in assembly [yourself](https://www.youtube.com/watch?v=EzWNBmjyv7Y). The same people that could find an exploit in pihole could very well also just submit it as a patch and become a contributor :100: *#opensourcegang*. Security again, is fundamentally about understanding your adversary: if you don't know your enemy, you won't know what to defend against. If your enemy is Nintendo then do not post any of your teams personal information online because they will find you anywhere in the world. If your enemy is Open AI... [run](https://www.pbs.org/newshour/nation/openai-whistleblower-who-raised-legal-concerns-about-chatgpts-datasets-has-died). Real security however is not about attaccs and haxors its about **trust**. The prevailing philosophy of modern network security isn't about preventing enemy attacks. It's about not even letting them get the chance by [trusting no one](https://en.wikipedia.org/wiki/Zero_trust_architecture). This is great, you can build a whole OS on your own, trusting no one, but after making software everyone arrives at the same next step; how do I share this? Thus the internet forces us, at some level, to [embrace trusting relationships](https://www.youtube.com/watch?v=BBJa32lCaaY) :people_hugging:. 
+
+<br/>
+
+### Building the Containers :building_construction:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I started by combining the compose scripts for [pihole](https://hub.docker.com/r/pihole/pihole) and [unbound](https://hub.docker.com/r/klutchell/unbound). These containers are for *ARM Computers* so you might have to change the image link and edit some configuration below depending on your CPU architecture and the container image you use. On Linux, you can check your CPU by running `$ lscpu` and then filtering by your architecture while [looking for container images](https://hub.docker.com/search). Compose scripts are used to describe to podman how you want your containers brought up. Theres a couple of important pieces so lets take a look at our `docker-compose.yml` file:
 
 ```yml
 # Podman Compose configuration for rootless setup
-networks:
+networks:                 # Makes a container network (think virtual router)
   hole_net:
     driver: bridge
     enable_ipv6: true
     ipam:
       config:
-        - subnet: "192.168.2.0/24"  # IPv4 subnet
-        - subnet: "fd14:d095:b9ef:80f2::/64"  # IPv6 subnet
+        - subnet: "192.168.2.0/24"            
+        - subnet: "fd14:d095:b9ef:80f2::/64"  
 
 services:
   unbound:
     container_name: unbound
     image: docker.io/klutchell/unbound:latest
-    volumes:
-      - type: bind
-        read_only: true
-        source: ./unb-conf/
-        target: /etc/unbound/custom.conf.d/
     dns:
     networks:
       hole_net:
-        ipv4_address: 192.168.2.2
-        ipv6_address: "fd14:d095:b9ef:80f2::2"
+        ipv4_address: 192.168.2.2               # Set Unbound's IP
+        ipv6_address: "fd14:d095:b9ef:80f2::2"  # Set Unbound's IPv6
     restart: always
 
   pihole:
     container_name: pihole
     image: docker.io/pihole/pihole:latest
     ports:
-      - "53:53/tcp"  # Map DNS TCP to unprivileged port
-      - "53:53/udp"  # Map DNS UDP to unprivileged port
-      - "30080:80/tcp" # Admin interface
+      - "53:53/tcp"    # Map DNS TCP to unprivileged port
+      - "53:53/udp"    # Map DNS UDP to unprivileged port
+      - "20080:80/tcp" # PiHole's Admin interface port (website)
     environment:
       TZ: 'America/Detroit'
-      WEBPASSWORD: ''  # Set your Pi-hole password
+      WEBPASSWORD: ''  # Set your PiHole password
       DNSMASQ_LISTENING: 'all'
-      PIHOLE_DNS_: "192.168.2.2#53;fd14:d095:b9ef:80f2::2#53"   # Forward DNS to Unbound
+      PIHOLE_DNS_: "192.168.2.2#53;fd14:d095:b9ef:80f2::2#53"
+      # ^Forward DNS to Unbound^
     volumes:
       - './etc-pihole:/etc/pihole'
       - './etc-dnsmasq:/etc/dnsmasq.d'
     networks:
       hole_net:
-        ipv4_address: 192.168.2.3
+        ipv4_address: 192.168.2.3                      
         ipv6_address: "fd14:d095:b9ef:80f2::3"
     dns:
       - 192.168.2.2 
@@ -287,11 +289,11 @@ services:
 
 <br/>
 
-We don't need to use unbound's [redis integration](https://github.com/ar51an/unbound-redis) for caching DNS requests because this will be taken care of by pihole's [FTLDNS](https://docs.pi-hole.net/ftldns/dns-cache/) "Faster Than Light DNS" includes a caching feature that will take care of that. Running the [the official Pi-Hole compose scripts](https://hub.docker.com/r/pihole/pihole) causes issues due to podman's [aardvarkdns](https://github.com/containers/aardvark-dns) taking up port 53 on the host. Aardvark is a *DNS Server* that helps translate container names into their virtual IP addresses. Computers can be associated with multiple IPs and hostnames that can be used to find them on different networks. Later each of our computers will receive that IP i mentioned from Tailscale which is it's address on the tailnet. We don't have to deal with this [this aardvark issue](https://github.com/containers/podman/discussions/14242) since we are using rootless containers which bind to 53 just fine.
+We don't need to use unbound's [redis integration](https://github.com/ar51an/unbound-redis) for caching DNS requests because this will be taken care of by pihole's [FTLDNS](https://docs.pi-hole.net/ftldns/dns-cache/) "Faster Than Light DNS" which includes a caching feature. Running the [the official Pi-Hole compose scripts](https://hub.docker.com/r/pihole/pihole) causes issues due to podman's [aardvarkdns](https://github.com/containers/aardvark-dns) taking up port 53 on the host. Aardvark is a *DNS Server* that helps translate container names into their virtual IP addresses. Computers can be associated with multiple IPs and hostnames that can be used to find them on different networks like we are doing with tailscale. We don't have to deal with this [this aardvark issue](https://github.com/containers/podman/discussions/14242) since we are using rootless containers which bind to 53 just fine.
 
 <br/>
 
-Mounting an `unbound.conf` is useful if you want to override the container's [default `unbound.conf`](https://github.com/klutchell/unbound-docker/blob/main/rootfs_overlay/etc/unbound/unbound.conf). It has been customized notably to; run smoothly in a container and also use `DNSSEC`. The container maintainer also provides some [example `unbound.conf`s](https://github.com/klutchell/unbound-docker/tree/main/examples) that customize unbound in different ways. To mount one of these `.conf`s into the container create `/unb-conf/unbound.conf` and paste in the conf, and then add this to the `unbound` section of the compose:
+Mounting an `unbound.conf` is useful if you want to override the container's [default `unbound.conf`](https://github.com/klutchell/unbound-docker/blob/main/rootfs_overlay/etc/unbound/unbound.conf). It has notably been customized to; run smoothly in a container and also use `DNSSEC` to validate authoritative requests. The container maintainer also provides some [example `unbound.conf`s](https://github.com/klutchell/unbound-docker/tree/main/examples) that customize unbound in different ways. To mount one of these `.conf`s into the container create `/unb-conf/unbound.conf` and paste in the conf, and then add this to the `unbound` section of the compose:
 
 ```yml
     volumes:
@@ -351,14 +353,14 @@ CAfile = /etc/ssl/certs/ca-certificates.crt
 
 <br/>
 
-This is just a small example of how to extend our setup to accept DoT but it isn't necessary for my setup. With `stunnel` in the compose you can follow the rest of the guide normally.
+Using *DoT* would effectively encrypt DNS queries until they reach the proxy skipping our need for a VPN (tailscale). This is just a small example of how to modify our setup from *VPN-to-Recursive-Server* :arrow_right: *DoT-to-Recursive-Server*. This setup alone isn't any better on networks with strict tunneling policies rather the *DoT* setup is more repeatable making it easier to setup encrypted redundant proxies in these scenarios. With `stunnel` in the compose you can follow the rest of the guide normally.
 
-### Running & Stopping
+### Running & Stopping :running_woman: + :stop_sign:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Since we aren't using rootful containers podman-compose linux will give us a hard time starting pihole on port 53 which is the special privileged default DNS port. There are many ways to setup linux environments that depend on your enemies. I find *no security related difference* between letting pihole use 53 or mapping pihole to 1053 and then forwarding all 53 requests to 1053 so I wont setup port forwarding. Here's how to start the softwares:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Since we aren't using rootful containers podman-compose raspbian will give us a hard time starting pihole on port 53 which is the special privileged default DNS port. There are many ways to setup linux environments that depend on your enemies. I find *no security related difference* between letting pihole use 53 or mapping pihole to 1053 and then forwarding all 53 requests to 1053 so I wont setup port forwarding. Here's how to start the softwares:
 
 ```shellsession
-# Skip if not on Linux:
+# Skip next line if not on Linux:
 $ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=0 
 
 # -- Repeat this section --
@@ -368,13 +370,14 @@ $ podman logs unbound
 $ podman-compose --verbose down #Stopping
 # -- Edit the compose and repeat^ --
 
-# When done - on Linux:
-$ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=1024 # Skip if not on Linux
+# Skip next line if not on Linux:
+$ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=1024
+$ podman ps # Check that both containers started fine
 ```
 
-### Automating (Linux)
+### Automating (Linux) :repeat:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To automate this process after reboot is a little more tricky, but this is the desirable setup for any server: *things happen*, computers crash and shutdown. Its best to make sure everything is easy to get back up again. This setup does have lower unprivileged ports on boot so a very specifically *timed attack* could start a user process on a privileged port before I set it back to 1024. Adding [Linux capabilities](https://en.wikipedia.org/wiki/Capability-based_security) in the compose didn't work so we will have automate this configuration. Adjust this system configuration automation section for your own needs:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Automating :robot: this process after reboot is a little more tricky, but this is the desirable setup for any server: *things happen*, computers crash :collision: and shutdown :skull_and_crossbones:. Its best to make sure everything is easy to get back up again. This setup does have lower unprivileged ports on boot so a specifically timed attack could start a user process on a privileged port before we set the limit back to 1024, but this risk can minimized by using `loginctl` as discussed later in this section. Adding [Linux capabilities](https://en.wikipedia.org/wiki/Capability-based_security) in the compose didn't work so we will have to ensure the limit is 0 when our containers run and 1024 after. PLease make sure to adjust this whole system configuration automation section for your own distribution and setup as some files might be located differently and commands might work differently.
 
 <br/>
 
@@ -382,7 +385,7 @@ $ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=1024 # Skip if not on Linu
 ```ini
 net.ipv4.ip_unprivileged_port_start=0 
 ```
-2. Next we will start our rootless containers on boot. I used [this article](https://www.it-hure.de/2024/02/podman-compose-and-systemd/) to understand podman-compose's relationship with [systemd](https://en.wikipedia.org/wiki/Systemd) since this command is pretty undocumented. In the folder with the `docker-compose.yml` run:
+2. Next we will start our rootless containers on boot. I used [this article](https://www.it-hure.de/2024/02/podman-compose-and-systemd/) to understand podman-compose's relationship with [systemd](https://en.wikipedia.org/wiki/Systemd) since this command is pretty undocumented but the article tries to cover some behavior across distros. In the folder with the `docker-compose.yml` run:
 
 ```shellsession
 $ podman-compose systemd
@@ -414,7 +417,7 @@ WantedBy=default.target
 
 And you'll want to enable this service: `systemctl --user enable --now unpriv.service`
 
-#### Firewall
+#### Firewall :fire:
 
 Now on boot pihole is listening for DNS requests on port 53. In the configuration below we will turn off pihole's security filtering so lets build some of our own. First, install ufw (probably `sudo apt install ufw`) and then make a file at `~/ufw.sh` with the following contents:
 
@@ -472,7 +475,7 @@ ufw status verbose
 
 <br/>
 
-This allows `packets` over ethernet and the tailscale network to go SSH, DNS. and the pihole Admin website which we will be using next section. Adjust the interface names from your own connections that you can typically see by running `ip address`. Run these commands to start, debug, stop, and automate the firewall in the folder that `ufw.sh` is in:
+This allows `packets` over ethernet and the tailscale network to go SSH, DNS, and the pihole Admin website which we will be using next section. Adjust the interface names from your own connections that you can typically see by running `ip address`. For good measure I also just filter any requests to my ISP's DNS in case they sneak :ninja: some DHCP in... mannnnnngg its so expensive :moneybag: but I need to get my own router or managed switch so I can control DHCP. Anyways, run these commands to start, debug, stop, and automate the firewall in the folder that `ufw.sh` is in:
 
 ```shellsession
 $ sudo ./ufw.sh          # Start the firewall
@@ -485,39 +488,43 @@ $ sudo systemctl enable ufw  # Automate ufw on boot
 
 <br/>
 
-To get podman to start without logging into your user requires using [`loginctl`](https://www.freedesktop.org/software/systemd/man/latest/loginctl.html) but I won't so reboot and login to check if everything is running. Give podman a second to start everything back up again then run:
+To get podman to start without logging into your user requires using [`loginctl`](https://www.freedesktop.org/software/systemd/man/latest/loginctl.html) but I won't be setting that up so reboot and login to check if everything is running. Give podman a second to start everything back up again then run:
 
 ```shellsession
-$ sudo sysctl net.ipv4.ip_unprivileged_port_start # 1024
-$ sudo ufw status # Show firewall rules
-$ podman ps       # Show pihole's & unbound's container status
+$ sudo sysctl net.ipv4.ip_unprivileged_port_start # Shows 1024
+$ sudo ufw status # Shows Firewall rules
+$ podman ps       # Shows Container status (should be 2)
 ```
 
 
-### Configuration
+### Configuration :gear:
 
-The compose file above also contains a `WEBPASSWORD` and forward pihole's port 80 to the host. Check if pihole started up fine by visiting `<proxy ip>:30080/admin` in a web browser. You should be greeted with an admin portal where you can login using `WEBPASSWORD`. After logging in there are a couple settings we will need to modify:
+The compose file above forwards pihole's port 80 to the proxy host's 20080. Verify that pihole is running by visiting `<proxy ip>:30080/admin` in a web browser. You should be greeted with an admin portal where you can login using `WEBPASSWORD`. After logging in there are a couple settings we will need to modify:
 <br/>
 
-1. Under *Settings* > *DNS* > *Upstream DNS Servers* we will have to tell pihole where to find unbound. The upstream DNS Server should be set by the compose file but in case it isn't make sure you put `unbound_IP#unbound_port`.
+1. Under *Settings* > *DNS* > *Upstream DNS Servers* we will have to tell pihole where to find unbound. The upstream DNS Server should be set by the compose file but in case it isn't make sure to set it as: `unbound_IP#unbound_port`.
 
-2. To support DNS requests over the tailnet we will have to disable the hop-based filtering in *Interface Settings* right under the *Upstream DNS Server* section, but don't worry, we will secure our whole network with a firewall after we get everything up.
+2. To support DNS requests over the tailnet we will have to disable the hop-based filtering in *Interface Settings* right under the *Upstream DNS Server* section, but don't worry if you followed the firewall section.
 
-3. I found that DNSSEC worked properly when unchecked and improperly when checked probably due to unbound but you are welcome to do your own research. Check the first 2 options under *Advanced DNS Settings* for speed and security unless you have some other sort of setup you are going for.
+3. I found that DNSSEC worked properly when unchecked and improperly when checked probably due to it being unbound's responsibility, but you are welcome to do your own research. Check the first 2 options under *Advanced DNS Settings* for speed and security unless you have some other sort of setup you are going for.
 
-4. Go to *Adlists* and paste URLs of ad block lists. [Here are some examples](https://github.com/hagezi/dns-blocklists). 
+4. Go to *Adlists* and paste URLs of ad block lists. [Here are some examples](https://github.com/hagezi/dns-blocklists).
 
-If everything is working you'll want to edit `/etc/resolv.conf` on your proxy:
+<br/>
+
+If everything is working you'll want to edit `/etc/resolv.conf` on your host proxy :computer: to:
 
 ```ini
 nameserver 127.0.0.1
 ```
 
-so that all local DNS Requests go through pihole. This completes the loop so that requests over the tailnet are fed into pihole + unbound :) 
+so that all local DNS Requests go through pihole. This completes the setup and ensures requests over the tailnet are fed into pihole + unbound :white_check_mark: wahoo! :tada:
 
-# What's next...
+# What's next... :sunrise_over_mountains:
 
-This article won't particularly help with the United States Government's TikTok ban. The U.S. government won't mess with DNS directly because that would be blatantly oppressive and cause backlash from a larger computing community that isn't impacted by the removal of TikTok. Instead they'll pressure Apple, Google, and ByteDance, the organizations with the actual power over people, to take the app off the app store and make it non-functional. Yes, there are alternative app stores on iOS and [Android](https://f-droid.org/en/), but most normal people won't bother so the damage has been done: the people's autonomy has been stolen. Power doesn't come from small abilities like DNS manipulation or App Removals but rather from our human reliance on monopolistically controlled capitalist centralized platforms.
+This article won't particularly help with the United States Government's [TikTok ban](https://en.wikipedia.org/wiki/Restrictions_on_TikTok_in_the_United_States). The U.S. government won't mess with DNS directly because that would be blatantly oppressive and cause backlash from a larger computing community that isn't impacted by the removal of TikTok. Instead they'll pressure Apple, Google, and ByteDance, the organizations with the actual power over people, to take the app off the app store and make it non-functional. There are alternative app stores on iOS and [Android](https://f-droid.org/en/), but most normal phone users won't try this and social platforms know this so ByteDance will do [any jig](https://www.tiktok.com/@jamie32bsh/video/7058186727248235782) the US asks them to not be banned. Their power doesn't come from small abilities like DNS manipulation or App Store Removals but rather from our human reliance on them, these monopolistically controlled capitalist centralized systems.
+
+<br/>
 
 Web2-the internet of `.com`s, we all know, was owned and controlled by corporations and the organizations they comply with. Web3 is a buzzword, that despite it's decentralized connotations, risks being being abused the same way. Instead of glorifying and chasing a futuristic aesthetic by investing in useless Web3 projects lets think, when looking for systems that work, why do we have to buy the new shiny internet these guys are selling, not go back? Web1 thrived with its simplicity: encrypted connections between two IPs. Companies trying to sell you `Web3` are trying again to cause reliance on them for decentralized tools, which by nature are available to you too. Real Web3 is technology that solves the issues of Web1, the same issues that caused us to rely on companies and their Web2 for years, but now, there are enough people with powerful computers, for us to just rely on each other.
 

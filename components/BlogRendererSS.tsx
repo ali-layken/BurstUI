@@ -139,6 +139,7 @@ const customEmojis = {
   "android_logo": "/emojis/android.png",
   "ms_logo": "/emojis/ms.png",
   "linux_logo": "/emojis/tux.png",
+  "vim_logo": "/emojis/vim.gif",
 };
 
 const emojiRenderer = (token: EmojiToken) =>
