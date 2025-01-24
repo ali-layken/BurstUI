@@ -26,7 +26,7 @@ export default function TableOfContents({ headings }: TableOfContentsProps): JSX
             dangerouslySetInnerHTML={{ __html: text }}
             class={`block text-accGreen font-source4 hover:text-accRed transition-colors duration-300`}
             style={{
-              fontSize: isLong ? `${1.5 - level * 0.175}rem` : `${1.63 - level * 0.16}rem`, // Dynamically adjust font size
+              fontSize: isLong ? `${1.4 - level * 0.175}rem` : `${1.63 - level * 0.16}rem`, // Dynamically adjust font size
               fontWeight: isLong ? `${800 - level * 100}` : `${800 - level * 100}`, // Make text weight lighter for deeper levels
             }}
           />
