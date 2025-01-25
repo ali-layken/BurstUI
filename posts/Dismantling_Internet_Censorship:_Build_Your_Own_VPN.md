@@ -140,7 +140,7 @@ If the IP of the *Root Nameserver*, *TLD server*, *Authoritative Server*, or end
 1. *Xfinity:* to not *log*, *block*, or *modify* my plaintext authoritative requests over trusting random public networks and their security measures. 
 2. *Public Network Owners:* to not flag and block me for tunneling behavior.
 
-If there are no networks near you that you can trust, an amazing way to rethink this guide is to start imagining your allies and thinking about who *you* can trust. We are halfway through explaining Web2’s DNS system, which is easier to explain using enemies. The aforementioned [finale](#whats-next) about Web3 is much easier explained using allies, so start thinking about it :brain:
+If there are no networks near you that you can trust, an amazing way to rethink this guide is to start imagining your allies and thinking about who *you* can trust. We are halfway through explaining Web2’s DNS system, which is easier to explain using enemies. The aforementioned [finalejump](#whats-next) about Web3 is much easier explained using allies, so start thinking about it :brain:
 
 <br/>
 
