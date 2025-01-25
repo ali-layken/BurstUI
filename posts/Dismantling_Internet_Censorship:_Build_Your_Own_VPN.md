@@ -18,7 +18,7 @@ My iPad :apple_logo: sets all *DNS Request packets* to be delivered to `75.75.75
 
 #### The Domain Name System :globe_with_meridians:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; How did `75.75.75.75` get `burst.deno.dev`'s IP in the first place? 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; How did `75.75.75.75` get `burst.deno.dev`’s IP in the first place? 
 
 <br/>
 
@@ -31,19 +31,19 @@ When your router assigns IPs, it does so from [specific IP ranges](https://en.wi
 
 <br/>
 
-To get the IP of `burst.deno.dev`, Xfinity's DNS Server :computer: reached out to one of the [13 Root DNS Servers](https://en.wikipedia.org/wiki/Root_name_server) :computer:, whose IPs are well known just like `75.75.75.75`, but also globally accessible (usually). Connecting to any 1 of these 13 servers will **guarantee** a DNS Response if that hostname really exists on the internet. These Root Servers send us to [Top Level Domain](https://en.wikipedia.org/wiki/Top-level_domain) (TLD) DNS Servers :computer:, in our case, one of Google’s computers that is responding to all requests for `.dev` hostnames. When Deno registered with Google, they told them to send all `deno.dev` requests to another DNS Server :computer: called an [Authoritative Name Server](https://en.wikipedia.org/wiki/Name_server#Authoritative_name_server), in this case also owned by Google, which is defined by its role; serving the **final** and **most accurate** record of `burst.deno.dev`'s IP. All other records, cached or otherwise, are considered non-authoritative. This Domain Name System :right_arrow: :computer: (Root) + :computer: (TLD) + :computer: (Auth) is sometimes referred to as the **_Phonebook of the Internet_**.
+To get the IP of `burst.deno.dev`, Xfinity’s DNS Server :computer: reached out to one of the [13 Root DNS Servers](https://en.wikipedia.org/wiki/Root_name_server) :computer:, whose IPs are well known just like `75.75.75.75`, but also globally accessible (usually). Connecting to any 1 of these 13 servers will **guarantee** a DNS Response if that hostname really exists on the internet. These Root Servers send us to [Top Level Domain](https://en.wikipedia.org/wiki/Top-level_domain) (TLD) DNS Servers :computer:, in our case, one of Google’s computers that is responding to all requests for `.dev` hostnames. When Deno registered with Google, they told them to send all `deno.dev` requests to another DNS Server :computer: called an [Authoritative Name Server](https://en.wikipedia.org/wiki/Name_server#Authoritative_name_server), in this case also owned by Google, which is defined by its role; serving the **final** and **most accurate** record of `burst.deno.dev`’s IP. All other records, cached or otherwise, are considered non-authoritative. This Domain Name System :right_arrow: :computer: (Root) + :computer: (TLD) + :computer: (Auth) is sometimes referred to as the **_Phonebook of the Internet_**.
 
 ![Google computers serving authoritative requests for `burst.deno.dev`](/2/authns.png)
 
 <br/>
 
-`burst.deno.dev`'s IP can come from many places, as we will explore in [the final sectionjump](/) on alternatives to this traditional [Web2](https://en.wikipedia.org/wiki/Web_2.0) *Root Nameserver-based DNS*. For now, let’s continue exploring [Recursive Name Servers](https://en.wikipedia.org/wiki/Name_server#Recursive_Resolver) like `75.75.75.75` and other [Public DNS Servers](https://en.wikipedia.org/wiki/Public_recursive_name_server) that cache and server authoritative records.
+`burst.deno.dev`’s IP can come from many places, as we will explore in [the final sectionjump](/) on alternatives to this traditional [Web2](https://en.wikipedia.org/wiki/Web_2.0) *Root Nameserver-based DNS*. For now, let’s continue exploring [Recursive Name Servers](https://en.wikipedia.org/wiki/Name_server#Recursive_Resolver) like `75.75.75.75` and other [Public DNS Servers](https://en.wikipedia.org/wiki/Public_recursive_name_server) that cache and server authoritative records.
 
 <br/>
 
 One of the most significant services ISPs provide other than selling IP Addresses is [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol), which is the method by which large networks work together to deliver packets to the right IPs even if the destination is on the other side of the world. The internet wouldn’t be the same without *BGP* + *DNS*, so I consider their combination, [routing](https://en.wikipedia.org/wiki/Routing), the **first wonder of the internet** :milky_way:; allowing *globalization* by importing *communication* to computers.
 
-![All the computers that pass along my website request until reaching Deno's Computer :computer:](/2/traceroute.png)
+![All the computers that pass along my website request until reaching Deno’s Computer :computer:](/2/traceroute.png)
 
 ## Getting Here Safely
 
@@ -70,7 +70,7 @@ graph TD
 
     Router -->|2 - ISP Connection| ISP[Your ISP]
 
-    ISP -->|3a - ISP Network| ISPDNS[ISP's DNS Server]
+    ISP -->|3a - ISP Network| ISPDNS[ISP’s DNS Server]
     ISP -->|3b - ISP Network/IXE| PubDNS[Public DNS Server]
 
 
@@ -128,7 +128,7 @@ graph LR
     RecurDNS  -->|2 - where burst.deno.dev?| RootDNS[One of the 13 Root Nameservers]
     RootDNS  -->|3 - .dev is over there -> IP| RecurDNS
 
-    RecurDNS  -->|4 - where burst.deno.dev?| TLDDNS[Google's TLD Nameserver handling .dev]
+    RecurDNS  -->|4 - where burst.deno.dev?| TLDDNS[Google’s TLD Nameserver handling .dev]
     TLDDNS  -->|5 - burst.deno.dev is over there -> IP| RecurDNS
 
     RecurDNS -->|6 - where burst.deno.dev?| AuthDNS[Google Authoritative Nameserver handling burst.deno.dev]
@@ -572,7 +572,7 @@ Let’s say Jimmy convinces 70% of nodes to collude and change their hash functi
 
 <br/>
 
-But ENS alone isn’t the solution. Software developers who care need to build awareness of censorship and its methods. A culture shift is needed with dedication to building encrypted peer-to-peer (P2P) networks and applications that bypass traditional DNS and ISP filtering entirely. *ByteDance wouldn’t have to play these political games* if their application was more secure like [Mastodon](https://joinmastodon.org/) with [their use of decentralization](https://en.wikipedia.org/wiki/Mastodon_(social_network)#Software). Since these softwares gave their users governance over the platform, the company does not have the power to just “shut it down”, even under financial pressure. There is nothing the developers can do; if the creator of Mastodon is arrested they would be physically not be able to give officials the *user data* they were looking for because they don't have access. Users own what they post and are responsible for it, not the thousands of builders, maintainers, and investors!
+But ENS alone isn’t the solution. Software developers who care need to build awareness of censorship and its methods. A culture shift is needed with dedication to building encrypted peer-to-peer (P2P) networks and applications that bypass traditional DNS and ISP filtering entirely. *ByteDance wouldn’t have to play these political games* if their application was more secure like [Mastodon](https://joinmastodon.org/) with [their use of decentralization](https://en.wikipedia.org/wiki/Mastodon_(social_network)#Software). Since these softwares gave their users governance over the platform, the company does not have the power to just “shut it down”, even under financial pressure. There is nothing the developers can do; if the creator of Mastodon is arrested they would be physically not be able to give officials the *user data* they were looking for because they don’t have access. Users own what they post and are responsible for it, not the thousands of builders, maintainers, and investors!
 
 <br/>
 
