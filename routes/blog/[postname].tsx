@@ -63,7 +63,7 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
   // Rendered Markdown (example, replace with your renderer)
   const renderedMarkdown = BlogPostRenderer(blogpost.content);
   const [title, subtitle] = blogpost.title.split(':')
-  console.log(renderedMarkdown.tags);
+
   return (
     <>
       <Partial name="site-nav">
@@ -88,8 +88,8 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
           <meta property="article:modified_time" content={blogpost.modifiedTime?.toISOString()} />
           <meta property="article:author" content="https://github.com/ali-layken" />
           <meta property="article:section" content="Computing" />
-          {renderedMarkdown.tags.map((tag) => (
-            <meta property="article:tag" content={tag} />
+          {renderedMarkdown.tags.map((tag, index) => (
+            <meta property="article:tag" content={tag} key={`og:tag-${index}`}/>
           ))}
         </Head>
         <header class=" text-center">
