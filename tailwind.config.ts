@@ -13,6 +13,7 @@ const deCSS = {
   h1: {
     color: burstTextColors.subtitles,
     fontSize: "2rem",
+    marginBottom: "-1rem",
     fontWeight: "700",
     strong: {
       color: burstColors.accRed,

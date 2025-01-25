@@ -1,5 +1,4 @@
 # How Did We End Up Here?
-
 ### Sending Files Over the Internet :page_facing_up:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This page is [a markdown file](/blog/Organize_Your_Thoughts:_Build_Your_Own_Website#dynamic-routing) :page_facing_up: on a computer :computer: controlled by [Deno Deploy](https://deno.com/deploy) :deno_logo:. I uploaded this file to [Github](https://github.com/ali-layken/BurstUI/blob/main/posts/Dismantling_Internet_Censorship:_Build_Your_Own_VPN.md) :github_logo: and Deno Deploy [grabbed it and uploaded it](https://github.com/ali-layken/BurstUI/actions) to that computer. When you clicked the link to visit this post, your request traveled through **several** systems, just like my uploaded file, before reaching Deno’s computer. The file you loaded was sent as [Network packets](https://en.wikipedia.org/wiki/Network_packet), which is what we call sections of data sent over the internet. These packets are usually structured according to a protocol, and these protocols serve different purposes. This website’s packets follow [HTTPS](https://en.wikipedia.org/wiki/HTTPS) and specifically form an *HTTPS Response*, which means the message they make when put together and handed to your browser is a website. Deno’s computer listens for packets that look like *HTTPS Requests* and responds to them. We call computers that do this [Web Servers](https://en.wikipedia.org/wiki/Web_server) :computer:.
 
@@ -163,6 +162,8 @@ Some companies offer [free access to computers](https://github.com/cloudcommunit
 <br/>
 
 By combining these methods, you can create systems to navigate through restrictive firewalls. You have to know what you are fighting :fist_oncoming: to make a setup that works. If nothing works, I am sorry, and I hope the final section of this post gives you some hope for a censorship-resilient future :rainbow::sunrise_over_mountains:, where encrypted redundant proxies are ample.
+
+<br />
 
 # VPN Building :building_construction:
 
@@ -522,17 +523,18 @@ so that all local DNS Requests go through pihole. This completes the setup and e
 
 # What’s next... :sunrise_over_mountains:
 
+<br />
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This article won’t particularly help with the United States :us: Government’s [TikTok ban](https://en.wikipedia.org/wiki/Restrictions_on_TikTok_in_the_United_States). The U.S. won’t mess with DNS directly because that would be blatantly oppressive and cause backlash from a larger computing community that isn’t impacted by the removal of TikTok. Instead, they’ll pressure Apple, Google, and ByteDance, the organizations with the actual power over people, to take the app off the app store and make it non-functional. There are alternative app stores on iOS and [Android](https://f-droid.org/en/), but most normal phone users won’t try this, and social platforms know this, so ByteDance will do [any jig](https://www.tiktok.com/@jamie32bsh/video/7058186727248235782) the U.S. asks them to not be banned. Their power doesn’t come from small abilities like DNS manipulation or App Store Removals but rather from our human reliance on them, these monopolistically controlled capitalist centralized systems.
 
-<br/>
+<br />
 
 Web2-the internet of `.com`s, was owned and controlled by corporations and the organizations they comply with. Web3 is a buzzword that, despite its decentralized connotations, risks being abused [the same way](https://thedigitalquill.medium.com/web2-companies-leading-their-industry-into-web3-52602955e44a). Instead of glorifying and chasing a futuristic aesthetic by investing in useless Web3 projects lets think, when looking for systems that work, why do we have to buy the new shiny internet these guys are selling? Why not go back? Web1 thrived with its simplicity: encrypted connections between two IPs. Companies trying to *sell* you Web3 are trying again to cause reliance on them for decentralized tools, which, by nature, are available to you too. Real Web3 is technology that solves the issues of Web1, the same problems that caused us to rely on companies and their [Web2 solution](https://en.wikipedia.org/wiki/Web_2.0#Criticism) for years, but now, there are enough people :bust_in_silhouette: with powerful computers :desktop_computer:, for us to just rely on each other :handshake:.
 
 ## What’s Web3? (Defining "Truth")
-
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Protection from internet censorship asks the censored to consider who they can trust; their allies :bust_in_silhouette:. Regardless of how often I listen to a proper explanation, the concepts of Web3 seem to clash, such as its resource requirement vs. supposed freedom and accessibility or its promise of decentralization yet appearance as centralized networks. This technology is *still being realised* so it’ll be easier to understand using the *unreal*:
 
-<br/>
+<br />
 
 Let’s start by imagining the concept of an “apple”:apple:. If everyone suddenly disappeared, would the concept of the word “apple” still exist? Well, apples would still exist without our labeling of them. Let’s imagine that you were born into this world and explore how you could personally establish your own knowledge of apples in 3 different scenarios:
 

@@ -1,4 +1,7 @@
 # Why Build Anything at All? :thinking:
+
+<br />
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If you genuinely care about *anything* and want to avoid sounding like a mad scientist when you talk about it, I highly recommend you start forming your thoughts and efforts into digestible pieces of content. Engineers are notoriously horrible with communication, but we care and want to build something that truly *works*. To make something work, then, means to make something that *works for people*. But, if **no one can understand** what we are doing or why, we haven’t actually made anything that *works*. We’ve made something else, which is fine; there are many things we can do for ourselves or our own benefit, and the world doesn’t have to understand them completely. Instead, making something that works starts with correctly identifying real people’s issues. We have to spend time talking to them about their difficulties and perspectives and listen when they tell us what they need or what we aren’t providing. If we do all this and still fail, it’s okay; you were just trying to *help*.
 
 <br/>
@@ -12,6 +15,8 @@ If you want to reach the people who need you and your skills *the most* start *s
 2. **An internet connection** 🛜. This means you need a wire (or any connection) from your computer to a chain of computers. These computers work together to find a route to every other computer connected to the internet using [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol). Typically, in America, these wires and computers are owned by organizations like :xfinity_logo: Xfinity or Verizon, and you have to pay to use them. If you want to connect to a computer located across the world, these organizations hand off your request to [larger networks](https://en.wikipedia.org/wiki/Tier_1_network) that manage global connections, like undersea cables and satellites. 
 
 3. (optional) If you want others to be able to access your website, you will need a :github_logo: [GitHub account](https://github.com/).
+
+<br />
 
 # Exploring Website Technology :mag_right:
 
