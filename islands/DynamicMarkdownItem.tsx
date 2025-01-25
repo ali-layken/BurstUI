@@ -114,9 +114,21 @@ export default function DynamicMarkdownItem() {
           }
       }
     };
+
+    const restoreScrollPosition = () => {
+      const hash = globalThis.location.hash;
+      if (hash) {
+        const target = document.querySelector(hash);
+        if (target) {
+          setTimeout(() => {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 0); // Allow hydration to complete
+        }
+      }
+    };
     
     // Run hydration initially
-    hydrateComponents();
+    hydrateComponents().then(restoreScrollPosition);
     
     // Add a resize listener to re-render Mermaid diagrams
     globalThis.addEventListener("resize", rerenderMermaid);
