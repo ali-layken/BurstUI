@@ -74,12 +74,12 @@ const AnimatedText3D = ({
 
         const textMaterial = new THREE.MeshStandardMaterial({
           transparent: true,
-          opacity: 0.7,
+          opacity: 0.9,
         });
 
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
-        const edges = new THREE.EdgesGeometry(textGeometry);
+        const edges = new THREE.EdgesGeometry(textGeometry, 10);
         const emissiveMaterial = new THREE.MeshStandardMaterial({
           color: burstColors.accRed, // Edge color
           emissive: burstColors.accRed2, // Emit light
@@ -93,7 +93,7 @@ const AnimatedText3D = ({
           const centerOffset =
             -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
           textMesh.position.set(centerOffset, -32, -10);
-          edgeLines.position.set(centerOffset, -32, -8);
+          edgeLines.position.set(centerOffset, -32, -7);
         }
 
         textGroup.add(textMesh);

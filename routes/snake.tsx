@@ -76,7 +76,7 @@ export default function snakeRoute() {
           <ul class="ml-6 mb-2 space-y-1 list-disc text-accLiteGreen text-base md:text-lg font-medium font-fixel">
             <li>
               Input the direction you want to go before you reach the next
-              tile's midpoint dot.
+              tile's midpoint dot. Drag directions are relative to the drag origin.
             </li>
             <li>
               You can overwrite the direction you chose with any other direction

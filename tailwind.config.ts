@@ -71,18 +71,27 @@ const deCSS = {
       color: burstTextColors.transWhite,
       fontWeight: "900"
     },
+    em: {
+      color: burstColors.subtitles2
+    },
   },
   a: {
     color: burstColors.accGreen,
     textDecoration: "underline",
+    code: {
+      color: burstColors.accGreen,
+    },
     "&:visited": {
       color: burstColors.accLitePurple,
+      code: {
+        color: burstColors.accLitePurple,
+      },
       "&:hover": {
         color: burstColors.accRed,
       },
     },
     "&:hover": {
-      color: burstColors.accRed, // Change on hover
+      color: burstColors.accRed,
     },
     "& img": {
       borderBottom: `1px solid ${burstColors.accGreen}`, // Add underline for images in links
@@ -106,7 +115,7 @@ const deCSS = {
   },
   ol: {
     "list-style-type": "decimal", // Ensure ordered list numbering
-    padding: "0rem 3rem"
+    padding: "0rem 3rem",
   },
   pre: {
     "@apply overflow-hidden whitespace-pre-wrap break-words p-4": {},
@@ -168,16 +177,12 @@ const deCSS = {
       fontFamily: "monospace",
       fontSize: "0.85em",
     },
-    pre: {
-      backgroundColor: burstColors.termBack1,
-      padding: "1rem",
-      borderRadius: "0.5rem",
-      color: burstTextColors.white,
-      overflowX: "auto",
-    },
     strong: {
       color: burstTextColors.transWhite,
       fontWeight: "900"
+    },
+    em: {
+      color: burstColors.subtitles2
     },
     "margin-top": "0.5rem", // Add vertical spacing between list items
     "margin-bottom": "0.5rem", // Same for bottom spacing
@@ -186,6 +191,16 @@ const deCSS = {
       fontWeight: "bold", // Optional: make markers bold
     },
     color: burstColors.creamTan2,
+    
+  },
+  "ol ul": {
+    "list-style-type": "disc", // Explicitly enable bullets
+    "margin-left": "2rem", // Ensure proper indentation
+    "padding-left": "1rem", // Adjust spacing
+    "li::marker": {
+      color: burstTextColors.subtitles, // Customize the marker color
+      fontWeight: "bold", // Optional: make markers bold
+    },
   },
   "ol > li > p": {
     "margin-top": "0", // Remove extra top margin from nested <p>
