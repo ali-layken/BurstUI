@@ -15,6 +15,7 @@ export interface HeadingInfo {
 interface RendererResult {
   renderedContent: JSX.Element;
   headings: HeadingInfo[];
+  tags: string[];
 }
 
 const customRenderer = new Renderer();
@@ -77,9 +78,7 @@ const hlExt = markedHighlight({
   langPrefix: "hljs language-",
   highlight: (code, lang) => {
     if (lang === "mermaid") {
-      return `<pre class="mermaid invisible" data-component="MermaidBlock" data-code="${
-      encodeURIComponent(code)
-    }">${code}</pre>`;
+      return `<pre class="mermaid invisible" data-component="MermaidBlock" data-code="${encodeURIComponent(code)}">${code}</pre>`;
     }
   
     const language = hljs.getLanguage(lang) ? lang : "plaintext";
@@ -160,6 +159,12 @@ marked.use(
 
 export default function BlogPostRenderer(content: string): RendererResult {
   headings.length = 0;
+
+    // Extract tags from content
+    const tagMatch = content.match(/tags:\s*([^\n]+)/i); // Look for "tags:" followed by a comma-separated list
+    const tags = tagMatch ? tagMatch[1].split(",").map(tag => tag.trim()) : [];
+    content = content.replace(/tags:\s*([^\n]+)/i, "");
+
   const renderedContent = marked.parse(
     content.replace(/{{(\w+)}}/g, (_match, componentName) => {
       return `<div id="component-${componentName}" data-component="${componentName}"></div>`;
@@ -173,5 +178,6 @@ export default function BlogPostRenderer(content: string): RendererResult {
       </article>
     ),
     headings: headings,
+    tags: tags
   };
 }

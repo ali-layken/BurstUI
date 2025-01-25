@@ -9,7 +9,7 @@ import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
 
 export interface BlogProps {
   content: string;
-  modifiedTime: string | null;
+  modifiedTime: Date | null;
   title: string;
 }
 
@@ -37,16 +37,13 @@ export const fetchBlogpost = async (
     const fileStats = await Deno.stat(filePath);
     const content = await Deno.readTextFile(filePath);
 
-    const modifiedTime = fileStats.mtime
-      ? new Date(fileStats.mtime).toLocaleString()
-      : null;
 
     // Use the slug as the title
     const title = slug.replace(/_/g, " ");
 
     return {
       content,
-      modifiedTime,
+      modifiedTime: fileStats.mtime,
       title,
     };
   } catch (error) {
@@ -55,7 +52,7 @@ export const fetchBlogpost = async (
   }
 };
 
-export default async function blogPostRoute (_req: Request, ctx: RouteContext)  {
+export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
   const { postname } = ctx.params;
   const blogpost = await fetchBlogpost(postname);
 
@@ -65,7 +62,8 @@ export default async function blogPostRoute (_req: Request, ctx: RouteContext)  
 
   // Rendered Markdown (example, replace with your renderer)
   const renderedMarkdown = BlogPostRenderer(blogpost.content);
-
+  const [title, subtitle] = blogpost.title.split(':')
+  console.log(renderedMarkdown.tags);
   return (
     <>
       <Partial name="site-nav">
@@ -76,18 +74,34 @@ export default async function blogPostRoute (_req: Request, ctx: RouteContext)  
       </Partial>
       <Partial name="main-component">
         <Head>
-          <title>{blogpost.title}</title>
+          <meta key= "description" name="description" content={blogpost.title} />
+
+          <title key="title">{subtitle}</title>
+
+          <link key="canonical" rel="canonical" href={`https://burst.deno.dev/blog/${postname}`} />
+
+          <meta property="og:title" content={subtitle} key="og:title" />
+          <meta property="og:description" content={blogpost.title} key="og:description" />
+          <meta property="og:url" content={`https://burst.deno.dev/blog/${postname}`} key="og:url" />
+          <meta property="og:type" content="article" key="og:type" />
+
+          <meta property="article:modified_time" content={blogpost.modifiedTime?.toISOString()} />
+          <meta property="article:author" content="https://github.com/ali-layken" />
+          <meta property="article:section" content="Computing" />
+          {renderedMarkdown.tags.map((tag) => (
+            <meta property="article:tag" content={tag} />
+          ))}
         </Head>
         <header class=" text-center">
           <h1
             id="PostTitle"
             class="text-5xl scroll-mt-24 font-source4 underline decoration-2"
           >
-            <strong>{blogpost.title.split(':')[0]}</strong>
+            <strong>{title}</strong>
           </h1>
-          <p class="text-3xl mt-4 mb-2 scroll-mt-24 font-source4 italic text-accLiteGreen">{blogpost.title.split(':')[1]}</p>
+          <p class="text-3xl mt-4 mb-2 scroll-mt-24 font-source4 italic text-accLiteGreen">{subtitle}</p>
           <p class="text-sm font-fixel text-subtitles">
-            Last Edited: {blogpost.modifiedTime || "N/A"}
+            Last Edited: {blogpost.modifiedTime?.toLocaleString() ?? "N/A"}
           </p>
         </header>
         {renderedMarkdown.renderedContent}

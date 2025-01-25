@@ -124,7 +124,12 @@ export default async function homeRoute() {
       </Partial>
       <Partial name="main-component">
         <Head>
-          <title>Home</title>
+          <meta key= "description" name="description" content={"Home Page"} />
+          <meta key="robots" name="robots" content="index" />
+
+          <title key="title">Home</title>
+          
+          <link key="canonical" rel="canonical" href={`https://burst.deno.dev/`}></link>
         </Head>
         <AnimatedText3D text="Burst." />
         <p class="text-accLiteGreen text-2xl text-center font-fixel">

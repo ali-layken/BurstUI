@@ -585,3 +585,5 @@ The U.S. government originally released `.onion` routing technology to obscure m
 <br/>
 
 A world where you control your data, your domains, and your applications without needing the approval of corporations or governments shouldn’t sound like a utopian ideal. So, let’s encrypt and decentralize everything, encrypt traffic for no reason, and rotate between redundant nodes for no reason. Every byte of decentralized traffic helps shift the balance of power toward the people. Let’s move towards a decentralized future and build an internet that belongs to its participants, builders, and maintainers, not just a privileged few with enough money. :)
+
+tags: VPN, Pihole, Unbound, Web3, Cryptocurrency, Security, Censorship, DNS

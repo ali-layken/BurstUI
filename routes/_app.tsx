@@ -1,6 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import { JSX } from "preact/jsx-runtime";
 import ResizeDetector from "../islands/ResizeDetector.tsx";
+import { Head } from "$fresh/runtime.ts";
 
 
 export default function App(
@@ -8,12 +9,21 @@ export default function App(
 ): JSX.Element {
   return (
     <html>
-      <head>
-        <meta charset="utf-8" />
+      <Head>
+        <meta charset="utf-8" key="charset" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Welcome to Burst!</title>
+
+        <title key="title">Welcome to Burst!</title>
+
         <link rel="stylesheet" href="/styles.css" />
-      </head>
+
+        <meta property="og:image" content="/logo.png"key="og:image" />
+        <meta property="og:title" content="Welcome to Burst!" key="og:title" />
+        <meta property="og:description" content="A Website About Computers" key="og:description" />
+        <meta property="og:url" content={`https://burst.deno.dev/`} key="og:url" />
+        <meta property="og:type" content="website" key="og:type" />
+
+      </Head>
       <body f-client-nav>
       <ResizeDetector />
         <div class="layout">

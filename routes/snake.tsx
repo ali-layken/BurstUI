@@ -115,7 +115,16 @@ export default function snakeRoute() {
       </Partial>
       <Partial name="main-component">
         <Head>
-          <title>Snake 2.5</title>
+          <meta key= "description" name="description" content={"Snake 2.5 Game"} />
+
+          <title key="title">Snake 2.5</title>
+
+          <link key="canonical" rel="canonical" href={`https://burst.deno.dev/snake`}></link>
+
+          <meta property="og:title" content="Snake 2.5" key="og:title" />
+          <meta property="og:description" content="Play Snake 2.5: An Isometric Snake Game" key="og:description" />
+          <meta property="og:url" content={`https://burst.deno.dev/snake`} key="og:url" />
+          <meta property="og:type" content="video.game" key="og:type" />
         </Head>
         <div
           style={{
