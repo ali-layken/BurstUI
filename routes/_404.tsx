@@ -12,16 +12,16 @@ export default function Error404(props: PageProps) {
       </Partial>
       <Partial name="main-component">
         <Head>
-          <title>404 - Page not found</title>
+          <title>404 - {props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found</title>
         </Head>
-        <div class="px-4 py-8 font-fixel mx-auto bg-[#86efac]">
+        <div class="px-4 py-8 font-fixel mx-auto bg-accLitePurple">
           <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
             <img
               class="my-6"
-              src="/logo.svg"
+              src="/logo-large.gif"
               width="128"
               height="128"
-              alt="the Fresh logo: a sliced lemon dripping with juice"
+              alt="the Burst logo: a ball rolling NorthEast"
             />
             <h1 class="text-4xl">
               <strong>404 - {props.route?.split("/")[1] === "blog" ? "Post" : "Page"}</strong>
