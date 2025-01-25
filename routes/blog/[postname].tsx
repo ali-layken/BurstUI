@@ -88,9 +88,9 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
           <meta property="article:modified_time" content={blogpost.modifiedTime?.toISOString()} />
           <meta property="article:author" content="https://github.com/ali-layken" />
           <meta property="article:section" content="Computing" />
-          {renderedMarkdown.tags.map((tag, index) => (
-            <meta property="article:tag" content={tag} key={`og:tag-${index}`}/>
-          ))}
+          {renderedMarkdown.tags.length > 0 && (
+            <meta property="article:tag" content={renderedMarkdown.tags.join(", ")} key="og:tags"/>
+          )}
         </Head>
         <header class=" text-center">
           <h1

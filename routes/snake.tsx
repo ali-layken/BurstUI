@@ -125,6 +125,8 @@ export default function snakeRoute() {
           <meta property="og:description" content="Play Snake 2.5: An Isometric Snake Game" key="og:description" />
           <meta property="og:url" content={`https://burst.deno.dev/snake`} key="og:url" />
           <meta property="og:type" content="video.game" key="og:type" />
+          <meta property="article:tag" content="" key="og:tags" />
+          
         </Head>
         <div
           style={{
