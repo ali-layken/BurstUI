@@ -86,7 +86,7 @@ const hlExt = markedHighlight({
   
     const linesWithButtons = codeLines.map((code, index) => {
       if (code === ""){
-        return `<br/>`
+        return `<br />`
       } else{
         const line = hljs.highlight(code, { language }).value;
         return `<div class="code-line relative group">

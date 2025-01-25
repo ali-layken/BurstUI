@@ -67,7 +67,7 @@ export default async function homeRoute() {
                       class="text-accGreen hover:text-accRed hover:underline text-lg md:text-xl font-fixel transition-colors duration-200 ml-2"
                       data-action="close"
                     >
-                      {post.name.replace(/_/g, " ")}:<br/>
+                      {post.name.replace(/_/g, " ")}:<br />
                       <p class="italic font-source4 ml-4" data-action="close">
                       {post.subtitle && post.subtitle?.replace(/_/g, " ")}
                       </p>
@@ -113,7 +113,7 @@ export default async function homeRoute() {
                       class="text-accGreen hover:text-accRed hover:underline text-xl md:text-2xl italic font-source4 transition-colors duration-200 ml-2"
                       data-action="close"
                     >
-                      {post.name.replace(/_/g, " ")}<br/>
+                      {post.name.replace(/_/g, " ")}<br />
                     </a>
                   </div>
                 </li>
