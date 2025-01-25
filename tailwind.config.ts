@@ -276,6 +276,9 @@ const deCSS = {
       marginTop: "1.5rem", // Normal gap after the figure to the next content
     },
   },
+  hr: {
+    margin: "-0.3rem 1.75rem 0.9rem -2rem"
+  }
 }
 
 
@@ -297,6 +300,9 @@ export default {
         'fixel': ['Fixel']
       }
     },
+    screens: {
+      md: "1463px"
+    },
     hljs: {
       theme: "base16/solarized-dark",
     },
@@ -309,11 +315,11 @@ export default {
           ...deCSS,
           h1: {
             ...deCSS.h1,
-            fontSize: "2rem",
+            fontSize: "1.6rem",
           },
           h2: {
             ...deCSS.h2,
-            fontSize: "1.5rem",
+            fontSize: "1.4rem",
           },
           h3: {
             ...deCSS.h3,
@@ -358,6 +364,9 @@ export default {
               fontSize: "0.8em",
             },
           },
+          hr: {
+            margin: "-0.4rem 1.75rem 0.9rem -1.23rem"
+          }
         }
       }
     },
