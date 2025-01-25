@@ -68,7 +68,7 @@ export default async function homeRoute() {
                       data-action="close"
                     >
                       {post.name.replace(/_/g, " ")}:<br/>
-                      <p class="italic font-source4 ml-4">
+                      <p class="italic font-source4 ml-4" data-action="close">
                       {post.subtitle && post.subtitle?.replace(/_/g, " ")}
                       </p>
                     </a>
