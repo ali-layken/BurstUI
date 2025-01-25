@@ -179,7 +179,7 @@ On my Pixel 6 :google_logo: I downloaded the tailscale app and set some network 
 3. In the WiFi connection settings I have *Static DHCP* with the pi’s tailscale [ipv4](https://en.wikipedia.org/wiki/IPv4) address since it only takes ipv4s.
 4. In the tailscale app, I set my pi as the `exit-node`.
 
-Tailscale now starts when my pi boots and tunnels all traffic from any other device that has it set as the `exit-node`. This means that all the internet traffic on my phone is first encrypted and sent to my pi, which is then handed to my router normally. The pi won’t use the *Tailscale DNS* since we are hosting our own *DNS Server*. Now, we have an effective encrypted proxy. You can tap out at this point if you trust the proxy’s ISP and their *DNS Servers*. If you are continuing, in the tailscale admin panel under [:globe_with_meridians: DNS]((https://login.tailscale.com/admin/dns)), set the IP of the `exit-node` as a `Global Nameserver`. 
+Tailscale now starts when my pi boots and tunnels all traffic from any other device that has it set as the `exit-node`. This means that all the internet traffic on my phone is first encrypted and sent to my pi, which is then handed to my router normally. The pi won’t use the *Tailscale DNS* since we are hosting our own *DNS Server*. Now, we have an effective encrypted proxy. You can tap out at this point if you trust the proxy’s ISP and their *DNS Servers*. If you are continuing, in the tailscale admin panel under [:globe_with_meridians: DNS](https://login.tailscale.com/admin/dns), set the IP of the `exit-node` as a `Global Nameserver`. 
 
 ## *Step 2:* **Pi-Hole + Unbound**
 
