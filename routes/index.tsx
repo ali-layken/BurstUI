@@ -37,7 +37,7 @@ export default async function homeRoute() {
   });
 
   posts.sort((a, b) => a.modifiedAt!.getTime() - b.modifiedAt!.getTime());
-  
+
   return (
     <>
       <Partial name="site-nav">
@@ -56,9 +56,8 @@ export default async function homeRoute() {
                   {/* Left Section: Post Number and Name */}
                   <div class="flex items-center">
                     <span
-                      class={`text-3xl font-fixel mr-1 text-right w-8 ${
-                        isEven ? "text-subtitles" : "text-accYellow"
-                      }`}
+                      class={`text-3xl font-fixel mr-1 text-right w-8 ${isEven ? "text-subtitles" : "text-accYellow"
+                        }`}
                     >
                       <strong>{index + 1}.</strong>
                     </span>
@@ -70,16 +69,15 @@ export default async function homeRoute() {
                     >
                       {post.name.replace(/_/g, " ")}:<br />
                       <p class="italic font-source4 ml-4" data-action="close">
-                      {post.subtitle && post.subtitle?.replace(/_/g, " ")}
+                        {post.subtitle && post.subtitle?.replace(/_/g, " ")}
                       </p>
                     </a>
                   </div>
 
                   {/* Right Section: Timestamp */}
                   <time
-                    class={`text-sm md:text-lg font-fixel ${
-                      isEven ? "text-subtitles" : "text-accYellow"
-                    }`}
+                    class={`text-sm md:text-lg font-fixel ${isEven ? "text-subtitles" : "text-accYellow"
+                      }`}
                   >
                     {new Date(post.modifiedAt!).toLocaleDateString()}
                   </time>
@@ -102,9 +100,8 @@ export default async function homeRoute() {
                   {/* Left Section: Post Number and Name */}
                   <div class="flex items-center">
                     <span
-                      class={`text-3xl font-fixel mr-1 text-right w-8 ${
-                        isEven ? "text-subtitles" : "text-accYellow"
-                      }`}
+                      class={`text-3xl font-fixel mr-1 text-right w-8 ${isEven ? "text-subtitles" : "text-accYellow"
+                        }`}
                     >
                       <strong>{index + 1}.</strong>
                     </span>
@@ -125,7 +122,7 @@ export default async function homeRoute() {
       </Partial>
       <Partial name="main-component">
         <Head>
-          <meta key= "description" name="description" content={"Home Page"} />
+          <meta key="description" name="description" content={"Home Page"} />
           <meta key="robots" name="robots" content="index" />
 
           <title key="title">Home</title>
@@ -140,17 +137,18 @@ export default async function homeRoute() {
           visitor! This space is for sharing knowledge that I hope you can
           benefit from.
         </p>
-        <div class="bottom-0 flex justify-center items-center w-full mt-12">
-          <span class="flex items-center text-subtitles text-2xl font-fixel px-4">
-            <img class="marked-emoji-img mr-1" alt="discord" src="/emojis/discord.svg" />
-            <span class="mr-2 mt-0.7">Discord:</span>
-            <CopyableText text="@supaboop" />
-          </span>
-          <span class="mx-4 text-accRed">|</span>
-          <span class="flex items-center text-accRed2 text-2xl font-fixel px-4">
-            <img class="marked-emoji-img mr-1" alt="github" src="/emojis/github.png" />
-            <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">Github</a>
-          </span>
+        <div class="absolute bottom-0 flex items-center w-full pb-4">
+          <ul class="list-none">
+            <li class="flex items-center text-subtitles text-xl font-fixel py-2">
+              <img class="marked-emoji-img mr-1.5" alt="discord" src="/emojis/discord.svg" />
+              <span class="mr-2">Discord:</span>
+              <CopyableText text="@supaboop" />
+            </li>
+            <li class="flex items-center text-accRed2 text-xl font-fixel py-2">
+              <img class="marked-emoji-img mr-1.5" alt="github" src="/emojis/github.png" />
+              <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">Github</a>
+            </li>
+          </ul>
         </div>
       </Partial>
     </>

@@ -114,7 +114,7 @@ export default function ResizeDetector(): JSX.Element {
       }
       if (componentDiv) {
         componentDiv.className =
-          "flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg";
+          "flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg relative min-h-[620px]";
       }
       if (bottomNavDiv) {
         // Clear narrow navigation
