@@ -139,6 +139,7 @@ const customEmojis = {
   "ms_logo": "/emojis/ms.png",
   "linux_logo": "/emojis/tux.png",
   "vim_logo": "/emojis/vim.gif",
+  "discord_logo": "/emojis/discord.svg",
 };
 
 const emojiRenderer = (token: EmojiToken) =>

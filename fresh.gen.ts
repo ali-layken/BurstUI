@@ -17,6 +17,7 @@ import * as $snake from "./routes/snake.tsx";
 import * as $AnimatedText3D from "./islands/AnimatedText3D.tsx";
 import * as $BackButton3D from "./islands/BackButton3D.tsx";
 import * as $CopyableCodeBlock from "./islands/CopyableCodeBlock.tsx";
+import * as $CopyableText from "./islands/CopyableText.tsx";
 import * as $DynamicMarkdownItem from "./islands/DynamicMarkdownItem.tsx";
 import * as $ResizeDetector from "./islands/ResizeDetector.tsx";
 import * as $SpinningCube from "./islands/SpinningCube.tsx";
@@ -41,6 +42,7 @@ const manifest = {
     "./islands/AnimatedText3D.tsx": $AnimatedText3D,
     "./islands/BackButton3D.tsx": $BackButton3D,
     "./islands/CopyableCodeBlock.tsx": $CopyableCodeBlock,
+    "./islands/CopyableText.tsx": $CopyableText,
     "./islands/DynamicMarkdownItem.tsx": $DynamicMarkdownItem,
     "./islands/ResizeDetector.tsx": $ResizeDetector,
     "./islands/SpinningCube.tsx": $SpinningCube,

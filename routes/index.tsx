@@ -1,6 +1,7 @@
 import { Head, Partial } from "$fresh/runtime.ts";
 import { join } from "node:path";
 import AnimatedText3D from "../islands/AnimatedText3D.tsx";
+import CopyableText from "../islands/CopyableText.tsx";
 
 export interface IndexLink {
   name: string;
@@ -36,7 +37,7 @@ export default async function homeRoute() {
   });
 
   posts.sort((a, b) => a.modifiedAt!.getTime() - b.modifiedAt!.getTime());
-
+  
   return (
     <>
       <Partial name="site-nav">
@@ -133,11 +134,24 @@ export default async function homeRoute() {
           <meta property="article:tag" content="" key="og:tags" />
         </Head>
         <AnimatedText3D text="Burst." />
-        <p class="text-accLiteGreen text-2xl text-center font-fixel">
+        <br />
+        <p class="text-accLiteGreen text-3xl text-center font-fixel mt-1">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}
           visitor! This space is for sharing knowledge that I hope you can
           benefit from.
         </p>
+        <div class="bottom-0 flex justify-center items-center w-full mt-12">
+          <span class="flex items-center text-subtitles text-2xl font-fixel px-4">
+            <img class="marked-emoji-img mr-1" alt="discord" src="/emojis/discord.svg" />
+            <span class="mr-2 mt-0.7">Discord:</span>
+            <CopyableText text="@supaboop" />
+          </span>
+          <span class="mx-4 text-accRed">|</span>
+          <span class="flex items-center text-accRed2 text-2xl font-fixel px-4">
+            <img class="marked-emoji-img mr-1" alt="github" src="/emojis/github.png" />
+            <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">Github</a>
+          </span>
+        </div>
       </Partial>
     </>
   );
