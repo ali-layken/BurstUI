@@ -132,14 +132,14 @@ export default async function homeRoute() {
         </Head>
         <AnimatedText3D text="Burst." />
         <br />
-        <p class="text-accLiteGreen text-3xl text-center font-fixel mt-1">
+        <p class="text-subtitles2 text-3xl text-center font-fixel mt-1">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}
           visitor! This space is for sharing knowledge that I hope you can
           benefit from.
         </p>
         <div class="absolute bottom-0 flex items-center max-w-4xl pb-3 -ml-2 md:-ml-4">
           <ul class="list-none space-y-2">
-            <li class="flex items-center text-subtitles text-xl font-fixel">
+            <li class="flex items-center text-accLiteGreen text-xl font-fixel">
               <img class="marked-emoji-img mr-1.5" alt="discord" src="/emojis/discord.svg" />
               <span class="mr-2">Discord:</span>
               <CopyableText text="@supaboop" />

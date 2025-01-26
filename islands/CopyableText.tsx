@@ -18,13 +18,15 @@ export default function CopyableText({ text }: CopyableTextProps): JSX.Element {
   };
 
   return (
+    <>
     <span
       onClick={handleCopyToClipboard}
-      class="cursor-pointer items-center gap-2 text-accGreen hover:text-accRed hover:underline transition-colors duration-200"                
+      class="cursor-pointer font-source4 items-center gap-2 text-accGreen hover:text-accRed hover:underline transition-colors duration-200"                
       title="Click to copy"
     >
       <span class="mr-1">{text}</span>
-      {copied ? ("✅") : ("📋")}
     </span>
+    <span class="mr-1">{copied ? ("✅") : ("📋")}</span>
+    </>
   );
 }
