@@ -137,14 +137,14 @@ export default async function homeRoute() {
           visitor! This space is for sharing knowledge that I hope you can
           benefit from.
         </p>
-        <div class="absolute bottom-0 flex items-center w-full pb-4">
-          <ul class="list-none">
-            <li class="flex items-center text-subtitles text-xl font-fixel py-2">
+        <div class="absolute bottom-0 flex items-center max-w-4xl pb-3 -ml-2 md:-ml-4">
+          <ul class="list-none space-y-2">
+            <li class="flex items-center text-subtitles text-xl font-fixel">
               <img class="marked-emoji-img mr-1.5" alt="discord" src="/emojis/discord.svg" />
               <span class="mr-2">Discord:</span>
               <CopyableText text="@supaboop" />
             </li>
-            <li class="flex items-center text-accRed2 text-xl font-fixel py-2">
+            <li class="flex items-center text-accRed2 text-xl font-fixel">
               <img class="marked-emoji-img mr-1.5" alt="github" src="/emojis/github.png" />
               <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">Github</a>
             </li>
