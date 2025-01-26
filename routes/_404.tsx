@@ -15,7 +15,7 @@ export default function Error404(props: PageProps) {
           <title key="title">404 - {props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found</title>
           <meta key= "description" name="description" content={`404 - ${props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found`} />
           <meta property="og:title" content={`404 - ${props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found`} key="og:title"/>
-          <meta property="og:description" content="This page could not be found on Burst." key="og:description"/>
+          <meta property="og:description" content="This page could not be found on Burst!" key="og:description"/>
         </Head>
         <div class="px-4 py-8 font-fixel mx-auto bg-accLitePurple">
           <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
