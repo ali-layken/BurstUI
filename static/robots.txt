@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://burst.deno.dev
+
+# Sitemaps
+Sitemap: https://burst.deno.dev/sitemap.xml
