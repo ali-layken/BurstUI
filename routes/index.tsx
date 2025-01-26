@@ -130,7 +130,7 @@ export default async function homeRoute() {
           <link key="canonical" rel="canonical" href={`https://burst.deno.dev/`}></link>
           <meta property="article:tag" content="" key="og:tags" />
         </Head>
-        <AnimatedText3D text="Burst." />
+        <AnimatedText3D text="Burst!" />
         <br />
         <p class="text-subtitles2 text-3xl text-center font-fixel mt-1">
           <strong>Welcome</strong>, my <em>digitally wandering</em>{" "}
