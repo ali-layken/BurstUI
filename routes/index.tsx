@@ -2,6 +2,7 @@ import { Head, Partial } from "$fresh/runtime.ts";
 import { join } from "node:path";
 import AnimatedText3D from "../islands/AnimatedText3D.tsx";
 import CopyableText from "../islands/CopyableText.tsx";
+import { readTimestamps } from "../utils/timestamps.ts";
 
 export interface IndexLink {
   name: string;
@@ -19,14 +20,14 @@ export default async function homeRoute() {
     if (
       entry.isFile && entry.name.endsWith("md") && !entry.name.startsWith("_")
     ) {
-      const filePath = join(postsDirectory, entry.name);
-      const stat = await Deno.stat(filePath);
+      const stat = await readTimestamps();
+      console.log(stat);
       const fullname = entry.name.slice(0, -3)
       posts.push({
         route: fullname,
         name: fullname.split(':')[0],
         subtitle: fullname.split(':')[1],
-        modifiedAt: stat.mtime ?? new Date(),
+        modifiedAt:  new Date(),
       });
     }
   }
