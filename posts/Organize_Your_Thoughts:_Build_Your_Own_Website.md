@@ -12,7 +12,7 @@ If you want to reach the people who need you and your skills *the most* start *s
 
 1. **A computer** :computer: that can run :deno_logo: [Deno](https://docs.deno.com/runtime/getting_started/installation/). Deno is a software written in :rust_logo: [Rust](https://www.rust-lang.org/), so there are [some](https://www.freshports.org/www/deno) unofficial builds too. If you aren’t running Mac, Linux or Windows I recommend looking around.
 
-2. **An internet connection** 🛜. This means you need a wire (or any connection) from your computer to a chain of computers. These computers work together to find a route to every other computer connected to the internet using [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol). Typically, in America, these wires and computers are owned by organizations like :xfinity_logo: Xfinity or Verizon, and you have to pay to use them. If you want to connect to a computer located across the world, these organizations hand off your request to [larger networks](https://en.wikipedia.org/wiki/Tier_1_network) that manage global connections, like undersea cables and satellites. 
+2. **An internet connection** 🛜. In America, internet connections are paid services provided by organizations like :xfinity_logo: Xfinity or Verizon. To connect you to a computer :computer: located across the world :earth_africa:, these organizations work with [larger networks](https://en.wikipedia.org/wiki/Tier_1_network) that manage global connections, like undersea cables and satellites. 
 
 3. (optional) If you want others to be able to access your website, you will need a :github_logo: [GitHub account](https://github.com/).
 
