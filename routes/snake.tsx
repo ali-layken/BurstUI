@@ -93,16 +93,16 @@ export default function snakeRoute() {
               <h2 class="font-fixel mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
                 Losing:
               </h2>
-              <ol class="space-y-1 ml-4 list-decimal text-base md:text-lg font-medium font-fixel">
-                <li class="text-subtitles">Crashing into yourself</li>
-                <li class="text-accYellow">Falling off the map</li>
+              <ol class="space-y-1 ml-4 list-decimal text-base md:text-lg font-medium font-fixel text-accYellow">
+                <li>Crashing into yourself</li>
+                <li>Falling off the map</li>
               </ol>
             </div>
             <div class="mr-2 text-right">
               <h2 class="font-fixel mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
                 Winning:
               </h2>
-              <ul class="space-y-1 text-base md:text-lg font-medium font-fixel text-accLiteGreen">
+              <ul class="space-y-1 text-base md:text-lg font-medium font-fixel text-skyBlue">
                 <li class="flex justify-between items-center">
                   <span class="text-right flex-grow">???</span>
                   <span class="ml-2 text-[7px]">●</span>

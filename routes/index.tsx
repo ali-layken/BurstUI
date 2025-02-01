@@ -8,7 +8,7 @@ export interface IndexLink {
   name: string;
   subtitle?: string;
   route: string;
-  modifiedAt?: Date;
+  createdAt?: Date;
 }
 
 export default async function homeRoute() {
@@ -20,14 +20,13 @@ export default async function homeRoute() {
     if (
       entry.isFile && entry.name.endsWith("md") && !entry.name.startsWith("_")
     ) {
-      const stat = await readTimestamps();
-      console.log(stat);
-      const fullname = entry.name.slice(0, -3)
+      const stat = (await readTimestamps())[join("posts", entry.name)];
+      const fullname = entry.name.slice(0, -3);
       posts.push({
         route: fullname,
         name: fullname.split(':')[0],
         subtitle: fullname.split(':')[1],
-        modifiedAt:  new Date(),
+        createdAt: new Date(stat.birthtime) 
       });
     }
   }
@@ -37,16 +36,16 @@ export default async function homeRoute() {
     route: "/snake",
   });
 
-  posts.sort((a, b) => a.modifiedAt!.getTime() - b.modifiedAt!.getTime());
+  posts.sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime());
 
   return (
     <>
       <Partial name="site-nav">
         <div id="site-nav-container" class="hidden">
-          <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-4xl font-semibold">
+          <h2 class="font-fixel ml-4 text-subtitles2 text-4xl font-semibold">
             Posts:
           </h2>
-          <ul class="space-y-4">
+          <ul class="space-y-4 my-4">
             {posts.map((post, index) => {
               const isEven = index % 2 === 0;
               return (
@@ -57,8 +56,7 @@ export default async function homeRoute() {
                   {/* Left Section: Post Number and Name */}
                   <div class="flex items-center">
                     <span
-                      class={`text-3xl font-fixel mr-1 text-right w-8 ${isEven ? "text-subtitles" : "text-accYellow"
-                        }`}
+                      class={"text-3xl font-fixel mr-1 text-right w-8 text-skyBlue"}
                     >
                       <strong>{index + 1}.</strong>
                     </span>
@@ -77,17 +75,16 @@ export default async function homeRoute() {
 
                   {/* Right Section: Timestamp */}
                   <time
-                    class={`text-sm md:text-lg font-fixel ${isEven ? "text-subtitles" : "text-accYellow"
-                      }`}
+                    class={"text-sm md:text-lg font-fixel text-skyBlue"}
                   >
-                    {new Date(post.modifiedAt!).toLocaleDateString()}
+                    {new Date(post.createdAt!).toLocaleDateString()}
                   </time>
                 </li>
               );
             })}
           </ul>
           <hr class="mx-2 my-4" />
-          <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-4xl font-semibold">
+          <h2 class="font-fixel ml-4 mt-4 mb-2 text-subtitles2 text-4xl font-semibold">
             Demos:
           </h2>
           <ul class="space-y-4">
@@ -101,8 +98,7 @@ export default async function homeRoute() {
                   {/* Left Section: Post Number and Name */}
                   <div class="flex items-center">
                     <span
-                      class={`text-3xl font-fixel mr-1 text-right w-8 ${isEven ? "text-subtitles" : "text-accYellow"
-                        }`}
+                      class={"text-3xl font-fixel mr-1 text-right w-8 text-skyBlue"}
                     >
                       <strong>{index + 1}.</strong>
                     </span>
@@ -140,7 +136,7 @@ export default async function homeRoute() {
         </p>
         <div class="absolute bottom-0 flex items-center max-w-4xl pb-3 -ml-2 md:-ml-4">
           <ul class="list-none space-y-2">
-            <li class="flex items-center text-accLiteGreen text-xl font-fixel">
+            <li class="flex items-center text-skyBlue text-xl font-fixel">
               <img class="marked-emoji-img mr-1.5" alt="discord" src="/emojis/discord.svg" />
               <span class="mr-2">Discord:</span>
               <CopyableText text="@supaboop" />
