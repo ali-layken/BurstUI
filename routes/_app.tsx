@@ -22,7 +22,6 @@ export default function App(
         <meta property="og:description" content="A Website About Computers" key="og:description" />
         <meta property="og:url" content={`https://burst.deno.dev/`} key="og:url" />
         <meta property="og:type" content="website" key="og:type" />
-        <meta name="google-site-verification" content="KRBcu1DopKhVwHP6lCOyY1OsKdZwiI7KGutSJTDOL4o" />
 
       </Head>
       <body f-client-nav>
