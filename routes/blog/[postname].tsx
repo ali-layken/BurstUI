@@ -5,12 +5,14 @@ import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import TableOfContents from "../../components/TableOfContents.tsx";
 import BackButton3D from "../../islands/BackButton3D.tsx";
 import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
+import { readTimestamps } from "../../utils/timestamps.ts";
 
 
 export interface BlogProps {
   content: string;
-  modifiedTime: Date | null;
+  modifiedTime: Date;
   title: string;
+  createdTime: Date
 }
 
 export const TitleHeaderID: string = "PostTitle";
@@ -34,7 +36,7 @@ export const fetchBlogpost = async (
 
   try {
     // Check if file exists and fetch stats
-    const fileStats = await Deno.stat(filePath);
+    const stat = (await readTimestamps())[join("posts", `${slug}.md`)];
     const content = await Deno.readTextFile(filePath);
 
 
@@ -43,7 +45,8 @@ export const fetchBlogpost = async (
 
     return {
       content,
-      modifiedTime: fileStats.mtime,
+      modifiedTime: new Date(stat.mtime),
+      createdTime: new Date(stat.birthtime),
       title,
     };
   } catch (error) {
@@ -99,10 +102,10 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
           >
             <strong>{title}</strong>
           </h1>
-          <p class="text-3xl mt-4 mb-2 scroll-mt-24 font-source4 italic text-accLiteGreen">{subtitle}</p>
-          <p class="text-sm font-fixel text-subtitles">
-            Last Edited: {blogpost.modifiedTime?.toLocaleString() ?? "N/A"}
-          </p>
+          <p class="text-3xl my-4 scroll-mt-24 font-source4 italic text-accLiteGreen">{subtitle}</p>
+          <span class="text-sm pt-2 font-fixel text-skyBlue">
+            Created At: {blogpost.createdTime?.toLocaleString() ?? "N/A"} <span class="text-subtitles">|</span> Last Edited: {blogpost.modifiedTime?.toLocaleString() ?? "N/A"}
+          </span>
         </header>
         {renderedMarkdown.renderedContent}
         <DynamicMarkdownItem />
