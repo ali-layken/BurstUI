@@ -31,7 +31,8 @@
     "screensize",
     "shellsession",
     "tailnet",
-    "Tailscale"
+    "Tailscale",
+    "uncensorable"
   ],
   "grammarly.selectors": [
     {
