@@ -5,6 +5,7 @@ import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import TableOfContents from "../../components/TableOfContents.tsx";
 import BackButton3D from "../../islands/BackButton3D.tsx";
 import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
+import { EmptyNav, navDiv } from "../../utils/signals.tsx";
 import { readTimestamps } from "../../utils/timestamps.ts";
 
 
@@ -16,18 +17,6 @@ export interface BlogProps {
 }
 
 export const TitleHeaderID: string = "PostTitle";
-
-export const handler: Handlers = {
-  async GET(_req, ctx) {
-    const blogpost: BlogProps | null = await fetchBlogpost(ctx.params.postname);
-    if (!blogpost) {
-      return ctx.renderNotFound({
-        custom: "prop",
-      });
-    }
-    return ctx.render({ blogpost });
-  },
-};
 
 export const fetchBlogpost = async (
   slug: string,
@@ -55,11 +44,13 @@ export const fetchBlogpost = async (
   }
 };
 
-export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
+
+export default async function blogPostRoute (_req: Request, ctx: RouteContext)  {
   const { postname } = ctx.params;
   const blogpost = await fetchBlogpost(postname);
 
   if (!blogpost) {
+      navDiv.value = EmptyNav;
     return ctx.renderNotFound();
   }
 
@@ -67,14 +58,14 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
   const renderedMarkdown = BlogPostRenderer(blogpost.content);
   const [title, subtitle] = blogpost.title.split(':')
 
+  navDiv.value = (      <Partial name="site-nav">
+    <div id="site-nav-container" class="hidden">
+      <TableOfContents headings={renderedMarkdown.headings} />
+        <BackButton3D />
+    </div>
+  </Partial>)
   return (
     <>
-      <Partial name="site-nav">
-        <div id="site-nav-container" class="hidden">
-          <TableOfContents headings={renderedMarkdown.headings} />
-            <BackButton3D />
-        </div>
-      </Partial>
       <Partial name="main-component">
         <Head>
           <meta key= "description" name="description" content={blogpost.title} />

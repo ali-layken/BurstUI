@@ -2,11 +2,13 @@ import { PageProps } from "$fresh/server.ts";
 import { JSX } from "preact/jsx-runtime";
 import ResizeDetector from "../islands/ResizeDetector.tsx";
 import { Head } from "$fresh/runtime.ts";
+import { EmptyNav, navDiv } from "../utils/signals.tsx";
 
 
 export default function App(
-  { Component }: PageProps,
+  { Component, destination }: PageProps,
 ): JSX.Element {
+  if (destination === "notFound") navDiv.value = EmptyNav;
   return (
     <html>
       <Head>
@@ -29,14 +31,15 @@ export default function App(
         <div class="layout">
           <div
             id="background-container"
-            class="min-h-screen bg-bgPurple flex flex-col items-center justify-start"
+            class="min-h-screen bg-bgPurple flex flex-col items-center"
           >
-            <div id="wide-top-container"></div>
-            <div id="main-container">
-              <div id="wide-nav-container"></div>
-              <div id="component-container" class="invisible">
+            <div 
+              id="main-container"
+              class="w-full min-w-0 md:flex  gap-8 justify-start md:justify-center bg-bgAqua md:bg-bgPurple max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none">
+                <div id="wide-nav-container">{navDiv.value}</div>
+                <div id="component-container" class="invisible">
                   <Component />
-              </div>
+                </div>
             </div>
             <div id="wide-bottom-or-narrow-nav-container"></div>
           </div>

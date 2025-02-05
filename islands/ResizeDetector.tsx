@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { isNarrowSignal } from "../utils/signals.ts";
+import { isNarrowSignal } from "../utils/signals.tsx";
 
 
 
@@ -35,9 +35,6 @@ export default function ResizeDetector(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const backgroundDiv = document.getElementById("background-container");
-    const wideTopDiv = document.getElementById("wide-top-container");
-    const mainDiv = document.getElementById("main-container");
     const wideNavDiv = document.getElementById("wide-nav-container");
     const componentDiv = document.getElementById("component-container");
     const bottomNavDiv = document.getElementById(
@@ -57,16 +54,9 @@ export default function ResizeDetector(): JSX.Element {
     };
 
     if (isNarrow) {
-      // Narrow layout adjustments
-      backgroundDiv?.classList.remove("justify-start");
-      wideTopDiv?.classList.remove("h-12", "bg-bgPurple");
-      if (mainDiv) {
-        mainDiv.className =
-          "flex-1 w-full max-w-4xl px-5 py-8 bg-bgAqua rounded-md shadow-lg";
-      }
       if (wideNavDiv) {
         wideNavDiv.innerHTML = "";
-        wideNavDiv.className = "";
+        wideNavDiv.className = "hidden";
       }
       if (componentDiv) {
         componentDiv.className = "";
@@ -98,12 +88,6 @@ export default function ResizeDetector(): JSX.Element {
         }
       }
     } else {
-      // Wide layout adjustments
-      backgroundDiv?.classList.add("justify-start");
-      wideTopDiv?.classList.add("h-12", "bg-bgPurple");
-      if (mainDiv) {
-        mainDiv.className = "max-w-full w-full px-5 flex gap-8 justify-center";
-      }
       if (wideNavDiv) {
         wideNavDiv.className =
           "flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";

@@ -9,15 +9,13 @@ import * as $api_joke from "./routes/api/joke.ts";
 import * as $blog_postname_ from "./routes/blog/[postname].tsx";
 import * as $cube from "./routes/cube.tsx";
 import * as $index from "./routes/index.tsx";
-import * as $partials_blog_postname_ from "./routes/partials/blog/[postname].tsx";
-import * as $partials_cube from "./routes/partials/cube.tsx";
-import * as $partials_home from "./routes/partials/home.tsx";
-import * as $partials_snake from "./routes/partials/snake.tsx";
+import * as $partials_partial_ from "./routes/partials/[partial].tsx";
 import * as $snake from "./routes/snake.tsx";
 import * as $AnimatedText3D from "./islands/AnimatedText3D.tsx";
 import * as $BackButton3D from "./islands/BackButton3D.tsx";
 import * as $CopyableCodeBlock from "./islands/CopyableCodeBlock.tsx";
 import * as $CopyableText from "./islands/CopyableText.tsx";
+import * as $DefaultNav from "./islands/DefaultNav.tsx";
 import * as $DynamicMarkdownItem from "./islands/DynamicMarkdownItem.tsx";
 import * as $ResizeDetector from "./islands/ResizeDetector.tsx";
 import * as $SpinningCube from "./islands/SpinningCube.tsx";
@@ -32,10 +30,7 @@ const manifest = {
     "./routes/blog/[postname].tsx": $blog_postname_,
     "./routes/cube.tsx": $cube,
     "./routes/index.tsx": $index,
-    "./routes/partials/blog/[postname].tsx": $partials_blog_postname_,
-    "./routes/partials/cube.tsx": $partials_cube,
-    "./routes/partials/home.tsx": $partials_home,
-    "./routes/partials/snake.tsx": $partials_snake,
+    "./routes/partials/[partial].tsx": $partials_partial_,
     "./routes/snake.tsx": $snake,
   },
   islands: {
@@ -43,6 +38,7 @@ const manifest = {
     "./islands/BackButton3D.tsx": $BackButton3D,
     "./islands/CopyableCodeBlock.tsx": $CopyableCodeBlock,
     "./islands/CopyableText.tsx": $CopyableText,
+    "./islands/DefaultNav.tsx": $DefaultNav,
     "./islands/DynamicMarkdownItem.tsx": $DynamicMarkdownItem,
     "./islands/ResizeDetector.tsx": $ResizeDetector,
     "./islands/SpinningCube.tsx": $SpinningCube,

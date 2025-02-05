@@ -1,15 +1,11 @@
 import { Head, Partial } from "$fresh/runtime.ts";
 import { PageProps } from "$fresh/server.ts";
-import BackButton3D from "../islands/BackButton3D.tsx";
+import { EmptyNav, navDiv } from "../utils/signals.tsx";
 
 export default function Error404(props: PageProps) {
+  navDiv.value = EmptyNav;
   return (
     <>
-      <Partial name="site-nav">
-        <div id="site-nav-container" class="hidden">
-          <BackButton3D />
-        </div>
-      </Partial>
       <Partial name="main-component">
         <Head>
           <title key="title">404 - {props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found</title>
@@ -17,8 +13,8 @@ export default function Error404(props: PageProps) {
           <meta property="og:title" content={`404 - ${props.route?.split("/")[1] === "blog" ? "Post" : "Page"} not found`} key="og:title"/>
           <meta property="og:description" content="This page could not be found on Burst!" key="og:description"/>
         </Head>
-        <div class="px-4 py-8 font-fixel mx-auto bg-accLitePurple">
-          <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+        <div class="px-4 py-8 font-fixel mx-auto">
+          <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center bg-accLitePurple rounded-lg shadow-xl">
             <img
               class="my-6"
               src="/ballin.gif"
