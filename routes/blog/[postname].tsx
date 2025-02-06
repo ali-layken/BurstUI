@@ -39,6 +39,7 @@ export const fetchBlogpost = async (
       title,
     };
   } catch (error) {
+    navDiv.value = EmptyNav;
     console.error(`Error fetching blogpost '${slug}':`, error);
     return null;
   }
@@ -50,7 +51,6 @@ export default async function blogPostRoute (_req: Request, ctx: RouteContext)  
   const blogpost = await fetchBlogpost(postname);
 
   if (!blogpost) {
-      navDiv.value = EmptyNav;
     return ctx.renderNotFound();
   }
 
@@ -94,7 +94,7 @@ export default async function blogPostRoute (_req: Request, ctx: RouteContext)  
             <strong>{title}</strong>
           </h1>
           <p class="text-3xl my-4 scroll-mt-24 font-source4 italic text-accLiteGreen">{subtitle}</p>
-          <span class="text-sm pt-2 font-fixel text-skyBlue">
+          <span class="text-xs md:text-sm pt-2 font-fixel text-skyBlue">
             Created At: {blogpost.createdTime?.toLocaleString() ?? "N/A"} <span class="text-subtitles">|</span> Last Edited: {blogpost.modifiedTime?.toLocaleString() ?? "N/A"}
           </span>
         </header>

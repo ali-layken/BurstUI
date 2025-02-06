@@ -16,7 +16,6 @@ export const config: RouteConfig = {
 };
 
 export default defineRoute(async (req, ctx: RouteContext) => {
-    console.log(ctx.params.partial);
     
     switch (ctx.params.partial) {
         case "snake":

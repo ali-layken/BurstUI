@@ -35,9 +35,9 @@ export default function App(
           >
             <div 
               id="main-container"
-              class="w-full min-w-0 md:flex  gap-8 justify-start md:justify-center bg-bgAqua md:bg-bgPurple max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none">
+              class="w-full min-w-0 md:flex gap-8 justify-start md:justify-center bg-bgAqua md:bg-bgPurple max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none min-h-screen md:min-h-0 animate-fade-in">
                 <div id="wide-nav-container">{navDiv.value}</div>
-                <div id="component-container" class="invisible">
+                <div id="component-container" class=" max-w-4xl px-2 md:px-8 py-0 md:py-8 bg-bgAqua rounded-md shadow-none md:shadow-lg static md:relative">
                   <Component />
                 </div>
             </div>

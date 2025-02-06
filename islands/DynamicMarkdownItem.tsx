@@ -101,8 +101,6 @@ export default function DynamicMarkdownItem() {
             await mermaid.run({
               querySelector: `[data-component='MermaidBlock']`,
             });
-    
-            console.log(parent.style.opacity)
 
             parent.style.height = "auto";
             setTimeout(() => {

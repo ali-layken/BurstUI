@@ -174,7 +174,7 @@ export default function BlogPostRenderer(content: string): RendererResult {
   headings.unshift({ id: TitleHeaderID, text: "(Top)", level: 0 });
   return {
     renderedContent: (
-      <article class="prose-lg md:prose-xl mx-auto">
+      <article class="prose-lg md:prose-xl mx-auto text-pretty">
         <div dangerouslySetInnerHTML={{ __html: renderedContent as string }} />
       </article>
     ),
