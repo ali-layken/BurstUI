@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { isNarrowSignal } from "../utils/signals.ts";
+import { isNarrowSignal } from "../utils/signals.tsx";
 
 
 
@@ -35,11 +35,7 @@ export default function ResizeDetector(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const backgroundDiv = document.getElementById("background-container");
-    const wideTopDiv = document.getElementById("wide-top-container");
-    const mainDiv = document.getElementById("main-container");
     const wideNavDiv = document.getElementById("wide-nav-container");
-    const componentDiv = document.getElementById("component-container");
     const bottomNavDiv = document.getElementById(
       "wide-bottom-or-narrow-nav-container",
     );
@@ -57,27 +53,16 @@ export default function ResizeDetector(): JSX.Element {
     };
 
     if (isNarrow) {
-      // Narrow layout adjustments
-      backgroundDiv?.classList.remove("justify-start");
-      wideTopDiv?.classList.remove("h-12", "bg-bgPurple");
-      if (mainDiv) {
-        mainDiv.className =
-          "flex-1 w-full max-w-4xl px-5 py-8 bg-bgAqua rounded-md shadow-lg";
-      }
       if (wideNavDiv) {
         wideNavDiv.innerHTML = "";
-        wideNavDiv.className = "";
-      }
-      if (componentDiv) {
-        componentDiv.className = "";
+        wideNavDiv.className = "hidden";
       }
       if (bottomNavDiv) {
         // Configure bottom nav with initial state offscreen
         bottomNavDiv.innerHTML = ""; // Clear previous content
         bottomNavDiv.className =
-          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300 ${
-            isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"
-          }`;
+          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg transform w-full -bottom-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300
+          ${isOpen ? "-translate-y-full" : "-translate-y-[4.2rem]"}`;
         bottomNavDiv.onclick = handleSiteNavigation;
         // Add toggle button
         const toggleButton = document.createElement("div");
@@ -98,12 +83,6 @@ export default function ResizeDetector(): JSX.Element {
         }
       }
     } else {
-      // Wide layout adjustments
-      backgroundDiv?.classList.add("justify-start");
-      wideTopDiv?.classList.add("h-12", "bg-bgPurple");
-      if (mainDiv) {
-        mainDiv.className = "max-w-full w-full px-5 flex gap-8 justify-center";
-      }
       if (wideNavDiv) {
         wideNavDiv.className =
           "flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
@@ -111,10 +90,6 @@ export default function ResizeDetector(): JSX.Element {
           wideNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.className = "";
         }
-      }
-      if (componentDiv) {
-        componentDiv.className =
-          "flex-1 max-w-4xl px-8 py-8 bg-bgAqua rounded-md shadow-lg relative min-h-[560px]";
       }
       if (bottomNavDiv) {
         // Clear narrow navigation

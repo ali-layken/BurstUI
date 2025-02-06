@@ -299,7 +299,16 @@ export default {
         'teko': ['Teko'],
         'source4': ['Source4'],
         'fixel': ['Fixel']
-      }
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY("8px")' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fadeIn 1s ease-out forwards',
+      },
     },
     screens: {
       md: "1463px"

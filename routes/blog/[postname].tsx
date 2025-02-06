@@ -5,6 +5,7 @@ import BlogPostRenderer from "../../components/BlogRendererSS.tsx";
 import TableOfContents from "../../components/TableOfContents.tsx";
 import BackButton3D from "../../islands/BackButton3D.tsx";
 import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem.tsx";
+import { EmptyNav, navDiv } from "../../utils/signals.tsx";
 import { readTimestamps } from "../../utils/timestamps.ts";
 
 
@@ -16,18 +17,6 @@ export interface BlogProps {
 }
 
 export const TitleHeaderID: string = "PostTitle";
-
-export const handler: Handlers = {
-  async GET(_req, ctx) {
-    const blogpost: BlogProps | null = await fetchBlogpost(ctx.params.postname);
-    if (!blogpost) {
-      return ctx.renderNotFound({
-        custom: "prop",
-      });
-    }
-    return ctx.render({ blogpost });
-  },
-};
 
 export const fetchBlogpost = async (
   slug: string,
@@ -50,12 +39,14 @@ export const fetchBlogpost = async (
       title,
     };
   } catch (error) {
+    navDiv.value = EmptyNav;
     console.error(`Error fetching blogpost '${slug}':`, error);
     return null;
   }
 };
 
-export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
+
+export default async function blogPostRoute (_req: Request, ctx: RouteContext)  {
   const { postname } = ctx.params;
   const blogpost = await fetchBlogpost(postname);
 
@@ -67,14 +58,14 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
   const renderedMarkdown = BlogPostRenderer(blogpost.content);
   const [title, subtitle] = blogpost.title.split(':')
 
+  navDiv.value = (      <Partial name="site-nav">
+    <div id="site-nav-container" class="hidden">
+      <TableOfContents headings={renderedMarkdown.headings} />
+        <BackButton3D />
+    </div>
+  </Partial>)
   return (
     <>
-      <Partial name="site-nav">
-        <div id="site-nav-container" class="hidden">
-          <TableOfContents headings={renderedMarkdown.headings} />
-            <BackButton3D />
-        </div>
-      </Partial>
       <Partial name="main-component">
         <Head>
           <meta key= "description" name="description" content={blogpost.title} />
@@ -103,7 +94,7 @@ export default async function blogPostRoute (req: Request, ctx: RouteContext)  {
             <strong>{title}</strong>
           </h1>
           <p class="text-3xl my-4 scroll-mt-24 font-source4 italic text-accLiteGreen">{subtitle}</p>
-          <span class="text-sm pt-2 font-fixel text-skyBlue">
+          <span class="text-xs md:text-sm pt-2 font-fixel text-skyBlue">
             Created At: {blogpost.createdTime?.toLocaleString() ?? "N/A"} <span class="text-subtitles">|</span> Last Edited: {blogpost.modifiedTime?.toLocaleString() ?? "N/A"}
           </span>
         </header>
