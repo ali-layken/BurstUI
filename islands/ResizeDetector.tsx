@@ -61,8 +61,9 @@ export default function ResizeDetector(): JSX.Element {
         // Configure bottom nav with initial state offscreen
         bottomNavDiv.innerHTML = ""; // Clear previous content
         bottomNavDiv.className =
-          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg transform w-full -bottom-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300
-          ${isOpen ? "-translate-y-full" : "-translate-y-[4.2rem]"}`;
+          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300 ${
+            isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"
+          }`;
         bottomNavDiv.onclick = handleSiteNavigation;
         // Add toggle button
         const toggleButton = document.createElement("div");
