@@ -80,8 +80,9 @@ export default function DynamicMarkdownItem() {
       );
     };
 
+    const mermaidBlocks = document.querySelectorAll("[data-component='MermaidBlock']");
+
     const rerenderMermaid = async () => {
-      const mermaidBlocks = document.querySelectorAll("[data-component='MermaidBlock']");
         for (const block of mermaidBlocks) {
           if (block instanceof HTMLElement) {
             const parent = block.parentElement!;
@@ -110,12 +111,26 @@ export default function DynamicMarkdownItem() {
             setTimeout(() => {
               parent.style.opacity = "1";
               block.style.visibility = "visible";
-            }, 400)
+            }, 300)
           } else {
             console.warn("Skipped rendering for a non-HTMLElement or non-code parent:", block);
           }
       }
     };
+
+    let mermaidTimer = 0;
+    const mermaidRerenderTrigger = async () => {
+      for (const block of mermaidBlocks) {
+        if (block instanceof HTMLElement) {
+          block.parentElement!.style.opacity = "0";
+          block.style.visibility = "hidden";
+        } else {
+          console.warn("Skipped rendering for a non-HTMLElement or non-code parent:", block);
+        }
+    }
+      clearTimeout(mermaidTimer);
+      mermaidTimer = setTimeout(rerenderMermaid, 500);
+    }
 
     const restoreScrollPosition = () => {
       const hash = globalThis.location.hash;
@@ -131,10 +146,10 @@ export default function DynamicMarkdownItem() {
     hydrateComponents().then(restoreScrollPosition);
     
     // Add a resize listener to re-render Mermaid diagrams
-    globalThis.addEventListener("resize", rerenderMermaid);
+    globalThis.addEventListener("resize", mermaidRerenderTrigger);
     
     return () => {
-      globalThis.removeEventListener("resize", rerenderMermaid);
+      globalThis.removeEventListener("resize", mermaidRerenderTrigger);
     };
   }, []);
 
