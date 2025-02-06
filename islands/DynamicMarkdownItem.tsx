@@ -88,6 +88,10 @@ export default function DynamicMarkdownItem() {
             const originalHeight = parent.clientHeight;
     
             parent.style.height = `${originalHeight}px`;
+            if (parent.clientHeight < 10) {
+              console.warn("Skipping Mermaid render: Parent container too small", parent);
+              continue;
+            }
             parent.style.opacity = "0";
     
             // Prepare the block for rendering
