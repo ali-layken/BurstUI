@@ -36,7 +36,7 @@ To get the IP of `burst.deno.dev`, Xfinity’s DNS Server :computer: reached out
 
 <br />
 
-`burst.deno.dev`’s IP can come from many places, as we will explore in [the final sectionjump](/) on alternatives to this traditional *Root Nameserver-based DNS*. For now, let’s continue exploring [Recursive Name Servers](https://en.wikipedia.org/wiki/Name_server#Recursive_Resolver) like `75.75.75.75` and other [Public DNS Servers](https://en.wikipedia.org/wiki/Public_recursive_name_server) that cache and server authoritative records.
+`burst.deno.dev`’s IP can come from many places, as we will explore in [the final sectionjump](#whats-next-sunriseovermountains) on alternatives to this traditional *Root Nameserver-based DNS*. For now, let’s continue exploring [Recursive Name Servers](https://en.wikipedia.org/wiki/Name_server#Recursive_Resolver) like `75.75.75.75` and other [Public DNS Servers](https://en.wikipedia.org/wiki/Public_recursive_name_server) that cache and server authoritative records.
 
 <br />
 
