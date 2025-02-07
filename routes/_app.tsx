@@ -3,12 +3,14 @@ import { JSX } from "preact/jsx-runtime";
 import ResizeDetector from "../islands/ResizeDetector.tsx";
 import { Head } from "$fresh/runtime.ts";
 import { EmptyNav, navDiv } from "../utils/signals.tsx";
+import { cubeNav } from "./cube.tsx";
 
 
 export default function App(
-  { Component, destination }: PageProps,
+  { Component, destination, route }: PageProps,
 ): JSX.Element {
-  if (destination === "notFound") navDiv.value = EmptyNav;
+  if (destination === "notFound"){navDiv.value = EmptyNav}
+  else if (route === "/cube"){navDiv.value = cubeNav}
   return (
     <html>
       <Head>
