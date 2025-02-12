@@ -145,7 +145,7 @@ If the IP of the *Root Nameserver*, *TLD Server*, *Authoritative Server*, or end
 
 <br />
 
-This combination of a VPN to proxy :computer: that has trustable access to the needed resources is a pattern that can be adapted for other scenarios. Here are some examples that grow increasingly worse in what is blocked:
+This combination, of a VPN to a proxy :computer: that has trustable access to the needed resources, is a pattern that can be adapted for other scenarios. Here are some examples that grow increasingly worse in what is blocked:
 1. **Root Nameserver**: If you can’t trust your ISP to allow connections to Root Nameservers, use a *Public DoH/DoT*, which acts like an encrypted proxy to Root nameservers. This shifts trust from your ISP to a third-party resolver like Google or Cloudflare, but the ISP can still block access to these proxies by filtering their IPs or traffic patterns. (DoH)
 2. **DoH/DoT**: If your ISP blocks DoH/DoT providers, you can use a *VPN* to tunnel traffic to a computer outside your ISP’s network that can access *Public DNS Servers*. (VPN-to-DNS)
 3. **Specific IPs**, If your DNS is coming back fine but access to the web server is blocked, you’ll need to *VPN* to a computer that can *access that server*. (VPN)
@@ -155,7 +155,7 @@ This combination of a VPN to proxy :computer: that has trustable access to the n
 
 <br />
 
-Some companies offer [free access to computers](https://github.com/cloudcommunity/Cloud-Free-Tier-Comparison) :desktop_computer: that might be available depending on where you live that can be used to follow the rest of this guide and build multiple proxies to a “safe” networks where connections are unblocked and unmonitored. Tailscale also offers integration with [Mullvad VPN](https://tailscale.com/kb/1258/mullvad-exit-nodes) turning our setup into a redundant proxy setup skipping reliance on local ISPs ([`1-3a`jump](#vulnerabilities-brokenheart)). All of us *have to* trust someone at some point since Root Nameservers don’t support encryption. The unavoidable and driving fact of this whole post is that none of us alone knows where all of the rest of us are (no one has all the DNS Records), and none of us can get to each other alone. No one has a directly wired connection to `burst.deno.dev`, so we all have to work together to get here.
+Some companies offer [free access to computers](https://github.com/cloudcommunity/Cloud-Free-Tier-Comparison) :desktop_computer: that might be available depending on where you live that can be used to follow the rest of this guide and build multiple proxies to a “safe” networks where connections are unblocked and unmonitored. Tailscale also offers integration with [Mullvad VPN](https://tailscale.com/kb/1258/mullvad-exit-nodes) turning our setup into a VPN to redundant proxies setup skipping reliance on local ISPs ([`1-3a`jump](#vulnerabilities-brokenheart)). All of us *have to* trust someone at some point since Root Nameservers don’t support encryption. The unavoidable and driving fact of this whole post is that none of us alone knows where all of the rest of us are (no one has all the DNS Records), and none of us can get to each other alone. No one has a directly wired connection to `burst.deno.dev`, so we all have to work together to get here.
 
 <br />
 
