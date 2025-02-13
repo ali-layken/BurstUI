@@ -4,7 +4,7 @@ import SpinningCube from "../islands/SpinningCube.tsx";
 import { navDiv } from "../utils/signals.tsx";
 
 export const cubeNav = (<Partial name="site-nav">
-  <div id="site-nav-container" class="hidden">
+  <div id="site-nav-container">
     <div class="ml-2 mt-2 text-left text-subtitles text-sm md:text-xl font-medium font-fixel">
       <span>Refresh Rate Based Cube Speed Change:</span>
       <ul class="ml-6 my-2 space-y-1 list-disc text-accLiteGreen text-base md:text-lg font-medium font-fixel">

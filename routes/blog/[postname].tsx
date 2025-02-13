@@ -59,7 +59,7 @@ export default async function blogPostRoute (_req: Request, ctx: RouteContext)  
   const [title, subtitle] = blogpost.title.split(':')
 
   navDiv.value = (      <Partial name="site-nav">
-    <div id="site-nav-container" class="hidden">
+    <div id={`site-nav-container`} class="">
       <TableOfContents headings={renderedMarkdown.headings} />
         <BackButton3D />
     </div>

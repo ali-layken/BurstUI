@@ -5,7 +5,7 @@ import { navDiv } from "../utils/signals.tsx";
 
 export default function snakeRoute() {
   navDiv.value = (<Partial name="site-nav">
-    <div id="site-nav-container" class="hidden">
+    <div id="site-nav-container">
       <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
         Controls:
       </h2>

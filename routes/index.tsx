@@ -40,7 +40,7 @@ export default async function homeRoute() {
   posts.sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime());
 
   navDiv.value = (<Partial name="site-nav">
-    <div id="site-nav-container" class="hidden">
+    <div id="site-nav-container" class="">
       <h2 class="font-fixel ml-4 text-subtitles2 text-4xl font-semibold">
         Posts:
       </h2>

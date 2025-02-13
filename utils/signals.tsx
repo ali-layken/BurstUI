@@ -7,7 +7,7 @@ export const isNarrowSignal = signal<boolean>(false);
 
 export const EmptyNav = (
   <Partial name="site-nav">
-    <div id="site-nav-container" class="hidden">
+    <div id="site-nav-container">
       <BackButton3D />
     </div>
   </Partial>
