@@ -363,10 +363,10 @@ Using *DoT* would effectively encrypt DNS queries until they reach the proxy, sk
 $ sudo sysctl -w  net.ipv4.ip_unprivileged_port_start=0 
 
 # -- Repeat this section --
-$ podman-compose --verbose up -d #Running 
+$ podman-compose --verbose up -d # Running 
 $ podman logs pihole # use logs -f to follow
 $ podman logs unbound 
-$ podman-compose --verbose down #Stopping
+$ podman-compose --verbose down # Stopping
 # -- Edit the compose and repeat^ --
 
 # Skip next line if not on Linux:
@@ -376,7 +376,7 @@ $ podman ps # Check that both containers started fine
 
 ### Automating (Linux) :repeat:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Automating :robot: this process after reboot is a little more tricky, but this is the desirable setup for any server: *things happen*, computers crash :collision: and shutdown :skull_and_crossbones:. It’s best to make sure everything is easy to get back up again. This setup has lower unprivileged ports on boot, so a specifically timed attack could start a user process on a privileged port before we set the limit back to 1024. However, this risk can be minimized by using `loginctl`, as discussed later in this section. Adding [Linux capabilities](https://en.wikipedia.org/wiki/Capability-based_security) in the compose didn’t work, so we will have to ensure the limit is 0 when our containers run and 1024 after. Please adjust this system configuration automation section for your own distribution and setup, as some files might be located differently, and commands might work differently.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Automating :robot: this process after reboot is a little more tricky, but this is the desirable setup for any server: *things happen*, computers crash :collision: and shutdown :skull_and_crossbones:. It’s best to make sure everything is easy to get back up again. This setup has lower unprivileged ports on boot, so a very specifically timed attack could start a user process on a privileged port before we set the limit back to 1024. Adding [Linux capabilities](https://en.wikipedia.org/wiki/Capability-based_security) in the compose didn’t work, so we will have to ensure the limit is 0 when our containers run and 1024 after. Please adjust this system configuration automation section for your own distribution and setup, as some files might be located differently, and commands might work differently.
 
 <br />
 
@@ -391,14 +391,21 @@ $ podman-compose systemd
 $ systemctl --user enable --now 'podman-compose@pihole'
 ```
 
-3. This creates a systemd user unit file that describes to systemd how we want pihole to start on boot. After a reboot with this service enabled, you can see if it started ok and check the logs using:
+3. We have created a user unit file that describes to systemd how we want pihole to start on boot. After a reboot with this service enabled, you can see if it started ok and check the logs using:
 
 ```shellsession
-$ systemctl --user status 'podman-compose@pihole' #Startup status
-$ journalctl --user -xeu 'podman-compose@pihole' #Logs
+$ systemctl --user status 'podman-compose@pihole' # Startup status
+$ journalctl --user -xeu 'podman-compose@pihole' # Logs
 ```
 
-4. The problem is now that our unprivileged ports are set to 0. To fix this, I just made another user unit file that runs after podman-compose@pihole at `~/.config/systemd/user/unpriv.service`:
+4. Now we'll have systemd start user services without the user having to login:
+
+```shellsession
+$ # Starts <user>'s systemd services on boot:
+$ sudo loginctl enable-linger <user>
+```
+
+5. The problem is now that our unprivileged ports are set to 0. To fix this, I just made another user unit file that runs after podman-compose@pihole at `~/.config/systemd/user/unpriv.service`:
 
 ```ini
 [Unit]
@@ -487,7 +494,7 @@ $ sudo systemctl enable ufw  # Automate ufw on boot
 
 <br />
 
-To get podman to start without logging into your user requires using [`loginctl`](https://www.freedesktop.org/software/systemd/man/latest/loginctl.html), but I won’t be setting that up, so reboot and login to check if everything is running. Give podman a second to start everything back up again, then run:
+After rebooting give podman a second to start everything back up again, and then make sure everything went right by running:
 
 ```shellsession
 $ sudo sysctl net.ipv4.ip_unprivileged_port_start # Shows 1024
