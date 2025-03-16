@@ -61,7 +61,7 @@ export default async function homeRoute() {
                 </span>
                 <a
                   href={`/blog/${post.route}`}
-                  f-partial={`/partials/blog?post=${post.route}`}
+                  f-partial={`/partials/blog?post=${encodeURIComponent(post.route)}`}
                   class="text-accGreen hover:text-accRed hover:underline text-lg md:text-xl font-fixel transition-colors duration-200 ml-2"
                   data-action="close"
                 >
