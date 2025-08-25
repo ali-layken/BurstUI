@@ -68,10 +68,10 @@ export default function ResizeDetector(): JSX.Element {
         // Add toggle button
         const toggleButton = document.createElement("div");
         toggleButton.className =
-          "absolute -top-10 w-full flex justify-end px-6";
+          "absolute -top-10 w-full flex justify-end px-6 pointer-events-none";
         const button = document.createElement("button");
         button.className =
-          "hover:bg-accRed2 bg-accRed3 text-white px-4 py-2 rounded-t-lg";
+          "pointer-events-auto hover:bg-accRed2 bg-accRed3 text-white px-4 py-2 rounded-t-lg";
         button.innerText = isOpen ? "⌄" : "⌃";
         button.setAttribute("data-action", "toggle");
         toggleButton.appendChild(button);

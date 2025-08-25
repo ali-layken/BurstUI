@@ -144,8 +144,10 @@ export default async function homeRoute() {
               <CopyableText text="@supaboop" />
             </li>
             <li class="flex items-center text-accRed2 text-xl font-fixel">
+              <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">
               <img class="marked-emoji-img mr-1.5" alt="github" src="/emojis/github.png" />
-              <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">Github</a>
+              Github
+              </a>
             </li>
           </ul>
         </div>
