@@ -99,6 +99,8 @@ I ran the same gstreamer pipeline outside of `ofx` using [gst-launch-1.0](https:
 
 </div>
 
+</br>
 
+**Note:** I know it seems otherwise but `ofx` is cross-platform. `videoUtils` smartly uses other solutions on Windows :ms_logo: when it can. `ofx` was dope.
 
 tags: Projection, Mapping, C++, pi, visual, effects, gstreamer
