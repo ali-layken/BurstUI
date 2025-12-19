@@ -55,7 +55,7 @@ export default async function homeRoute() {
               {/* Left Section: Post Number and Name */}
               <div class="flex items-center">
                 <span
-                  class={"text-3xl font-fixel mr-1 text-right w-8 text-skyBlue"}
+                  class={"text-3xl font-fixel tabular-nums mr-1 text-right w-8 text-skyBlue"}
                 >
                   <strong>{index + 1}.</strong>
                 </span>
@@ -66,9 +66,9 @@ export default async function homeRoute() {
                   data-action="close"
                 >
                   {post.name.replace(/_/g, " ")}:<br />
-                  <p class="italic font-source4 ml-4" data-action="close">
+                  <span class="italic font-source4 ml-4" data-action="close">
                     {post.subtitle && post.subtitle?.replace(/_/g, " ")}
-                  </p>
+                  </span>
                 </a>
               </div>
 
