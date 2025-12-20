@@ -2,7 +2,7 @@
 
 <br />
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I was trying to learn some `c++` & `make`, for the beginnings of a long journey ahead of me as I try to become more familiar with the computing world :computer::earth_africa: we live in and where it came from. [This branch](https://github.com/kr15h/ofxPiMapper/pull/191) I made for this post, crashes after 5 hours on my target machine (an Acer Chromebook 14 :google_logo:), so I waited all year  tyring to make somthing so that i coudld write this. I wanted to start a cycle :arrows_counterclockwise: where I mess around with an interest -> which leads me to a project -> then after it's done, I would take a break to reflect and float :leaves: on to the next area that the experience pushed me towards. However, this project didn't exactly go as planned, so my imagined routine was shattered, and this site fell silent...
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I was trying to learn some `c++` & `make`, for the beginnings of a long journey ahead of me as I try to become more familiar with the computing world :computer::earth_africa: we live in and where it came from. [This branch](https://github.com/kr15h/ofxPiMapper/pull/191) I made for this post, crashes after 5 hours on my target machine (an Acer Chromebook 14 :google_logo:), so I waited all year trying to make somthing so that i could write this: I wanted to start a cycle :arrows_counterclockwise: where I mess around with an interest -> which leads me to a project -> then after it's done, I would take a break to reflect and float :leaves: on to the next area that the experience pushed me towards. However, this project didn't exactly go as planned, so my imagined routine was shattered, and this site fell silent...
 
 <br />
 
