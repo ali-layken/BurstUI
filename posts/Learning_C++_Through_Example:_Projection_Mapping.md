@@ -55,7 +55,7 @@ if (videoUtils.isFrameNew()) {
 
 <br />
 
-I ran the same gstreamer pipeline outside of `ofx` using [gst-launch-1.0](https://gstreamer.freedesktop.org/documentation/tools/gst-launch.html?gi-language=c), and it also crashed after many hours. I couldn't figure out why, and I didn't really care too much at this point since I knew the solution was elsewhere, not in fixing this. This was also my first time trying [arch linux](https://archlinux.org/), so I could just be bad at reading logs and underestimating [my boi EDGAR](https://chromeos.fandom.com/wiki/Acer_Chromebook_14_(edgar))
+I ran the same gstreamer pipeline outside of `ofx` using [gst-launch-1.0](https://gstreamer.freedesktop.org/documentation/tools/gst-launch.html?gi-language=c), and it also crashed after many hours. I couldn't figure out why, and I didn't really care too much at this point since I knew the solution was elsewhere, not in fixing this. This was also my first time trying [arch linux](https://archlinux.org/), so I could just be bad at reading logs and underestimating [my boi EDGAR](https://www.acer.com/gb-en/chromebooks/pdp/NX.GJEEK.007#pdpSpecs)
 ### Results :bar_chart:
 
 <br />
