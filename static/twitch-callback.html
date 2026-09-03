@@ -17,6 +17,16 @@
     }
     .msg { max-width: 320px; }
     .err { color: #ff6b6b; }
+    .continue-btn {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: #9146ff;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -25,19 +35,41 @@
     // Twitch's implicit-grant response lands in the URL hash (#access_token=...)
     // and never reaches any server, so this page's only job is to read it
     // client-side and hand it to the app via its registered custom protocol.
+    //
+    // This page loads via Twitch's server-side redirect, not a click on this
+    // page itself - so there's no fresh user gesture here, and Chromium
+    // browsers silently block a script-initiated navigation to a
+    // non-http(s) custom scheme without one. window.location.replace() to
+    // doopwatcher-twitch:// can therefore just silently do nothing. So:
+    // attempt the automatic redirect (works in browsers that still allow
+    // it), but always show a real link too, since a click IS a user
+    // gesture and reliably works everywhere.
     var APP_SCHEME = "doopwatcher-twitch";
     var hash = window.location.hash; // includes leading '#', e.g. "#access_token=...&scope=&token_type=bearer"
     var search = window.location.search; // top-level errors (e.g. access_denied) arrive as query params
 
     var msgEl = document.getElementById("msg");
 
+    function showContinueLink(targetUrl, label) {
+      var link = document.createElement("a");
+      link.className = "continue-btn";
+      link.href = targetUrl;
+      link.textContent = label;
+      msgEl.appendChild(document.createElement("br"));
+      msgEl.appendChild(link);
+    }
+
     if (hash && hash.indexOf("access_token=") !== -1) {
-      window.location.replace(APP_SCHEME + "://login" + hash);
-      msgEl.textContent = "Signed in - you can close this window.";
+      var loginUrl = APP_SCHEME + "://login" + hash;
+      msgEl.textContent = "Signed in.";
+      showContinueLink(loginUrl, "Continue to DoopWatcher");
+      window.location.replace(loginUrl);
     } else if (search && search.indexOf("error=") !== -1) {
-      window.location.replace(APP_SCHEME + "://login" + search);
-      msgEl.textContent = "Login failed - you can close this window.";
+      var errorUrl = APP_SCHEME + "://login" + search;
+      msgEl.textContent = "Login failed.";
       msgEl.className = "err";
+      showContinueLink(errorUrl, "Return to DoopWatcher");
+      window.location.replace(errorUrl);
     } else {
       msgEl.textContent = "No login info found. You can close this window and try again from the app.";
       msgEl.className = "err";
