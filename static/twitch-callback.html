@@ -6,7 +6,7 @@
   <style>
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -14,8 +14,10 @@
       color: #efeff1;
       font-family: system-ui, sans-serif;
       text-align: center;
+      padding: 24px 12px;
+      box-sizing: border-box;
     }
-    .msg { max-width: 320px; }
+    .msg { max-width: 340px; }
     .err { color: #ff6b6b; }
     .continue-btn {
       display: inline-block;
@@ -27,6 +29,42 @@
       border-radius: 6px;
       font-weight: 600;
     }
+    .fallback {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #2f2f35;
+      font-size: 13px;
+      color: #adadb8;
+    }
+    .code-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .code-input {
+      flex: 1;
+      min-width: 0;
+      background: #0e0e10;
+      border: 1px solid #3a3a3d;
+      color: #efeff1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .copy-btn {
+      border: 1px solid #3a3a3d;
+      background: transparent;
+      color: #efeff1;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { border-color: #9146ff; }
+    .copy-btn.copied { color: #8fbf7f; border-color: #8fbf7f; }
   </style>
 </head>
 <body>
@@ -42,8 +80,16 @@
     // non-http(s) custom scheme without one. window.location.replace() to
     // doopwatcher-twitch:// can therefore just silently do nothing. So:
     // attempt the automatic redirect (works in browsers that still allow
-    // it), but always show a real link too, since a click IS a user
-    // gesture and reliably works everywhere.
+    // it), and show a real link too, since a click IS a user gesture and
+    // reliably works everywhere.
+    //
+    // Even the click-through link ultimately depends on Windows having the
+    // doopwatcher-twitch:// protocol correctly registered and Overwolf's
+    // launch handoff actually working end to end, which has turned out to
+    // be flaky on some machines for reasons that don't reproduce
+    // consistently. So this page also surfaces the raw access token with a
+    // copy button - the app's login screen has a "paste your login code"
+    // fallback that bypasses the deep link entirely.
     var APP_SCHEME = "doopwatcher-twitch";
     var hash = window.location.hash; // includes leading '#', e.g. "#access_token=...&scope=&token_type=bearer"
     var search = window.location.search; // top-level errors (e.g. access_denied) arrive as query params
@@ -59,10 +105,61 @@
       msgEl.appendChild(link);
     }
 
+    function showManualCodeFallback(token) {
+      var wrap = document.createElement("div");
+      wrap.className = "fallback";
+
+      var label = document.createElement("div");
+      label.textContent = "If the button above didn't open DoopWatcher, copy this code and paste it into the app instead:";
+      wrap.appendChild(label);
+
+      var row = document.createElement("div");
+      row.className = "code-row";
+
+      var input = document.createElement("input");
+      input.className = "code-input";
+      input.type = "text";
+      input.readOnly = true;
+      input.value = token;
+      row.appendChild(input);
+
+      var copyBtn = document.createElement("button");
+      copyBtn.className = "copy-btn";
+      copyBtn.type = "button";
+      copyBtn.textContent = "Copy";
+      copyBtn.addEventListener("click", function () {
+        function onCopied() {
+          copyBtn.textContent = "Copied!";
+          copyBtn.classList.add("copied");
+          setTimeout(function () {
+            copyBtn.textContent = "Copy";
+            copyBtn.classList.remove("copied");
+          }, 2000);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(token).then(onCopied, function () {
+            input.select();
+            document.execCommand("copy");
+            onCopied();
+          });
+        } else {
+          input.select();
+          document.execCommand("copy");
+          onCopied();
+        }
+      });
+      row.appendChild(copyBtn);
+
+      wrap.appendChild(row);
+      msgEl.appendChild(wrap);
+    }
+
     if (hash && hash.indexOf("access_token=") !== -1) {
+      var token = (hash.match(/access_token=([^&]+)/) || [])[1];
       var loginUrl = APP_SCHEME + "://login" + hash;
       msgEl.textContent = "Signed in.";
       showContinueLink(loginUrl, "Continue to DoopWatcher");
+      if (token) showManualCodeFallback(token);
       window.location.replace(loginUrl);
     } else if (search && search.indexOf("error=") !== -1) {
       var errorUrl = APP_SCHEME + "://login" + search;
