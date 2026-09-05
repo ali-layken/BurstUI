@@ -138,10 +138,15 @@ export default async function homeRoute() {
         </p>
         <div class="absolute bottom-0 flex items-center max-w-4xl pb-4 md:pb-3 -ml-4">
           <ul class="list-none space-y-2">
-            <li class="flex items-center text-skyBlue text-xl font-fixel">
-              <img class="marked-emoji-img mr-1.5" alt="discord" src="/emojis/discord.svg" />
-              <span class="mr-2">Discord:</span>
-              <CopyableText text="@supaboop" />
+            <li class="flex flex-col text-skyBlue text-xl font-fixel">
+              <span class="text-subtitles2 text-xs font-fixel mb-1">
+                Bug reports / feature requests? Hit me up:
+              </span>
+              <div class="flex items-center">
+                <img class="marked-emoji-img mr-1.5" alt="discord" src="/emojis/discord.svg" />
+                <span class="mr-2">Discord:</span>
+                <CopyableText text="@supaboop" />
+              </div>
             </li>
             <li class="flex items-center text-accRed2 text-xl font-fixel">
               <a class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200" href="https://github.com/ali-layken" target="_blank" rel="noopener noreferrer">
