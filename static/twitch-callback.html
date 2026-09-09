@@ -65,6 +65,11 @@
     }
     .copy-btn:hover { border-color: #9146ff; }
     .copy-btn.copied { color: #8fbf7f; border-color: #8fbf7f; }
+    .leak-warning {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #e8b84b;
+    }
   </style>
 </head>
 <body>
@@ -110,32 +115,43 @@
       wrap.className = "fallback";
 
       var label = document.createElement("div");
-      label.textContent = "If the button above didn't open DoopWatcher, copy this code and paste it into the app instead:";
+      label.textContent = "If the button above didn't open DoopWatcher, copy your access token below and paste it into the app instead:";
       wrap.appendChild(label);
 
       var row = document.createElement("div");
       row.className = "code-row";
 
+      // type="password" masks this on screen (dots, not the raw token) -
+      // this token grants full control of the streamer's channel (tags,
+      // title, category), so it must never sit in plaintext where a shared
+      // screen, screen recording, or stream could pick it up. Masking is
+      // purely a display attribute - the input's real .value is still the
+      // full token underneath, so selecting it and copying (either via the
+      // button below or manually) still copies the real value, not dots.
       var input = document.createElement("input");
       input.className = "code-input";
-      input.type = "text";
+      input.type = "password";
       input.readOnly = true;
+      input.autocomplete = "off";
       input.value = token;
       row.appendChild(input);
 
       var copyBtn = document.createElement("button");
       copyBtn.className = "copy-btn";
       copyBtn.type = "button";
-      copyBtn.textContent = "Copy";
+      copyBtn.textContent = "Copy access token to clipboard (leak-safe)";
       copyBtn.addEventListener("click", function () {
         function onCopied() {
           copyBtn.textContent = "Copied!";
           copyBtn.classList.add("copied");
           setTimeout(function () {
-            copyBtn.textContent = "Copy";
+            copyBtn.textContent = "Copy access token to clipboard (leak-safe)";
             copyBtn.classList.remove("copied");
           }, 2000);
         }
+        // Writes the `token` variable directly - never reads it back out of
+        // the masked input - so the copied value is always the real token
+        // regardless of the field's display state.
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(token).then(onCopied, function () {
             input.select();
@@ -151,18 +167,35 @@
       row.appendChild(copyBtn);
 
       wrap.appendChild(row);
+
+      var warning = document.createElement("div");
+      warning.className = "leak-warning";
+      warning.textContent = "This token controls your Twitch channel - keep this browser tab out of view (switch to another tab/desktop) if you're live or sharing your screen.";
+      wrap.appendChild(warning);
+
       msgEl.appendChild(wrap);
     }
 
     if (hash && hash.indexOf("access_token=") !== -1) {
       var token = (hash.match(/access_token=([^&]+)/) || [])[1];
       var loginUrl = APP_SCHEME + "://login" + hash;
+      // The raw token sits in `hash`/`loginUrl` (JS variables) already -
+      // nothing below needs it to still be visible in the address bar, so
+      // scrub it from there immediately. Anyone glancing at a shared/
+      // streamed screen while this tab is open would otherwise see a live
+      // Twitch access token in plaintext in the URL bar for as long as the
+      // tab stays open (which can be a while - the custom-protocol handoff
+      // below is exactly the kind of thing that silently fails on some
+      // machines, see the header comment). replaceState only touches what
+      // the browser displays/records in history, not the variables above.
+      history.replaceState(null, "", window.location.pathname);
       msgEl.textContent = "Signed in.";
       showContinueLink(loginUrl, "Continue to DoopWatcher");
       if (token) showManualCodeFallback(token);
       window.location.replace(loginUrl);
     } else if (search && search.indexOf("error=") !== -1) {
       var errorUrl = APP_SCHEME + "://login" + search;
+      history.replaceState(null, "", window.location.pathname);
       msgEl.textContent = "Login failed.";
       msgEl.className = "err";
       showContinueLink(errorUrl, "Return to DoopWatcher");
