@@ -1,4 +1,3 @@
-import { Octokit } from "@octokit/rest";
 import hljs from "highlight.js";
 import { marked, Renderer, Tokens } from "marked";
 import { EmojiToken, markedEmoji, MarkedEmojiOptions } from "marked-emoji";
@@ -110,9 +109,19 @@ const hlExt = markedHighlight({
   }
 });
 
-const octokit = new Octokit();
-const res = await octokit.rest.emojis.get();
-const gitEmojis = res.data;
+// Read from the static file scripts/generate_emojis.ts writes, instead of
+// calling octokit.rest.emojis.get() live here - CONFIRMED (2026-09-14) that
+// doing this as a top-level-await network call in a module every route's
+// module graph pulls in meant a single slow/504 response from GitHub's API
+// took down isolate BOOT itself (BOOT_FAILED/502 on every route, not just
+// blog pages), plus a standing risk of hitting GitHub's 60-req/hour
+// unauthenticated rate limit on every cold isolate. allemojislist.json is
+// kept fresh by .github/workflows/update-emojis.yml (runs
+// scripts/generate_emojis.ts on every merge to main) - see that script's
+// own header comment for the full story.
+const gitEmojis: Record<string, string> = JSON.parse(
+  await Deno.readTextFile(new URL("../allemojislist.json", import.meta.url)),
+);
 
 
 // Custom emoji set

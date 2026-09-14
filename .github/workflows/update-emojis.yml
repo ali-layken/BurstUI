@@ -1,0 +1,45 @@
+name: Update emoji list
+
+# "On merge" for a push-based default branch just means push to main - a
+# merged PR (or a direct push) both land here the same way.
+on:
+  push:
+    branches: [main]
+
+# Scoped to exactly what this workflow needs (committing allemojislist.json
+# back to main) rather than defaulting to broad permissions.
+permissions:
+  contents: write
+
+jobs:
+  update-emojis:
+    runs-on: ubuntu-latest
+    # A GITHUB_TOKEN-authenticated push (the "Commit if changed" step below)
+    # does NOT itself re-trigger workflows - GitHub disables that
+    # specifically to prevent infinite loops - but this guard keeps that
+    # true even if the commit step is ever switched to a PAT/deploy key.
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # scripts/generate_emojis.ts - fetches GitHub's emoji list and writes
+      # allemojislist.json; see its own header comment for why this runs
+      # here (on merge, offline) instead of live in the running app.
+      - name: Regenerate allemojislist.json
+        run: deno task update-emojis
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- allemojislist.json; then
+            echo "No emoji changes - nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add allemojislist.json
+          git commit -m "chore: update allemojislist.json from GitHub's emoji API"
+          git push
