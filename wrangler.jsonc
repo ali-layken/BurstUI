@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "burstui",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-15",
+  "assets": {
+    // Astro's static output. Served directly by Cloudflare's asset layer
+    // (free, unlimited requests on the free plan); the Worker in `main`
+    // only runs for the paths in run_worker_first.
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // dist/404.html for unknown paths, same as Fresh's _404.tsx.
+    "not_found_handling": "404-page",
+    // /blog/<name> -> dist/blog/<name>.html, and /blog/<name>/ redirects
+    // back to the slash-less URL the old site used.
+    "html_handling": "auto-trailing-slash",
+    // /snake/index.wasm is over the 25 MiB per-asset cap, so it is served
+    // from R2 by worker/index.ts instead (and excluded from the upload by
+    // public/.assetsignore).
+    "run_worker_first": ["/api/*", "/snake/index.wasm"]
+  },
+  "r2_buckets": [
+    {
+      "binding": "LARGE",
+      "bucket_name": "burstui-large"
+    }
+  ],
+  "observability": { "enabled": true },
+  // Serve on the account's *.workers.dev subdomain. Attach a custom domain
+  // later with "routes": [{ "pattern": "example.com", "custom_domain": true }].
+  "workers_dev": true
+}

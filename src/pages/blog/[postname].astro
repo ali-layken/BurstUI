@@ -1,0 +1,59 @@
+---
+import Base from "../../layouts/Base.astro";
+import TableOfContents from "../../components/TableOfContents";
+import BackButton3D from "../../islands/BackButton3D";
+import DynamicMarkdownItem from "../../islands/DynamicMarkdownItem";
+import { renderBlogPost } from "../../lib/BlogRendererSS";
+import { listPosts, readPost } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  // Every .md in posts/ gets a route, drafts ("_" prefix) included - they
+  // were reachable by URL on the Fresh site too, just unlisted.
+  return (await listPosts()).map((p) => ({ params: { postname: p.slug } }));
+}
+
+const { postname } = Astro.params;
+const { meta, content } = await readPost(postname!);
+const rendered = renderBlogPost(content);
+const title = meta.name;
+const subtitle = meta.subtitle ?? "";
+const fullTitle = `${meta.name}:${subtitle}`;
+---
+
+<Base
+  title={subtitle || title}
+  description={fullTitle}
+  path={`/blog/${postname}`}
+  ogTitle={subtitle || title}
+  ogDescription={fullTitle}
+  ogType="article"
+>
+  <Fragment slot="head">
+    <meta property="article:modified_time" content={meta.modifiedAt.toISOString()} />
+    <meta property="article:author" content="https://github.com/ali-layken" />
+    <meta property="article:section" content="Computing" />
+    {rendered.tags.length > 0 && <meta property="article:tag" content={rendered.tags.join(", ")} />}
+  </Fragment>
+
+  <div id="site-nav-container" slot="nav">
+    <TableOfContents headings={rendered.headings} />
+    <BackButton3D client:load />
+  </div>
+
+  <header class="text-center">
+    <h1 id="PostTitle" class="text-5xl scroll-mt-24 font-source4 underline decoration-2">
+      <strong>{title}</strong>
+    </h1>
+    <p class="text-3xl my-4 scroll-mt-24 font-source4 italic text-accLiteGreen">{subtitle}</p>
+    <span class="text-xs md:text-sm pt-2 font-fixel text-skyBlue">
+      Created At: {meta.createdAt.toLocaleString("en-US")}
+      <span class="text-subtitles">|</span>
+      Last Edited: {meta.modifiedAt.toLocaleString("en-US")}
+    </span>
+  </header>
+  <article class="prose-lg md:prose-xl mx-auto text-pretty">
+    <div set:html={rendered.html} />
+  </article>
+  <DynamicMarkdownItem client:load />
+  <BackButton3D client:load />
+</Base>

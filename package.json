@@ -1,0 +1,42 @@
+{
+  "name": "burstui",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro build && wrangler dev",
+    "check": "astro check",
+    "deploy": "astro build && wrangler deploy",
+    "update-emojis": "node scripts/generate_emojis.mjs",
+    "timestamps": "node scripts/generate_timestamps.mjs"
+  },
+  "dependencies": {
+    "@astrojs/preact": "^6.1.0",
+    "@astrojs/sitemap": "^3.6.0",
+    "@preact/signals": "^2.11.3",
+    "astro": "^7.4.0",
+    "highlight.js": "^11.12.0",
+    "marked": "^15.0.12",
+    "marked-emoji": "^1.4.3",
+    "marked-highlight": "^2.2.4",
+    "preact": "^10.27.0",
+    "three": "^0.172.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@cloudflare/workers-types": "^5.20261015.1",
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/three": "^0.172.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.30",
+    "tailwind-highlightjs": "^2.0.1",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.151.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="404 - Page not found"
+  description="404 - Page not found"
+  path="/404"
+  ogDescription="This page could not be found on Burst!"
+>
+  <div class="px-4 py-8 font-fixel mx-auto">
+    <div
+      class="max-w-screen-md mx-auto flex flex-col items-center justify-center bg-accLitePurple rounded-lg shadow-xl"
+    >
+      <img
+        class="my-6"
+        src="/ballin.gif"
+        width="128"
+        height="128"
+        alt="the Burst logo: a ball rolling NorthEast"
+      />
+      <h1 class="text-4xl">
+        <strong>404 - Page</strong> not found
+      </h1>
+      <p class="my-4">The page you were looking for doesn't exist.</p>
+    </div>
+  </div>
+</Base>

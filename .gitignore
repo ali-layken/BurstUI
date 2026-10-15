@@ -1,11 +1,14 @@
 # dotenv environment variable files
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*
+!.env.example
 
-# Fresh build directory
-_fresh/
+# Astro build output and cache
+dist/
+.astro/
+
 # npm dependencies
 node_modules/
+
+# wrangler local state
+.wrangler/

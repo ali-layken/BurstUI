@@ -1,0 +1,4 @@
+# Files in dist/ that must NOT be uploaded as Workers static assets.
+# snake/index.wasm is 47 MiB, over the 25 MiB per-file cap; it is served
+# from the burstui-large R2 bucket by worker/index.ts on the same URL.
+snake/index.wasm

@@ -1,7 +1,7 @@
 import typography from "@tailwindcss/typography";
 import twHLJS from "tailwind-highlightjs";
 import { type Config } from "tailwindcss";
-import { burstColors, burstTextColors } from "./static/colors.ts";
+import { burstColors, burstTextColors } from "./src/lib/colors";
 
 const deCSS = {
   'h1, h2, h3, h4, h5, h6': {
@@ -285,7 +285,7 @@ const deCSS = {
 
 export default {
   content: [
-    "{routes,islands,components}/**/*.{ts,tsx,js,jsx}",
+    "./src/**/*.{astro,ts,tsx,js,jsx,md}",
   ],
   safelist: [{
     pattern: /hljs+/,

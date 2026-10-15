@@ -22,15 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v4
         with:
-          deno-version: v2.x
+          node-version: 22
 
-      # scripts/generate_emojis.ts - fetches GitHub's emoji list and writes
+      # scripts/generate_emojis.mjs - fetches GitHub's emoji list and writes
       # allemojislist.json; see its own header comment for why this runs
-      # here (on merge, offline) instead of live in the running app.
+      # here (on merge, offline) instead of live in the build.
       - name: Regenerate allemojislist.json
-        run: deno task update-emojis
+        run: node scripts/generate_emojis.mjs
 
       - name: Commit if changed
         run: |

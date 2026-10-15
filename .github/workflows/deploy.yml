@@ -1,0 +1,52 @@
+name: Build and deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # SITE_ORIGIN is a repository *variable* (Settings -> Secrets and
+      # variables -> Actions -> Variables). Leave it unset to use the
+      # default in src/lib/site.mjs.
+      - name: Build
+        run: npm run build
+        env:
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+
+      # Pull requests only build (a broken build fails the check); the
+      # deploy itself happens on push to main.
+      #
+      # The Godot wasm is over Cloudflare's 25 MiB static-asset cap, so it
+      # is pushed to R2 and streamed by worker/index.ts (see wrangler.jsonc).
+      # Uploaded on every deploy - it's one PUT, and R2's free tier allows a
+      # million of those a month.
+      - name: Upload large files to R2
+        if: github.event_name == 'push'
+        run: npx wrangler r2 object put burstui-large/snake/index.wasm --file public/snake/index.wasm --content-type application/wasm --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy
+        if: github.event_name == 'push'
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

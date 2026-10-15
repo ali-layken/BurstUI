@@ -1,0 +1,8 @@
+# Cross-origin isolation for the Godot web build under /snake (it needs
+# SharedArrayBuffer, which browsers only expose on isolated pages). Applied
+# site-wide, exactly as routes/_middleware.tsx did on Fresh, because the
+# game runs in a same-origin iframe and isolation is decided by the
+# top-level document.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
