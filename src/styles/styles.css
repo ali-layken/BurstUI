@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fresh's client-nav smooth-scrolled to #hash targets (ToC links). Astro's
+   ClientRouter lets the browser handle same-page anchors natively, which
+   jumps unless the page opts in to smooth scrolling. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 .marked-emoji-img:not(.prose-lg img):not(.prose-xl img) {
   display: inline-block;
   font-size: inherit; /* Match text size */
