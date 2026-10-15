@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.marked-emoji-img:not(.prose-lg img):not(.prose-xl img) {
+  display: inline-block;
+  font-size: inherit; /* Match text size */
+  width: 1.1em; /* Scale with inherited font size */
+  height: 1.1em;
+  vertical-align: -0.2em;
+}
+
+
+@layer base {
+  @font-face {
+    font-family: 'Teko';
+    src: url(/Teko/Teko-VariableFont_wght.ttf);
+  }
+  @font-face {
+    font-family: 'Fixel';
+    src: url(/FixelAll/FixelVariable/FixelVariable.ttf);
+  }
+  @font-face {
+    font-family: 'Fixel';
+    src: url(/FixelAll/FixelVariable/FixelVariableItalic.ttf);
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Source4';
+    src: url(/Source_Serif_4/SourceSerif4-VariableFont_opsz\,wght.ttf);
+  }
+  @font-face {
+    font-family: 'Source4';
+    src: url(/Source_Serif_4/SourceSerif4-Italic-VariableFont_opsz,wght.ttf);
+    font-style: italic;
+  }
+}

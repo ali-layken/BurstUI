@@ -1,0 +1,4 @@
+# Files in dist/ that must NOT be uploaded as Workers static assets.
+# snake/index.wasm is 47 MiB, over the 25 MiB per-file cap; worker/index.ts
+# streams it from the repo's raw GitHub copy on the same URL.
+snake/index.wasm

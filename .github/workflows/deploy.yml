@@ -1,0 +1,43 @@
+name: Build and deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # SITE_ORIGIN is a repository *variable* (Settings -> Secrets and
+      # variables -> Actions -> Variables). Leave it unset to use the
+      # default in src/lib/site.mjs.
+      - name: Build
+        run: npm run build
+        env:
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+
+      # Pull requests only build (a broken build fails the check); the
+      # deploy itself happens on push to main.
+      #
+      # Skipped (not failed) while the CLOUDFLARE_API_TOKEN secret is unset,
+      # so the repo can still be deployed by hand with `npm run deploy`.
+      - name: Deploy
+        if: github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != ''
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

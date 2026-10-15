@@ -1,0 +1,83 @@
+---
+import { ClientRouter } from "astro:transitions";
+import ResizeDetector from "../islands/ResizeDetector";
+import BackButton3D from "../islands/BackButton3D";
+import "../styles/styles.css";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path only, e.g. "/blog/Foo" - joined with Astro.site for canonical/og:url. */
+  path: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogType?: string;
+  /** Rendered verbatim inside <head> for page-specific meta (article:*). */
+  robots?: string;
+}
+
+const {
+  title,
+  description,
+  path,
+  ogTitle = title,
+  ogDescription = description,
+  ogType = "website",
+  robots,
+} = Astro.props;
+
+const absolute = new URL(path, Astro.site).toString();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
+    <link rel="canonical" href={absolute} />
+
+    <meta property="og:image" content="/logo.png" />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:url" content={absolute} />
+    <meta property="og:type" content={ogType} />
+    <slot name="head" />
+
+    <ClientRouter />
+  </head>
+  <body>
+    <ResizeDetector client:load />
+    <div class="layout">
+      <div
+        id="background-container"
+        class="min-h-screen bg-bgPurple flex flex-col items-center"
+      >
+        <div
+          id="main-container"
+          class="w-full min-w-0 md:flex gap-8 justify-start md:justify-center bg-bgAqua md:bg-bgPurple max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none min-h-screen md:min-h-0"
+        >
+          <div
+            id="wide-nav-container"
+            class="hidden md:flex flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex-col"
+          >
+            <slot name="nav">
+              <div id="site-nav-container">
+                <BackButton3D client:load />
+              </div>
+            </slot>
+          </div>
+          <div
+            id="component-container"
+            class="max-w-4xl px-2 md:px-8 py-0 md:py-8 bg-none md:bg-bgAqua rounded-md shadow-none md:shadow-lg static md:relative w-full"
+          >
+            <slot />
+          </div>
+        </div>
+        <div id="wide-bottom-or-narrow-nav-container"></div>
+      </div>
+    </div>
+  </body>
+</html>
