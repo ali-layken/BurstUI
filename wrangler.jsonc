@@ -14,17 +14,11 @@
     // /blog/<name> -> dist/blog/<name>.html, and /blog/<name>/ redirects
     // back to the slash-less URL the old site used.
     "html_handling": "auto-trailing-slash",
-    // /snake/index.wasm is over the 25 MiB per-asset cap, so it is served
-    // from R2 by worker/index.ts instead (and excluded from the upload by
-    // public/.assetsignore).
+    // /snake/index.wasm is over the 25 MiB per-asset cap, so worker/index.ts
+    // streams it from the repo's raw GitHub copy instead (and public/.assetsignore
+    // keeps it out of the upload).
     "run_worker_first": ["/api/*", "/snake/index.wasm"]
   },
-  "r2_buckets": [
-    {
-      "binding": "LARGE",
-      "bucket_name": "burstui-large"
-    }
-  ],
   "observability": { "enabled": true },
   // Serve on the account's *.workers.dev subdomain. Attach a custom domain
   // later with "routes": [{ "pattern": "example.com", "custom_domain": true }].
