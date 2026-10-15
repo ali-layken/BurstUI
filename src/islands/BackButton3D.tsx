@@ -13,6 +13,13 @@ export default function BackButton3D() {
     if (!mount) return;
 
     let lastTime = 0;
+    let rafId = 0;
+
+    // ResizeDetector moves the sidebar (and this island's <astro-island>)
+    // into the bottom drawer, which re-fires the island's connectedCallback.
+    // Depending on timing (seen on Firefox) it hydrates twice and appends a
+    // second canvas, so always start from an empty mount.
+    mount.querySelectorAll("canvas").forEach((c) => c.remove());
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -77,14 +84,15 @@ export default function BackButton3D() {
       rectangleMaterial.color.set(isHoveredRef.current ? burstColors.accRed : burstColors.accYellow);
 
       renderer.render(scene, camera);
-      requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(animate);
     };
     animate(0);
 
     // Cleanup
     return () => {
-      renderer.setAnimationLoop(null);
-      mount.removeChild(renderer.domElement);
+      cancelAnimationFrame(rafId);
+      renderer.domElement.remove();
+      renderer.dispose();
     };
   }, []);
 
