@@ -5,4 +5,4 @@
 // Override at build time with SITE_ORIGIN=https://example.com npm run build
 // (the deploy workflow does exactly that from a repo variable, see
 // .github/workflows/deploy.yml).
-export const SITE_ORIGIN = process.env.SITE_ORIGIN ?? "https://burstui.burstui.workers.dev";
+export const SITE_ORIGIN = process.env.SITE_ORIGIN || "https://burstui.burstui.workers.dev";
