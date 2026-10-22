@@ -56,8 +56,8 @@ $ git submodule update --init vendor/movement-map
 $ git submodule update --remote vendor/movement-map      # pull the latest movement-map main, then commit the bumped pointer
 ```
 
-Fix the map in the movement-map repo, push it, then bump the submodule here. The repo is private, so CI needs a
-repository secret `MOVEMENT_MAP_TOKEN` (fine-grained PAT, Contents: read on `ali-layken/movement-map`).
+Fix the map in the movement-map repo, push it, then bump the submodule here. The repo is private, so CI fetches it with a read-only deploy key on
+`ali-layken/movement-map` whose private half is the repository secret `MOVEMENT_MAP_DEPLOY_KEY`.
 
 ## Deploying
 

@@ -13,12 +13,20 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      # vendor/movement-map is a git submodule of a private repo, so the default GITHUB_TOKEN can't fetch it: add a
-      # repository secret MOVEMENT_MAP_TOKEN (a fine-grained PAT with read access to ali-layken/movement-map, Contents: read).
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          token: ${{ secrets.MOVEMENT_MAP_TOKEN || github.token }}
+
+      # vendor/movement-map is a git submodule of a private repo, so the default GITHUB_TOKEN can't fetch it. A read-only
+      # deploy key on ali-layken/movement-map (private half in the MOVEMENT_MAP_DEPLOY_KEY secret) is used for that one fetch.
+      - name: Fetch the movement-map submodule
+        env:
+          DEPLOY_KEY: ${{ secrets.MOVEMENT_MAP_DEPLOY_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/mm_key && chmod 600 ~/.ssh/mm_key
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/mm_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          git -c url."git@github.com:ali-layken/movement-map".insteadOf="https://github.com/ali-layken/movement-map" \
+            submodule update --init --depth 1 vendor/movement-map
+          rm -f ~/.ssh/mm_key
 
       - uses: actions/setup-node@v4
         with:
