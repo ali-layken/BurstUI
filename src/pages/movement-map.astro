@@ -126,46 +126,59 @@ import { burstColors } from "../lib/colors";
     let expanded = false;
     let token = 0;
 
-    const setExpanded = (next: boolean) => {
+    // Window and zoom never change at the same time, and collapse is the exact mirror of expand:
+    //   expand:   the window opens with the map standing still, then the map zooms in
+    //   collapse: the map zooms out, then the window closes around it
+    // The iframe is full size for the whole transition (clip-path does the animating), so its canvas isn't re-laid-out
+    // every frame; MM.embed (movement-map js/app.js) keeps what is inside the frame correct at each hand-off.
+    const mm = () => (iframe.contentWindow as any)?.MM?.embed;
+    const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+    const clipDone = () =>
+      new Promise<void>((resolve) => {
+        const h = (e: TransitionEvent) => {
+          if (e.target !== frame) return;
+          frame.removeEventListener("transitionend", h);
+          resolve();
+        };
+        frame.addEventListener("transitionend", h);
+        setTimeout(resolve, 700);
+      });
+
+    const setExpanded = async (next: boolean) => {
       expanded = next;
       const mine = ++token;
       btn.textContent = next ? "✕ Close" : "⤢ Expand";
       btn.setAttribute("aria-pressed", String(next));
-      setSidebar(next);
       if (next) {
         const r = slot.getBoundingClientRect();
-        iframe.style.transition = "";
-        iframe.style.opacity = "";
         frame.style.transition = "none";
         frame.style.clipPath = clipTo(r);
         frame.classList.add("moving");
-        void frame.offsetWidth;
-        frame.style.transition = "";
         document.body.style.overflow = "hidden";
+        void frame.offsetWidth;
+        mm()?.lock(r); // iframe is now full size: show the same map inside the same rectangle
+        await nextFrame();
+        if (mine !== token) return;
+        frame.style.transition = "";
         frame.style.clipPath = "inset(0px)";
+        await clipDone();
+        if (mine !== token) return;
+        setSidebar(true);
+        await mm()?.expandTo(700);
+        if (mine !== token) return;
+        mm()?.release();
       } else {
+        setSidebar(false);
+        await mm()?.collapseTo(slot.getBoundingClientRect(), 600);
+        if (mine !== token) return;
         frame.style.clipPath = clipTo(slot.getBoundingClientRect());
-        // Don't try to animate the map through the frame's resize: fade the map out while the frame closes, let the
-        // iframe resize and the map re-frame instantly while it is invisible, then fade it back in.
-        iframe.style.transition = "opacity 0.2s ease 0.3s";
-        iframe.style.opacity = "0";
-        const done = () => {
-          if (mine !== token) return;
-          const win = iframe.contentWindow as any;
-          if (win) win.MM_SNAP = true;
-          frame.classList.remove("moving");
-          frame.removeAttribute("style");
-          document.body.style.overflow = "";
-          setTimeout(() => {
-            if (mine !== token) return;
-            iframe.style.transition = "opacity 0.25s ease";
-            iframe.style.opacity = "";
-            if (win) win.MM_SNAP = false;
-            setTimeout(() => { if (mine === token) iframe.style.transition = ""; }, 300);
-          }, 180);
-        };
-        frame.addEventListener("transitionend", (e) => { if (e.target === frame) done(); });
-        setTimeout(done, 700);
+        await clipDone();
+        if (mine !== token) return;
+        frame.classList.remove("moving");
+        frame.removeAttribute("style");
+        document.body.style.overflow = "";
+        await nextFrame(); // the iframe is back to its slot size
+        mm()?.release();
       }
     };
 
