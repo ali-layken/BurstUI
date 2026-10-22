@@ -45,18 +45,20 @@ import { burstColors } from "../lib/colors";
 
   <div id="mm-slot" class="mm-slot">
   <div id="mm-frame" class="mm-frame">
+    <iframe
+      id="mm-iframe"
+      src="/movement-map/index.html?embed"
+      style="width: 100%; height: 100%; border: none;"
+      title="Movement Map"></iframe>
+  </div>
+  </div>
+  <div id="mm-bar" class="mm-bar">
     <button
       id="mm-expand"
       type="button"
       class="mm-expand font-fixel"
       aria-pressed="false"
       title="Expand (Esc to close)">⤢ Expand</button>
-    <iframe
-      id="mm-iframe"
-      src="/movement-map/index.html"
-      style="width: 100%; height: 100%; border: none;"
-      title="Movement Map"></iframe>
-  </div>
   </div>
 </Base>
 
@@ -82,12 +84,14 @@ import { burstColors } from "../lib/colors";
     will-change: clip-path;
     transition: clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  /* The button sits under the map (in flow) and flies to the bottom centre of the screen on expand. */
+  .mm-bar {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+  }
   .mm-expand {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
+    min-width: 120px;
     padding: 6px 12px;
     border-radius: 6px;
     border: 2px solid var(--orange);
@@ -97,6 +101,13 @@ import { burstColors } from "../lib/colors";
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
   }
+  .mm-expand.flying {
+    position: fixed;
+    z-index: 10000;
+    margin: 0;
+    transition: top 0.55s cubic-bezier(0.22, 1, 0.36, 1), left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.2s, color 0.2s;
+  }
   .mm-expand:hover {
     background: var(--orange);
     color: white;
@@ -104,14 +115,14 @@ import { burstColors } from "../lib/colors";
 </style>
 
 <script>
-  // The map's sidebar is closed in the embedded view and opened when
-  // expanded. The iframe is same-origin, so click its own toggle rather than
-  // reloading it (keeps the map's view and filters).
+  // The map starts with its filters panel closed (?embed) and opens it when expanded. The iframe is same-origin, so the
+  // page drives the map through window.MM.embed (movement-map js/app.js) and clicks its own panel toggle.
   function init() {
     const frame = document.getElementById("mm-frame");
     const btn = document.getElementById("mm-expand");
+    const bar = document.getElementById("mm-bar");
     const iframe = document.getElementById("mm-iframe") as HTMLIFrameElement | null;
-    if (!frame || !btn || !iframe) return;
+    if (!frame || !btn || !bar || !iframe) return;
 
     const setSidebar = (open: boolean) => {
       const doc = iframe.contentDocument;
@@ -130,19 +141,49 @@ import { burstColors } from "../lib/colors";
     //   expand:   the window opens with the map standing still, then the map zooms in, then the panel slides in
     //   collapse: the panel slides out while the map zooms out, then the window closes around it
     // The iframe is full size for the whole transition (clip-path does the animating), so its canvas isn't re-laid-out
-    // every frame; MM.embed (movement-map js/app.js) keeps what is inside the frame correct at each hand-off.
+    // every frame; MM.embed keeps what is inside the frame correct at each hand-off.
     const mm = () => (iframe.contentWindow as any)?.MM?.embed;
     const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-    const clipDone = () =>
+    const transitionDone = (el: HTMLElement, ms: number) =>
       new Promise<void>((resolve) => {
         const h = (e: TransitionEvent) => {
-          if (e.target !== frame) return;
-          frame.removeEventListener("transitionend", h);
+          if (e.target !== el) return;
+          el.removeEventListener("transitionend", h);
           resolve();
         };
-        frame.addEventListener("transitionend", h);
-        setTimeout(resolve, 700);
+        el.addEventListener("transitionend", h);
+        setTimeout(resolve, ms);
       });
+
+    // The Expand button lives under the map and flies to the bottom centre of the screen with the window, and back.
+    const flyButtonTo = async (left: number, top: number) => {
+      btn.style.left = `${left}px`;
+      btn.style.top = `${top}px`;
+      await transitionDone(btn, 700);
+    };
+    const buttonHome = () => {
+      const b = bar.getBoundingClientRect();
+      const w = btn.offsetWidth;
+      return { left: b.left + (b.width - w) / 2, top: b.top + parseFloat(getComputedStyle(bar).paddingTop) };
+    };
+    const liftButton = () => {
+      const r = btn.getBoundingClientRect();
+      if (!btn.classList.contains("flying")) {
+        bar.style.minHeight = `${bar.offsetHeight}px`; // keep the page the same height while the button is away
+        btn.style.transition = "none";
+        btn.classList.add("flying");
+        btn.style.left = `${r.left}px`;
+        btn.style.top = `${r.top}px`;
+        void btn.offsetWidth;
+        btn.style.transition = "";
+      }
+      return r;
+    };
+    const landButton = () => {
+      btn.classList.remove("flying");
+      btn.style.left = btn.style.top = btn.style.transition = "";
+      bar.style.minHeight = "";
+    };
 
     const setExpanded = async (next: boolean) => {
       expanded = next;
@@ -151,6 +192,7 @@ import { burstColors } from "../lib/colors";
       btn.setAttribute("aria-pressed", String(next));
       if (next) {
         const r = slot.getBoundingClientRect();
+        const b = liftButton();
         frame.style.transition = "none";
         frame.style.clipPath = clipTo(r);
         frame.classList.add("moving");
@@ -161,23 +203,29 @@ import { burstColors } from "../lib/colors";
         if (mine !== token) return;
         frame.style.transition = "";
         frame.style.clipPath = "inset(0px)";
-        await clipDone();
+        const flight = flyButtonTo((innerWidth - b.width) / 2, innerHeight - b.height - 18);
+        await transitionDone(frame, 700);
+        await flight;
         if (mine !== token) return;
         await mm()?.expandTo(700);
         if (mine !== token) return;
-        setSidebar(true); // the zoom already left room for the panel: it just slides in over a map that stays put
+        setSidebar(true); // the zoom already left room for the panel: it slides in over a map that stays put
         mm()?.release();
       } else {
-        const zoomOut = mm()?.collapseTo(slot.getBoundingClientRect(), 600); // takes over the camera first
         setSidebar(false);
-        await zoomOut;
+        await mm()?.collapseTo(slot.getBoundingClientRect(), 600);
         if (mine !== token) return;
         frame.style.clipPath = clipTo(slot.getBoundingClientRect());
-        await clipDone();
+        liftButton();
+        const home = buttonHome();
+        const flight = flyButtonTo(home.left, home.top);
+        await transitionDone(frame, 700);
+        await flight;
         if (mine !== token) return;
         frame.classList.remove("moving");
         frame.removeAttribute("style");
         document.body.style.overflow = "";
+        landButton();
         await nextFrame(); // the iframe is back to its slot size
         mm()?.release();
       }
@@ -187,8 +235,6 @@ import { burstColors } from "../lib/colors";
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && expanded) setExpanded(false);
     });
-    iframe.addEventListener("load", () => setSidebar(expanded));
-    if (iframe.contentDocument?.readyState === "complete") setSidebar(false);
   }
   document.addEventListener("astro:page-load", init);
 </script>
