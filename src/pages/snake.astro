@@ -106,5 +106,18 @@ import { burstColors } from "../lib/colors";
 
 <script>
   import { initExpandFrame } from "../lib/expandFrame";
-  document.addEventListener("astro:page-load", () => initExpandFrame());
+  // The Godot page paints its body black until the canvas has redrawn after a resize, which shows as a black flash while the
+  // frame expands or collapses. Match the frame colour instead.
+  const FRAME = "rgb(11, 54, 91)";
+  function init() {
+    const iframe = document.getElementById("xf-iframe") as HTMLIFrameElement;
+    const paint = () => {
+      const body = iframe.contentDocument?.body;
+      if (body) body.style.backgroundColor = FRAME;
+    };
+    iframe.addEventListener("load", paint);
+    paint();
+    initExpandFrame({ lock: paint });
+  }
+  document.addEventListener("astro:page-load", init);
 </script>

@@ -56,9 +56,9 @@ const { src, title, bg } = Astro.props;
     border-radius: 16px;
     transition: background-color 0.3s;
   }
-  /* Over the expanded app the dim arrows need something to stand on. */
-  .expand-button-3d.xf-flying {
-    background: rgba(8, 12, 20, 0.62);
+  /* Over the expanded app the dim arrows get a soft dark halo (no box) so they stay readable. */
+  .expand-button-3d.xf-flying canvas {
+    filter: drop-shadow(0 0 5px rgba(8, 12, 20, 0.85));
   }
   .xf-flying {
     position: fixed !important;
@@ -66,7 +66,6 @@ const { src, title, bg } = Astro.props;
     margin: 0;
     transition:
       top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-      left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-      background-color 0.3s;
+      left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
 </style>

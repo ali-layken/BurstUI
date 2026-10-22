@@ -2,17 +2,22 @@ import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
 import { burstColors } from "../lib/colors";
 
-// A four-pointed arrow in the same style and colours as BackButton3D (orange heads, yellow shafts, dim until hovered,
-// then bright with red shafts). Collapsed: the arrows point outwards and pulse outwards ("expand"). Expanded
-// (aria-pressed="true"): each arrow flips to point inwards and the set breathes slowly ("close"). The host page owns the
-// state and just toggles aria-pressed on the button; this island listens for it.
+// The usual expand / collapse icon in the style and colours of BackButton3D (orange heads, yellow shafts, dim until hovered,
+// then bright with red shafts): four arrows on the diagonals. Collapsed: they point out to the corners and push outwards and
+// back ("expand"). Expanded (aria-pressed="true"): they point in at the centre and breathe slowly ("close"). The arrows never
+// leave their corners and never fade: switching mode swivels each arrow half a turn around its own middle, one after the
+// other, so the corner orientation is the same before and after. The host page owns the state and just toggles aria-pressed
+// on the button; this island listens for it.
 const SIZE = 64;
 const HEAD_LEN = 0.62;
 const HEAD_W = 0.78;
 const SHAFT_LEN = 0.78;
 const SHAFT_W = 0.3;
 const DEPTH = 0.34;
-const ARM_CENTER = 0.95; // distance of an arm's middle from the centre at rest
+const ARM_CENTER = 0.9; // distance of an arm's middle from the centre at rest
+const SWIVEL = 1.05; // seconds for one arrow to swivel between pointing out and pointing in
+const STAGGER = 0.09; // seconds between one arrow starting and the next
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export default function ExpandButton3D({ id = "frame-expand" }: { id?: string }) {
   const mountRef = useRef<HTMLButtonElement>(null);
@@ -37,8 +42,8 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
     renderer.domElement.style.pointerEvents = "none"; // the button receives the clicks
     mount.appendChild(renderer.domElement);
 
-    const headMaterial = new THREE.MeshBasicMaterial({ color: burstColors.accOrange, transparent: true, opacity: 0.3 });
-    const shaftMaterial = new THREE.MeshBasicMaterial({ color: burstColors.accYellow, transparent: true, opacity: 0.3 });
+    const headMaterial = new THREE.MeshBasicMaterial({ color: burstColors.accOrange, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+    const shaftMaterial = new THREE.MeshBasicMaterial({ color: burstColors.accYellow, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
 
     // One arm, drawn pointing along +x and centred on its own middle so that rotating it half a turn about z points it inwards.
     const headShape = new THREE.Shape();
@@ -53,10 +58,10 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
 
     const root = new THREE.Group();
     scene.add(root);
-    const arms: { pivot: THREE.Group; flip: THREE.Group }[] = [];
+    const arms: { flip: THREE.Group; p: number; from: number; to: number; t0: number }[] = [];
     for (let k = 0; k < 4; k++) {
       const pivot = new THREE.Group(); // rotated to the arm's direction, moved in and out along it
-      pivot.rotation.z = (k * Math.PI) / 2;
+      pivot.rotation.z = Math.PI / 4 + (k * Math.PI) / 2; // the four corners
       const flip = new THREE.Group(); // spins the arm half a turn around its own middle
       const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
       shaft.position.x = -total / 2 + SHAFT_LEN / 2;
@@ -65,16 +70,20 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
       flip.add(shaft, head);
       pivot.add(flip);
       root.add(pivot);
-      arms.push({ pivot, flip });
+      arms.push({ flip, p: 0, from: 0, to: 0, t0: 0 });
     }
 
-    let flipTarget = mount.getAttribute("aria-pressed") === "true" ? 1 : 0;
-    let flipValue = flipTarget;
+    let time = 0;
+    let target = mount.getAttribute("aria-pressed") === "true" ? 1 : 0;
+    arms.forEach((a) => { a.p = a.from = a.to = target; });
     const syncState = () => {
       const open = mount.getAttribute("aria-pressed") === "true";
-      flipTarget = open ? 1 : 0;
       mount.title = open ? "Close (Esc)" : "Expand";
       mount.setAttribute("aria-label", open ? "Close the expanded view" : "Expand to full screen");
+      const next = open ? 1 : 0;
+      if (next === target) return;
+      target = next;
+      arms.forEach((a, k) => { a.from = a.p; a.to = next; a.t0 = time + k * STAGGER; }); // each arrow starts a beat after the last
     };
     syncState();
     const observer = new MutationObserver(syncState);
@@ -82,7 +91,6 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
 
     let rafId = 0;
     let last = performance.now();
-    let time = 0;
     let hover = 0;
     const animate = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1);
@@ -90,31 +98,29 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
       time += dt;
 
       hover += ((hoverRef.current ? 1 : 0) - hover) * 0.12;
-      flipValue += (flipTarget - flipValue) * Math.min(1, dt * 7);
-      const inward = flipValue; // 0 = pointing out, 1 = pointing in
 
-      // Outward: arrows push out along their direction and fade, then start again ("expand").
-      // Inward: a slow in-and-out breath ("settle").
-      const period = 1.7;
-      const p = (time % period) / period;
-      const push = (1 - Math.pow(1 - p, 3)) * 0.42;
-      const breath = Math.sin((time * Math.PI * 2) / 3.4) * 0.09;
-      const offset = push * (1 - inward) + breath * inward;
-      const fade = 1 - 0.65 * p * p;
-      const alphaBase = 0.3 + 0.7 * hover;
-      const alpha = alphaBase * (fade * (1 - inward) + inward);
-
-      for (const { flip } of arms) {
-        flip.position.x = ARM_CENTER + offset;
-        flip.rotation.z = Math.PI * inward;
+      // Idle. Outward: the arrows push out towards their corners and come back, over and over ("expand").
+      // Inward: a slower, smaller in-and-out breath ("settle"). Opacity only follows hover (and is a little higher when closing).
+      const push = (0.5 - 0.5 * Math.cos((time * Math.PI * 2) / 1.8)) * 0.3;
+      const breath = Math.sin((time * Math.PI * 2) / 3.4) * 0.07;
+      let inwardMean = 0;
+      for (const a of arms) {
+        const raw = Math.min(1, Math.max(0, (time - a.t0) / SWIVEL));
+        a.p = a.from + (a.to - a.from) * easeInOut(raw);
+        inwardMean += a.p / arms.length;
+        const moving = raw > 0 && raw < 1 ? Math.sin(Math.PI * raw) : 0; // 0 at rest, 1 half way through the swivel
+        a.flip.rotation.z = Math.PI * a.p; // half a turn around its own middle: the arrow ends up pointing the other way
+        a.flip.position.x = ARM_CENTER + push * (1 - a.p) + breath * a.p + 0.3 * moving; // swings out a little as it turns
+        a.flip.scale.setScalar(1 + 0.18 * moving);
       }
+      const alpha = Math.max(0.3 + 0.3 * inwardMean, hover);
       headMaterial.opacity = alpha;
       shaftMaterial.opacity = alpha;
       shaftMaterial.color.set(hover > 0.5 ? burstColors.accRed : burstColors.accYellow);
 
-      // A gentle sway so the depth of the arrows shows, like the back arrow's roll.
-      root.rotation.x = Math.sin(time * 0.9) * 0.5;
-      root.rotation.y = Math.sin(time * 0.7 + 1) * 0.55;
+      // A small tilt so the depth of the arrows shows, without turning them away from their corners.
+      root.rotation.x = Math.sin(time * 0.9) * 0.22;
+      root.rotation.y = Math.sin(time * 0.7 + 1) * 0.28;
 
       renderer.render(scene, camera);
       rafId = requestAnimationFrame(animate);
