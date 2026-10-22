@@ -14,18 +14,30 @@ import { burstColors } from "../lib/colors";
     <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
       Sources:
     </h2>
-    <ul class="ml-6 mb-2 space-y-1 list-disc text-accLiteGreen text-base md:text-lg font-medium font-fixel">
-      <li>Climate: Meteostat station normals (CC BY-NC 4.0), ERA5 via Open-Meteo (CC BY 4.0), NASA POWER. Contains modified Copernicus Climate Change Service information</li>
-      <li>US housing: Zillow Research (ZHVI home values, ZORI rents)</li>
-      <li>Other housing: FipeZap (FIPE / ZAP), CREA MLS® HPI, CMHC Rental Market Survey, Banorte INBAPREVI. Everywhere else is a hand estimate</li>
-      <li>US income and rent burden: US Census Bureau ACS</li>
-      <li>Airports, parks, universities: OurAirports, Wikidata, NCES IPEDS</li>
-      <li>Site locations: hand-compiled, with coordinates checked against Wikipedia and OpenStreetMap contributors</li>
-      <li>Exchange rates: ECB via Frankfurter</li>
-      <li>Basemap: Natural Earth, MapLibre GL JS, Google Fonts</li>
-    </ul>
-    <p class="ml-6 mb-2 text-skyBlue text-sm md:text-base font-fixel">
-      Non-commercial hobby project. Data belongs to the sources above; housing figures are indicative and many site locations are approximate.
+    <dl class="ml-6 mr-4 mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-accLiteGreen text-base md:text-lg font-medium font-fixel">
+      <dt class="font-semibold">Climate</dt>
+      <dd>Meteostat · Open-Meteo · NASA</dd>
+      <dt class="font-semibold">US housing</dt>
+      <dd>Zillow Research</dd>
+      <dt class="font-semibold">Other housing</dt>
+      <dd>FipeZap · CREA · CMHC · Banorte</dd>
+      <dt class="font-semibold">US income</dt>
+      <dd>Census Bureau ACS</dd>
+      <dt class="font-semibold">Places</dt>
+      <dd>OurAirports · Wikidata · IPEDS</dd>
+      <dt class="font-semibold">Locations</dt>
+      <dd>Wikipedia · OpenStreetMap</dd>
+      <dt class="font-semibold">Currency</dt>
+      <dd>ECB via Frankfurter</dd>
+      <dt class="font-semibold">Basemap</dt>
+      <dd>Natural Earth · MapLibre</dd>
+    </dl>
+    <p class="ml-6 mr-4 mb-2 text-skyBlue text-xs md:text-sm font-fixel leading-snug">
+      Meteostat data is CC BY-NC 4.0 and Open-Meteo (ERA5) CC BY 4.0. Contains modified Copernicus Climate Change Service
+      information. MLS® is a trademark of CREA.
+    </p>
+    <p class="ml-6 mr-4 mb-2 text-skyBlue text-xs md:text-sm font-fixel leading-snug">
+      Non-commercial hobby project. Housing figures are indicative and many site locations are approximate.
     </p>
 
     <div class="flex justify-between items-start w-full">
