@@ -5,7 +5,10 @@ import CopyableText from "../islands/CopyableText";
 import { listPosts } from "../lib/posts";
 
 const posts = (await listPosts()).filter((p) => !p.draft);
-const demos = [{ name: "Snake 2.5", route: "/snake" }];
+const demos = [
+  { name: "Snake 2.5", route: "/snake" },
+  { name: "Movement Map", route: "/movement-map" },
+];
 ---
 
 <Base title="Home" description="Home Page" path="/" robots="index">

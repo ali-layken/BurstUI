@@ -1,0 +1,133 @@
+---
+import Base from "../layouts/Base.astro";
+import BackButton3D from "../islands/BackButton3D";
+import { burstColors } from "../lib/colors";
+---
+
+<Base
+  title="Movement Map"
+  description="Movement Map: where to live in the Americas"
+  path="/movement-map"
+  ogDescription="Interactive map of 228 Americas cities and ~1,500 opportunity sites, filterable by temperature, time zone, housing cost and more"
+>
+  <div id="site-nav-container" slot="nav">
+    <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
+      Filters:
+    </h2>
+    <ul class="ml-6 mb-2 space-y-1 list-disc text-accLiteGreen text-base md:text-lg font-medium font-fixel">
+      <li>Average temperature (°F / °C) with presets</li>
+      <li>Time zone relative to Chicago, DST-aware</li>
+      <li>Housing cost: rent, mortgage, home price, income</li>
+      <li>What's nearby: tech HQs, universities, labs, data centers</li>
+    </ul>
+
+    <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
+      How to Use:
+    </h2>
+    <ul class="ml-6 mb-2 space-y-1 list-disc text-accYellow text-base md:text-lg font-medium font-fixel">
+      <li>Hover a marker for details, click a city for its full card.</li>
+      <li>Hit <span class="underline">Expand</span> for the full-screen map with the filter sidebar.</li>
+      <li>Press <span class="underline">F</span> to show or hide the sidebar.</li>
+    </ul>
+
+    <div class="flex justify-between items-start w-full">
+      <div class="ml-2">
+        <h2 class="font-fixel mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">Coverage:</h2>
+        <ul class="space-y-1 ml-4 text-base md:text-lg font-medium font-fixel text-skyBlue">
+          <li>228 cities</li>
+          <li>~1,500 sites</li>
+          <li>US to South America</li>
+        </ul>
+      </div>
+    </div>
+    <BackButton3D client:load />
+  </div>
+
+  <div id="mm-frame" class="mm-frame">
+    <button
+      id="mm-expand"
+      type="button"
+      class="mm-expand font-fixel"
+      aria-pressed="false"
+      title="Expand (Esc to close)">⤢ Expand</button>
+    <iframe
+      id="mm-iframe"
+      src="/movement-map/index.html"
+      style="width: 100%; height: 100%; border: none;"
+      title="Movement Map"></iframe>
+  </div>
+  <div class="flex items-center justify-center pt-5">
+    <a href="https://github.com/ali-layken/movement-map" target="_blank" rel="noopener noreferrer">
+      <img src="/emojis/github.png" alt="GitHub" class="w-24 h-24" />
+    </a>
+  </div>
+</Base>
+
+<style define:vars={{ bg: burstColors.bgAqua, orange: burstColors.accOrange, purple: burstColors.bgPurple }}>
+  .mm-frame {
+    position: relative;
+    width: 100%;
+    height: 75vh;
+    background-color: var(--bg);
+    overflow: hidden;
+  }
+  .mm-frame.expanded {
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+    z-index: 9999;
+  }
+  .mm-expand {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 2px solid var(--orange);
+    background: var(--purple);
+    color: var(--orange);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .mm-expand:hover {
+    background: var(--orange);
+    color: white;
+  }
+</style>
+
+<script>
+  // The map's sidebar is closed in the embedded view and opened when
+  // expanded. The iframe is same-origin, so click its own toggle rather than
+  // reloading it (keeps the map's view and filters).
+  function init() {
+    const frame = document.getElementById("mm-frame");
+    const btn = document.getElementById("mm-expand");
+    const iframe = document.getElementById("mm-iframe") as HTMLIFrameElement | null;
+    if (!frame || !btn || !iframe) return;
+
+    const setSidebar = (open: boolean) => {
+      const doc = iframe.contentDocument;
+      const toggle = doc?.getElementById("panelToggle");
+      if (!doc || !toggle) return;
+      if (doc.body.classList.contains("panel-closed") === open) toggle.click();
+    };
+
+    const setExpanded = (expanded: boolean) => {
+      frame.classList.toggle("expanded", expanded);
+      document.body.style.overflow = expanded ? "hidden" : "";
+      btn.textContent = expanded ? "✕ Close" : "⤢ Expand";
+      btn.setAttribute("aria-pressed", String(expanded));
+      setSidebar(expanded);
+    };
+
+    btn.addEventListener("click", () => setExpanded(!frame.classList.contains("expanded")));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && frame.classList.contains("expanded")) setExpanded(false);
+    });
+    iframe.addEventListener("load", () => setSidebar(frame.classList.contains("expanded")));
+    if (iframe.contentDocument?.readyState === "complete") setSidebar(false);
+  }
+  document.addEventListener("astro:page-load", init);
+</script>
