@@ -44,6 +44,21 @@ $ npm run preview    # full build, then wrangler dev serving it like production
 $ npm run check      # astro check (types)
 ```
 
+## Movement Map
+
+`/movement-map` embeds the [movement-map](https://github.com/ali-layken/movement-map) app, which stays its own repo and is
+vendored here as the git submodule `vendor/movement-map`. `scripts/build-movement-map.mjs` (run automatically before
+`dev` and `build`) bundles it into `public/movement-map/index.html`, which is generated and git-ignored.
+
+```shellsession
+$ git clone --recurse-submodules <this repo>            # or, in an existing clone:
+$ git submodule update --init vendor/movement-map
+$ git submodule update --remote vendor/movement-map      # pull the latest movement-map main, then commit the bumped pointer
+```
+
+Fix the map in the movement-map repo, push it, then bump the submodule here. The repo is private, so CI needs a
+repository secret `MOVEMENT_MAP_TOKEN` (fine-grained PAT, Contents: read on `ali-layken/movement-map`).
+
 ## Deploying
 
 Pushes to `main` build and deploy through `.github/workflows/deploy.yml`.

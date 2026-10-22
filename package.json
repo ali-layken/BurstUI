@@ -4,11 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "movement-map": "node scripts/build-movement-map.mjs",
+    "predev": "npm run movement-map",
     "dev": "astro dev",
+    "prebuild": "npm run movement-map",
     "build": "astro build",
-    "preview": "astro build && wrangler dev",
+    "preview": "npm run build && wrangler dev",
     "check": "astro check",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "update-emojis": "node scripts/generate_emojis.mjs",
     "timestamps": "node scripts/generate_timestamps.mjs"
   },

@@ -1,0 +1,3 @@
+[submodule "vendor/movement-map"]
+	path = vendor/movement-map
+	url = https://github.com/ali-layken/movement-map.git

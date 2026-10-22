@@ -12,3 +12,6 @@ node_modules/
 
 # wrangler local state
 .wrangler/
+
+# generated from the vendor/movement-map submodule by scripts/build-movement-map.mjs
+public/movement-map/

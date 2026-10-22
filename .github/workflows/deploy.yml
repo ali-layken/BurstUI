@@ -13,7 +13,12 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
+      # vendor/movement-map is a git submodule of a private repo, so the default GITHUB_TOKEN can't fetch it: add a
+      # repository secret MOVEMENT_MAP_TOKEN (a fine-grained PAT with read access to ali-layken/movement-map, Contents: read).
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.MOVEMENT_MAP_TOKEN || github.token }}
 
       - uses: actions/setup-node@v4
         with:
