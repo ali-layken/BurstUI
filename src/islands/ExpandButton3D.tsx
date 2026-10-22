@@ -16,7 +16,7 @@ const SHAFT_LEN = 0.78;
 const SHAFT_W = 0.3;
 const DEPTH = 0.34;
 const ARM_CENTER = 0.9; // distance of an arm's middle from the centre at rest
-const IN_EXTRA = 0.12; // pointing in, the arrows rest a smidge further out: outward pushes make the gap look wide, so inward needs it to read the same
+const TRAVEL = 0.3; // how far the arrows move in either mode: the same distance, so closing feels as big as expanding
 const SWIVEL = 1.05; // seconds for one arrow to swivel between pointing out and pointing in
 const STAGGER = 0.09; // seconds between one arrow starting and the next
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -105,9 +105,9 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
       root.scale.setScalar(hoverScale);
 
       // Idle. Outward: the arrows push out towards their corners and come back, over and over ("expand").
-      // Inward: a slower, smaller in-and-out breath ("settle"). Opacity only follows hover (and is a little higher when closing).
-      const push = (0.5 - 0.5 * Math.cos((time * Math.PI * 2) / 1.8)) * 0.3;
-      const breath = Math.sin((time * Math.PI * 2) / 3.4) * 0.07;
+      // Inward: the same travel in the other direction, squeezing towards the centre and easing back ("settle"). Opacity only follows hover (and is a little higher when closing).
+      const push = (0.5 - 0.5 * Math.cos((time * Math.PI * 2) / 1.8)) * TRAVEL; // out and back
+      const pull = TRAVEL - (0.5 - 0.5 * Math.cos((time * Math.PI * 2) / 2.6)) * TRAVEL; // in and back, over the same range and a touch slower
       let inwardMean = 0;
       for (const a of arms) {
         const raw = Math.min(1, Math.max(0, (time - a.t0) / SWIVEL));
@@ -115,7 +115,7 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
         inwardMean += a.p / arms.length;
         const moving = raw > 0 && raw < 1 ? Math.sin(Math.PI * raw) : 0; // 0 at rest, 1 half way through the swivel
         a.flip.rotation.z = Math.PI * a.p; // half a turn around its own middle: the arrow ends up pointing the other way
-        a.flip.position.x = ARM_CENTER + push * (1 - a.p) + (breath + IN_EXTRA) * a.p + 0.3 * moving; // swings out a little as it turns
+        a.flip.position.x = ARM_CENTER + push * (1 - a.p) + pull * a.p + 0.3 * moving; // swings out a little as it turns
         a.flip.scale.setScalar(1 + 0.18 * moving);
       }
       const alpha = Math.max(0.3 + 0.3 * inwardMean, hover);
