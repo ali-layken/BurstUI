@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import BackButton3D from "../islands/BackButton3D";
+import ExpandFrame from "../components/ExpandFrame.astro";
 import { burstColors } from "../lib/colors";
 ---
 
@@ -95,15 +96,15 @@ import { burstColors } from "../lib/colors";
     <BackButton3D client:load />
   </div>
 
-  <div style={`width: 100%; height: 75vh; background-color: ${burstColors.bgAqua}; overflow: hidden;`}>
-    <iframe
-      src="/snake/index.html"
-      style="width: 100%; height: 100%; border: none; overflow: hidden;"
-      title="Godot Game"></iframe>
-  </div>
+  <ExpandFrame src="/snake/index.html" title="Godot Game" bg={burstColors.bgAqua} />
   <div class="flex items-center justify-center pt-5">
     <a href="https://github.com/ali-layken/Snake-2.5" target="_blank" rel="noopener noreferrer">
       <img src="/emojis/github.png" alt="GitHub" class="w-24 h-24" />
     </a>
   </div>
 </Base>
+
+<script>
+  import { initExpandFrame } from "../lib/expandFrame";
+  document.addEventListener("astro:page-load", () => initExpandFrame());
+</script>
