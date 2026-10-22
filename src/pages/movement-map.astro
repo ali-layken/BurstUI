@@ -35,6 +35,7 @@ import { burstColors } from "../lib/colors";
     <BackButton3D client:load />
   </div>
 
+  <div id="mm-slot" class="mm-slot">
   <div id="mm-frame" class="mm-frame">
     <button
       id="mm-expand"
@@ -48,6 +49,7 @@ import { burstColors } from "../lib/colors";
       style="width: 100%; height: 100%; border: none;"
       title="Movement Map"></iframe>
   </div>
+  </div>
   <div class="flex items-center justify-center pt-5">
     <a href="https://github.com/ali-layken/movement-map" target="_blank" rel="noopener noreferrer">
       <img src="/emojis/github.png" alt="GitHub" class="w-24 h-24" />
@@ -56,18 +58,26 @@ import { burstColors } from "../lib/colors";
 </Base>
 
 <style define:vars={{ bg: burstColors.bgAqua, orange: burstColors.accOrange, purple: burstColors.bgPurple }}>
-  .mm-frame {
+  .mm-slot {
     position: relative;
     width: 100%;
     height: 75vh;
+  }
+  .mm-frame {
+    position: absolute;
+    inset: 0;
     background-color: var(--bg);
     overflow: hidden;
   }
-  .mm-frame.expanded {
+  .mm-frame.moving {
     position: fixed;
-    inset: 0;
-    height: 100vh;
+    inset: auto;
     z-index: 9999;
+    transition:
+      top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      left 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .mm-expand {
     position: absolute;
@@ -107,19 +117,53 @@ import { burstColors } from "../lib/colors";
       if (doc.body.classList.contains("panel-closed") === open) toggle.click();
     };
 
-    const setExpanded = (expanded: boolean) => {
-      frame.classList.toggle("expanded", expanded);
-      document.body.style.overflow = expanded ? "hidden" : "";
-      btn.textContent = expanded ? "✕ Close" : "⤢ Expand";
-      btn.setAttribute("aria-pressed", String(expanded));
-      setSidebar(expanded);
+    const slot = document.getElementById("mm-slot")!;
+    const place = (r: { top: number; left: number; width: number; height: number }) => {
+      frame.style.top = r.top + "px";
+      frame.style.left = r.left + "px";
+      frame.style.width = r.width + "px";
+      frame.style.height = r.height + "px";
+    };
+    const full = () => ({ top: 0, left: 0, width: innerWidth, height: innerHeight });
+    let expanded = false;
+    let token = 0;
+
+    const setExpanded = (next: boolean) => {
+      expanded = next;
+      const mine = ++token;
+      btn.textContent = next ? "✕ Close" : "⤢ Expand";
+      btn.setAttribute("aria-pressed", String(next));
+      setSidebar(next);
+      if (next) {
+        const r = slot.getBoundingClientRect();
+        frame.style.transition = "none";
+        frame.classList.add("moving");
+        place(r);
+        void frame.offsetWidth;
+        frame.style.transition = "";
+        document.body.style.overflow = "hidden";
+        place(full());
+      } else {
+        place(slot.getBoundingClientRect());
+        const done = () => {
+          if (mine !== token) return;
+          frame.classList.remove("moving");
+          frame.removeAttribute("style");
+          document.body.style.overflow = "";
+        };
+        frame.addEventListener("transitionend", (e) => { if (e.target === frame) done(); });
+        setTimeout(done, 700);
+      }
     };
 
-    btn.addEventListener("click", () => setExpanded(!frame.classList.contains("expanded")));
+    btn.addEventListener("click", () => setExpanded(!expanded));
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && frame.classList.contains("expanded")) setExpanded(false);
+      if (e.key === "Escape" && expanded) setExpanded(false);
     });
-    iframe.addEventListener("load", () => setSidebar(frame.classList.contains("expanded")));
+    addEventListener("resize", () => {
+      if (expanded) place(full());
+    });
+    iframe.addEventListener("load", () => setSidebar(expanded));
     if (iframe.contentDocument?.readyState === "complete") setSidebar(false);
   }
   document.addEventListener("astro:page-load", init);
