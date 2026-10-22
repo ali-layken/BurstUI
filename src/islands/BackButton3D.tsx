@@ -2,7 +2,8 @@ import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
 import { burstColors } from "../lib/colors";
 
-const SIZE = [100, 75];
+const SIZE = [100, 75]; // the button's footprint on the page
+const PAD = 1.4; // the canvas is this much bigger than the footprint, so the arrow has room when it swells and rolls
 const HOVER_SCALE = 1.12;
 
 export default function BackButton3D() {
@@ -25,11 +26,19 @@ export default function BackButton3D() {
 
     // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    // Wider view than before so the arrow keeps its on-screen size inside the bigger canvas: 75 deg at PAD 1 -> tan(fov/2) * PAD.
+    const fov = (2 * Math.atan(Math.tan((75 / 2) * (Math.PI / 180)) * PAD) * 180) / Math.PI;
+    const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 1000);
     camera.position.z = 2.6; // a little back from 2.5 so the arrow still fits once it swells on hover
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(SIZE[0], SIZE[1]); // Small size for the button
+    renderer.setSize(SIZE[0] * PAD, SIZE[1] * PAD); // bigger than the button; centred on it below
+    Object.assign(renderer.domElement.style, {
+      position: "absolute",
+      left: `${-(SIZE[0] * (PAD - 1)) / 2}px`,
+      top: `${-(SIZE[1] * (PAD - 1)) / 2}px`,
+      pointerEvents: "none", // hovering stays on the button's own footprint
+    });
     renderer.setClearColor(0x000000, 0); // Transparent background
     mount.appendChild(renderer.domElement);
     renderer.domElement.setAttribute("data-action", "close");

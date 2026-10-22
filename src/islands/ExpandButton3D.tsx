@@ -8,7 +8,7 @@ import { burstColors } from "../lib/colors";
 // leave their corners and never fade: switching mode swivels each arrow half a turn around its own middle, one after the
 // other, so the corner orientation is the same before and after. The host page owns the state and just toggles aria-pressed
 // on the button; this island listens for it.
-const SIZE = 64;
+const SIZE = 72;
 const HOVER_SCALE = 1.16;
 const HEAD_LEN = 0.62;
 const HEAD_W = 0.78;
@@ -16,6 +16,7 @@ const SHAFT_LEN = 0.78;
 const SHAFT_W = 0.3;
 const DEPTH = 0.34;
 const ARM_CENTER = 0.9; // distance of an arm's middle from the centre at rest
+const IN_EXTRA = 0.12; // pointing in, the arrows rest a smidge further out: outward pushes make the gap look wide, so inward needs it to read the same
 const SWIVEL = 1.05; // seconds for one arrow to swivel between pointing out and pointing in
 const STAGGER = 0.09; // seconds between one arrow starting and the next
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -33,7 +34,7 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-    camera.position.z = 4.6;
+    camera.position.z = 5.2; // back a little: room for the swell and the swivel's swing
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -114,7 +115,7 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
         inwardMean += a.p / arms.length;
         const moving = raw > 0 && raw < 1 ? Math.sin(Math.PI * raw) : 0; // 0 at rest, 1 half way through the swivel
         a.flip.rotation.z = Math.PI * a.p; // half a turn around its own middle: the arrow ends up pointing the other way
-        a.flip.position.x = ARM_CENTER + push * (1 - a.p) + breath * a.p + 0.3 * moving; // swings out a little as it turns
+        a.flip.position.x = ARM_CENTER + push * (1 - a.p) + (breath + IN_EXTRA) * a.p + 0.3 * moving; // swings out a little as it turns
         a.flip.scale.setScalar(1 + 0.18 * moving);
       }
       const alpha = Math.max(0.3 + 0.3 * inwardMean, hover);
