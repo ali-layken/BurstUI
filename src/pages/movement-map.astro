@@ -69,15 +69,15 @@ import { burstColors } from "../lib/colors";
     background-color: var(--bg);
     overflow: hidden;
   }
+  /* Expanded: the frame is already full-screen (one iframe resize, so the
+     map's WebGL canvas isn't re-laid-out every frame) and a clip-path
+     reveal does the animating on the compositor. */
   .mm-frame.moving {
     position: fixed;
-    inset: auto;
+    inset: 0;
     z-index: 9999;
-    transition:
-      top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      left 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: clip-path;
+    transition: clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .mm-expand {
     position: absolute;
@@ -118,13 +118,8 @@ import { burstColors } from "../lib/colors";
     };
 
     const slot = document.getElementById("mm-slot")!;
-    const place = (r: { top: number; left: number; width: number; height: number }) => {
-      frame.style.top = r.top + "px";
-      frame.style.left = r.left + "px";
-      frame.style.width = r.width + "px";
-      frame.style.height = r.height + "px";
-    };
-    const full = () => ({ top: 0, left: 0, width: innerWidth, height: innerHeight });
+    const clipTo = (r: DOMRect) =>
+      `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px)`;
     let expanded = false;
     let token = 0;
 
@@ -137,14 +132,14 @@ import { burstColors } from "../lib/colors";
       if (next) {
         const r = slot.getBoundingClientRect();
         frame.style.transition = "none";
+        frame.style.clipPath = clipTo(r);
         frame.classList.add("moving");
-        place(r);
         void frame.offsetWidth;
         frame.style.transition = "";
         document.body.style.overflow = "hidden";
-        place(full());
+        frame.style.clipPath = "inset(0px)";
       } else {
-        place(slot.getBoundingClientRect());
+        frame.style.clipPath = clipTo(slot.getBoundingClientRect());
         const done = () => {
           if (mine !== token) return;
           frame.classList.remove("moving");
@@ -159,9 +154,6 @@ import { burstColors } from "../lib/colors";
     btn.addEventListener("click", () => setExpanded(!expanded));
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && expanded) setExpanded(false);
-    });
-    addEventListener("resize", () => {
-      if (expanded) place(full());
     });
     iframe.addEventListener("load", () => setSidebar(expanded));
     if (iframe.contentDocument?.readyState === "complete") setSidebar(false);
