@@ -127,8 +127,8 @@ import { burstColors } from "../lib/colors";
     let token = 0;
 
     // Window and zoom never change at the same time, and collapse is the exact mirror of expand:
-    //   expand:   the window opens with the map standing still, then the map zooms in
-    //   collapse: the map zooms out, then the window closes around it
+    //   expand:   the window opens with the map standing still, then the map zooms in, then the panel slides in
+    //   collapse: the panel slides out while the map zooms out, then the window closes around it
     // The iframe is full size for the whole transition (clip-path does the animating), so its canvas isn't re-laid-out
     // every frame; MM.embed (movement-map js/app.js) keeps what is inside the frame correct at each hand-off.
     const mm = () => (iframe.contentWindow as any)?.MM?.embed;
@@ -163,13 +163,14 @@ import { burstColors } from "../lib/colors";
         frame.style.clipPath = "inset(0px)";
         await clipDone();
         if (mine !== token) return;
-        setSidebar(true);
         await mm()?.expandTo(700);
         if (mine !== token) return;
+        setSidebar(true); // the zoom already left room for the panel: it just slides in over a map that stays put
         mm()?.release();
       } else {
+        const zoomOut = mm()?.collapseTo(slot.getBoundingClientRect(), 600); // takes over the camera first
         setSidebar(false);
-        await mm()?.collapseTo(slot.getBoundingClientRect(), 600);
+        await zoomOut;
         if (mine !== token) return;
         frame.style.clipPath = clipTo(slot.getBoundingClientRect());
         await clipDone();
