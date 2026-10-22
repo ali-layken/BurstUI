@@ -1,5 +1,5 @@
 import hljs from "highlight.js";
-import { marked, Renderer, type Tokens } from "marked";
+import { Marked, Renderer, type Tokens } from "marked";
 import { type EmojiToken, markedEmoji, type MarkedEmojiOptions } from "marked-emoji";
 import { markedHighlight } from "marked-highlight";
 import gitEmojis from "../../allemojislist.json";
@@ -27,7 +27,7 @@ customRenderer.link = ({ href, title, text }): string => {
   try {
     const safeHref = href ?? "#";
     const safeTitle = title ? `title="${title}"` : ``;
-    text = marked.parseInline(text) as string;
+    text = md.parseInline(text) as string;
     if (text.endsWith("jump")) {
       return `<a href=${href}>${text.replace("jump", "")}</a>`;
     }
@@ -39,7 +39,7 @@ customRenderer.link = ({ href, title, text }): string => {
 };
 customRenderer.image = ({ href, text }: Tokens.Image): string => {
   const ogalt: string = text;
-  text = marked.parseInline(text) as string;
+  text = md.parseInline(text) as string;
   return `
   <figure class="custom-image">
     <img src="${href ?? ""}" alt="${ogalt ?? ""}" />
@@ -53,7 +53,7 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, ""); // Generate unique ID for TOC
-  text = marked.parseInline(text) as string;
+  text = md.parseInline(text) as string;
   const tocHtml = text.replace(/<a[^>]*>(.*?)<\/a>/g, "$1");
   headings.push({ id, text: tocHtml, level: depth }); // Add heading to TOC array
 
@@ -161,7 +161,10 @@ const options: MarkedEmojiOptions = {
   renderer: emojiRenderer
 };
 
-marked.use(
+// Our own Marked instance, not the shared global one: under `astro dev` this module can be evaluated more than once (HMR, or
+// reached through two module paths), and each evaluation would stack another copy of the highlight extension onto the global
+// `marked`, so code blocks were highlighted twice and the first pass's HTML showed up as escaped text in the second.
+const md = new Marked(
   hlExt,
   {
     renderer: customRenderer,
@@ -177,7 +180,7 @@ export function renderBlogPost(content: string): RendererResult {
     const tags = tagMatch ? tagMatch[1].split(",").map(tag => tag.trim()) : [];
     content = content.replace(/tags:\s*([^\n]+)/i, "");
 
-  const renderedContent = marked.parse(
+  const renderedContent = md.parse(
     content.replace(/{{(\w+)}}/g, (_match, componentName) => {
       return `<div id="component-${componentName}" data-component="${componentName}"></div>`;
     }),
