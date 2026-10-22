@@ -134,6 +134,8 @@ import { burstColors } from "../lib/colors";
       setSidebar(next);
       if (next) {
         const r = slot.getBoundingClientRect();
+        iframe.style.transition = "";
+        iframe.style.opacity = "";
         frame.style.transition = "none";
         frame.style.clipPath = clipTo(r);
         frame.classList.add("moving");
@@ -143,11 +145,24 @@ import { burstColors } from "../lib/colors";
         frame.style.clipPath = "inset(0px)";
       } else {
         frame.style.clipPath = clipTo(slot.getBoundingClientRect());
+        // Don't try to animate the map through the frame's resize: fade the map out while the frame closes, let the
+        // iframe resize and the map re-frame instantly while it is invisible, then fade it back in.
+        iframe.style.transition = "opacity 0.2s ease 0.3s";
+        iframe.style.opacity = "0";
         const done = () => {
           if (mine !== token) return;
+          const win = iframe.contentWindow as any;
+          if (win) win.MM_SNAP = true;
           frame.classList.remove("moving");
           frame.removeAttribute("style");
           document.body.style.overflow = "";
+          setTimeout(() => {
+            if (mine !== token) return;
+            iframe.style.transition = "opacity 0.25s ease";
+            iframe.style.opacity = "";
+            if (win) win.MM_SNAP = false;
+            setTimeout(() => { if (mine === token) iframe.style.transition = ""; }, 300);
+          }, 180);
         };
         frame.addEventListener("transitionend", (e) => { if (e.target === frame) done(); });
         setTimeout(done, 700);
