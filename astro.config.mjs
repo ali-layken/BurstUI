@@ -10,8 +10,25 @@ import { SITE_ORIGIN } from "./src/lib/site.mjs";
 // scoped to /api/* in wrangler.jsonc. Static asset requests are free and
 // unlimited on the Workers free plan - keeping the site static is what
 // keeps it free.
+// `astro dev` ignores public/_headers (Cloudflare applies that file in production and under `wrangler dev`), so the Godot
+// build under /snake never gets cross-origin isolation locally and fails with no SharedArrayBuffer. Send the same two
+// headers from the dev server so the game loads under `npm run dev` too.
+/** @type {import("vite").Plugin} */
+const crossOriginIsolationDev = {
+  name: "cross-origin-isolation-dev",
+  apply: "serve",
+  configureServer(server) {
+    server.middlewares.use((_req, res, next) => {
+      res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+      res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+      next();
+    });
+  },
+};
+
 export default defineConfig({
   site: SITE_ORIGIN,
+  vite: { plugins: [crossOriginIsolationDev] },
   integrations: [
     preact(),
     sitemap({
