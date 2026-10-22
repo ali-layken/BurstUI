@@ -12,22 +12,14 @@ import { burstColors } from "../lib/colors";
 >
   <div id="site-nav-container" slot="nav">
     <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
-      Filters:
+      Sources:
     </h2>
     <ul class="ml-6 mb-2 space-y-1 list-disc text-accLiteGreen text-base md:text-lg font-medium font-fixel">
-      <li>Average temperature (°F / °C) with presets</li>
-      <li>Time zone relative to Chicago, DST-aware</li>
-      <li>Housing cost: rent, mortgage, home price, income</li>
-      <li>What's nearby: tech HQs, universities, labs, data centers</li>
-    </ul>
-
-    <h2 class="font-fixel ml-4 mb-2 text-accRed2 text-3xl md:text-4xl font-semibold">
-      How to Use:
-    </h2>
-    <ul class="ml-6 mb-2 space-y-1 list-disc text-accYellow text-base md:text-lg font-medium font-fixel">
-      <li>Hover a marker for details, click a city for its full card.</li>
-      <li>Hit <span class="underline">Expand</span> for the full-screen map with the filter sidebar.</li>
-      <li>Press <span class="underline">F</span> to show or hide the sidebar.</li>
+      <li>Climate: Meteostat, ERA5 (Open-Meteo), NASA POWER</li>
+      <li>Housing: Zillow, FipeZap, CREA / CMHC, Banorte</li>
+      <li>US income and rent: Census ACS</li>
+      <li>Airports, parks, universities: OurAirports, Wikidata, IPEDS</li>
+      <li>Basemap: Natural Earth</li>
     </ul>
 
     <div class="flex justify-between items-start w-full">
@@ -80,7 +72,8 @@ import { burstColors } from "../lib/colors";
   .mm-expand {
     position: absolute;
     top: 10px;
-    right: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 2;
     padding: 6px 12px;
     border-radius: 6px;
