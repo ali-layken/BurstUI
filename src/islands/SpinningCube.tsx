@@ -37,10 +37,33 @@ export default function SpinningCube() {
     // Set camera position
     camera.position.z = 5;
 
+    // The cube swells a little while the pointer is over it (not just over the canvas).
+    const HOVER_SCALE = 1.12;
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let overCube = false;
+    let hoverScale = 1;
+    let lastTime = performance.now();
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      raycaster.setFromCamera(pointer, camera);
+      overCube = raycaster.intersectObject(cube).length > 0;
+    };
+    const onPointerLeave = () => { overCube = false; };
+    renderer.domElement.addEventListener("pointermove", onPointerMove);
+    renderer.domElement.addEventListener("pointerleave", onPointerLeave);
+
     // Animation loop
     const animate = () => {
+      // Rotation stays per-frame on purpose: the page is about the speed changing with the display's refresh rate.
       cubeGroup.rotation.x += 0.01;
       cubeGroup.rotation.y += 0.01;
+      const now = performance.now();
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+      hoverScale += ((overCube ? HOVER_SCALE : 1) - hoverScale) * (1 - Math.exp(-dt * 10)); // the swell itself is time-based
+      cubeGroup.scale.setScalar(hoverScale);
       renderer.render(scene, camera);
       requestAnimationFrame(animate); 
     };
@@ -60,6 +83,8 @@ export default function SpinningCube() {
     // Clean up when the component is unmounted
     return () => {
       globalThis.removeEventListener("resize", handleResize);
+      renderer.domElement.removeEventListener("pointermove", onPointerMove);
+      renderer.domElement.removeEventListener("pointerleave", onPointerLeave);
       geometry.dispose();
       material.dispose();
       edges.dispose();

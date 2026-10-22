@@ -9,6 +9,7 @@ import { burstColors } from "../lib/colors";
 // other, so the corner orientation is the same before and after. The host page owns the state and just toggles aria-pressed
 // on the button; this island listens for it.
 const SIZE = 64;
+const HOVER_SCALE = 1.16;
 const HEAD_LEN = 0.62;
 const HEAD_W = 0.78;
 const SHAFT_LEN = 0.78;
@@ -92,12 +93,15 @@ export default function ExpandButton3D({ id = "frame-expand" }: { id?: string })
     let rafId = 0;
     let last = performance.now();
     let hover = 0;
+    let hoverScale = 1;
     const animate = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
       time += dt;
 
       hover += ((hoverRef.current ? 1 : 0) - hover) * 0.12;
+      hoverScale += ((hoverRef.current ? HOVER_SCALE : 1) - hoverScale) * (1 - Math.exp(-dt * 10)); // swell a little under the pointer
+      root.scale.setScalar(hoverScale);
 
       // Idle. Outward: the arrows push out towards their corners and come back, over and over ("expand").
       // Inward: a slower, smaller in-and-out breath ("settle"). Opacity only follows hover (and is a little higher when closing).

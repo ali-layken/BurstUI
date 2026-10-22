@@ -110,7 +110,8 @@ import { burstColors } from "../lib/colors";
   // frame expands or collapses. Match the frame colour instead.
   const FRAME = "rgb(11, 54, 91)";
   function init() {
-    const iframe = document.getElementById("xf-iframe") as HTMLIFrameElement;
+    const iframe = document.getElementById("xf-iframe") as HTMLIFrameElement | null;
+    if (!iframe || !iframe.src.includes("/snake/")) return; // page scripts outlive client-side navigation: only act on this page
     const paint = () => {
       const body = iframe.contentDocument?.body;
       if (body) body.style.backgroundColor = FRAME;

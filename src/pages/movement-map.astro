@@ -55,7 +55,8 @@ import { burstColors } from "../lib/colors";
   //   expand:   the window opens with the map standing still, then the map zooms in, then the panel slides in
   //   collapse: the panel slides out while the map zooms out, then the window closes around it
   function init() {
-    const iframe = document.getElementById("xf-iframe") as HTMLIFrameElement;
+    const iframe = document.getElementById("xf-iframe") as HTMLIFrameElement | null;
+    if (!iframe || !iframe.src.includes("/movement-map/")) return; // page scripts outlive client-side navigation: only act on this page
     const mm = () => (iframe.contentWindow as any)?.MM?.embed;
     const setSidebar = (open: boolean) => {
       const doc = iframe.contentDocument;

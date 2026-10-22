@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { burstColors } from "../lib/colors";
 
 const SIZE = [100, 75];
+const HOVER_SCALE = 1.12;
 
 export default function BackButton3D() {
   const mountRef = useRef<HTMLAnchorElement>(null);
@@ -13,6 +14,7 @@ export default function BackButton3D() {
     if (!mount) return;
 
     let lastTime = 0;
+    let hoverScale = 1;
     let rafId = 0;
 
     // ResizeDetector moves the sidebar (and this island's <astro-island>)
@@ -24,7 +26,7 @@ export default function BackButton3D() {
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-    camera.position.z = 2.5;
+    camera.position.z = 2.6; // a little back from 2.5 so the arrow still fits once it swells on hover
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(SIZE[0], SIZE[1]); // Small size for the button
@@ -76,6 +78,10 @@ export default function BackButton3D() {
 
       // Add slight rotation to show 3D depth
       group.rotation.x += deltaTime * 0.9;
+
+      // Swell a little under the pointer (eased, time-based)
+      hoverScale += ((isHoveredRef.current ? HOVER_SCALE : 1) - hoverScale) * (1 - Math.exp(-deltaTime * 10));
+      group.scale.setScalar(hoverScale);
 
       // Adjust opacity and color based on hover state
       const targetOpacity = isHoveredRef.current ? 1 : 0.3;
