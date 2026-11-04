@@ -10,8 +10,8 @@ export const SPIN = {
   /** Default spin (rad/s) when the mouse isn't on the page (or on touch devices). */
   base: 0.012,
   /** Spin with the mouse at the far left/right edge of the background (rad/s).
-   *  The "Burst!" logo turns at 0.5 rad/s; the edges go a little faster than that. */
-  hoverMax: 0.6,
+   *  (The "Burst!" logo turns at 0.5 rad/s; throws can still go up to maxThrow.) */
+  hoverMax: 0.25,
   /** Fraction of the half-width around the centre that adds no steering. */
   deadzone: 0.12,
   /** Time constant (s) for easing toward the target spin: higher = longer glide after a throw. */
