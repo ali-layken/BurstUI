@@ -64,6 +64,12 @@ const SWELL_FREQ = 1.0; // waves per texture tile
 // points), pulled toward a circle by EYE_ROUND. Verified offline (up to 0.9
 // open, roundness >= 0.2): foam stays one piece, each eye is one hole.
 const EYE_SMOOTH = 0.012; // smooth-min radius (texture units)
+// Cell outlines: the circles of one cell meet in sharp notches, which showed as
+// spikes and pointed kinks in the foam. Lines are drawn from a smooth-min of the
+// circle distances instead (plus k*ln2 so line widths stay the same), which rounds
+// every notch. Verified offline: 0.008 keeps every line connected; 0.01 already
+// pinches one shut.
+const CELL_SMOOTH = 0.008;
 const EYE_OPEN = 0.85; // eye size, as a share of the junction's depth (verified up to 0.9)
 const EYE_ROUND = 0.22; // lower = follows the junction's shape, higher = rounder (verified >= 0.2)
 // Eyed junctions on the smooth field: x, y, peak depth (found offline): the two
@@ -136,6 +142,7 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define SWELL_AMP ${glslFloat(SWELL_AMP)}
 #define SWELL_FREQ ${glslFloat(SWELL_FREQ)}
 #define EYE_SMOOTH ${glslFloat(EYE_SMOOTH)}
+#define CELL_SMOOTH ${glslFloat(CELL_SMOOTH)}
 #define EYE_OPEN ${glslFloat(EYE_OPEN)}
 #define EYE_ROUND ${glslFloat(EYE_ROUND)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
@@ -152,20 +159,20 @@ const vec3 EYES[${EYES.length}] = vec3[${EYES.length}](
   ${eyeArray}
 );
 
-float circ(vec2 pos, vec2 c, float s) {
-  c = abs(pos - c);
-  c = min(c, 1.0 - c);
-  return dot(c, c) < s ? -1.0 : 0.0;
-}
-
-// Foam pattern for the water constructed out of a series of circles
+// Line pattern constructed out of a series of circles: 1 on the lines (the gaps
+// between circles), 0 inside the cells. Cell outlines use a smooth-min of the
+// circle distances (online log-sum-exp) so they have no sharp notches.
 float waterlayer(vec2 uv) {
   uv = mod(uv, 1.0); // Clamp to [0..1]
-  float ret = 1.0;
+  float m = 1e3, s = 0.0;
   for (int i = 0; i < ${CIRCLES.length}; i++) {
-    ret += circ(uv, CIRCLES[i].xy, CIRCLES[i].z);
+    vec2 c = abs(uv - CIRCLES[i].xy);
+    c = min(c, 1.0 - c);
+    float x = length(c) - sqrt(CIRCLES[i].z);
+    if (x < m) { s = s * exp((x - m) / CELL_SMOOTH) + 1.0; m = x; }
+    else { s += exp((m - x) / CELL_SMOOTH); }
   }
-  return max(ret, 0.0);
+  return m - CELL_SMOOTH * log(s) + CELL_SMOOTH * 0.693147 > 0.0 ? 1.0 : 0.0;
 }
 
 // Same foam as waterlayer(), plus the permanent eyes. One pass over the circles
@@ -173,16 +180,23 @@ float waterlayer(vec2 uv) {
 // distance (online log-sum-exp) that the eyes are cut from.
 float foamlayer(vec2 uv) {
   uv = mod(uv, 1.0);
-  float m = 1e3, s = 0.0;
+  // Two smooth-mins in one pass: CELL_SMOOTH for the line outlines, EYE_SMOOTH for the eyes.
+  float m = 1e3, s = 0.0, se = 0.0;
   for (int i = 0; i < ${CIRCLES.length}; i++) {
     vec2 c = abs(uv - CIRCLES[i].xy);
     c = min(c, 1.0 - c);
     float x = length(c) - sqrt(CIRCLES[i].z);
-    if (x < m) { s = s * exp((x - m) / EYE_SMOOTH) + 1.0; m = x; }
-    else { s += exp((m - x) / EYE_SMOOTH); }
+    if (x < m) {
+      s = s * exp((x - m) / CELL_SMOOTH) + 1.0;
+      se = se * exp((x - m) / EYE_SMOOTH) + 1.0;
+      m = x;
+    } else {
+      s += exp((m - x) / CELL_SMOOTH);
+      se += exp((m - x) / EYE_SMOOTH);
+    }
   }
-  if (m <= 0.0) return 0.0;
-  float ds = m - EYE_SMOOTH * log(s);
+  if (m - CELL_SMOOTH * log(s) + CELL_SMOOTH * 0.693147 <= 0.0) return 0.0;
+  float ds = m - EYE_SMOOTH * log(se);
   for (int i = 0; i < ${EYES.length}; i++) {
     vec2 c = abs(uv - EYES[i].xy);
     c = min(c, 1.0 - c);
