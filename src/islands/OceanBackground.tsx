@@ -57,26 +57,15 @@ const glslRgb = ([r, g, b]: Rgb) => `vec3(${(r / 255).toFixed(4)}, ${(g / 255).t
 const SWELL_AMP = 0.03;
 const SWELL_FREQ = 1.0; // waves per texture tile
 
-// Junction eyes, the way the game does it: small holes baked permanently into
-// the texture at some junctions. They grow because the texture around them gets
-// magnified: each eye has a lens warp that slowly inflates, holds, and deflates,
-// pushing the surrounding lines outward to make room. A radial lens
-// r -> r / (1 + g * exp(-r^2/s^2)) is strictly increasing in r for any g >= 0,
-// so it never folds: lines can't break. As the lens inflates the hole also
-// widens within its junction (up to EYE_MAX_OPEN) so a big eye sits
-// in a thin ring. Eyes are closed at rest and only appear once their lens is
-// well inflated, so there are no small specks, only big lingering eyes. Shapes are cut from a smooth-min distance field (globular, no
-// points). Verified offline: every lens at full gain, foam stays one piece and
-// each eye stays one hole.
+// Junction eyes: small holes baked permanently into the texture at the 4 big
+// junctions, like the rest of the pattern. They move and morph only through the
+// same warp as every other line. Shape: the part of the junction deeper than
+// (1 - EYE_OPEN) of its peak in a smooth-min distance field (globular, no
+// points), pulled toward a circle by EYE_ROUND. Verified offline (up to 0.4
+// open, roundness >= 0.35): foam stays one piece, each eye is one hole.
 const EYE_SMOOTH = 0.012; // smooth-min radius (texture units)
-const EYE_APPEAR_AT = 0.3; // eyes are closed at rest and only open once their lens is this inflated (0..1), so they appear already big
-const EYE_MIN_OPEN = 0.18; // smallest an open eye ever gets: it appears and vanishes at this size, never as a speck
-const EYE_MAX_OPEN = 0.4; // at full inflation (verified limit)
-const EYE_ROUND_MIN = 0.35; // most junction-shaped
-const EYE_ROUND_MAX = 0.5; // roundest
-const LENS_GAIN_MAX = 3.0; // peak magnification is 1 + this
-const LENS_SIZE = 2.2; // lens radius, in multiples of the junction's depth (min 0.035)
-const LENS_SPEED = 1.0; // how fast eyes inflate/deflate (1 = cycles of ~20-30 s)
+const EYE_OPEN = 0.3; // eye size, as a share of the junction's depth (max 0.4)
+const EYE_ROUND = 0.4; // 0.35 = most junction-shaped, higher = rounder
 // Eyed junctions on the smooth field: x, y, peak depth (found offline). Only
 // the big junctions (depth >= 0.029) get an eye; smaller ones only ever made specks.
 const EYES: [number, number, number][] = [
@@ -144,17 +133,11 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define WARP_AMP ${glslFloat(WARP_AMP)}
 #define WARP_FREQ ${glslFloat(WARP_FREQ)}
 #define WARP_SPEED ${glslFloat(WARP_SPEED)}
-#define EYE_MAX_OPEN ${glslFloat(EYE_MAX_OPEN)}
 #define SWELL_AMP ${glslFloat(SWELL_AMP)}
 #define SWELL_FREQ ${glslFloat(SWELL_FREQ)}
 #define EYE_SMOOTH ${glslFloat(EYE_SMOOTH)}
-#define EYE_APPEAR_AT ${glslFloat(EYE_APPEAR_AT)}
-#define EYE_MIN_OPEN ${glslFloat(EYE_MIN_OPEN)}
-#define LENS_GAIN_MAX ${glslFloat(LENS_GAIN_MAX)}
-#define LENS_SIZE ${glslFloat(LENS_SIZE)}
-#define LENS_SPEED ${glslFloat(LENS_SPEED)}
-#define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
-#define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
+#define EYE_OPEN ${glslFloat(EYE_OPEN)}
+#define EYE_ROUND ${glslFloat(EYE_ROUND)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
 #define MAX_DIST ${glslFloat(MAX_DIST)}
 #define CAMERA_HEIGHT ${glslFloat(CAMERA_HEIGHT)}
@@ -185,29 +168,6 @@ float waterlayer(vec2 uv) {
   return max(ret, 0.0);
 }
 
-// How inflated eye i's lens is right now (0 = resting). Two slow incommensurate
-// waves per eye, so each one swells now and then, holds a few seconds, and
-// settles, independently of the others.
-float eyeGain(int i) {
-  float fi = float(i);
-  float t = iTime * LENS_SPEED;
-  float n = 0.5 + 0.5 * (0.6 * sin(0.23 * t + fi * 2.39) + 0.4 * sin(0.37 * t + fi * 4.1 + 1.0));
-  // Only the top of each cycle inflates: each eye shows ~10% of the time, ~4-5 s at a stretch.
-  return LENS_GAIN_MAX * smoothstep(0.8, 0.98, n);
-}
-
-// Pull the lookup toward each eye: magnifies the eye and the lines around it.
-vec2 applyLenses(vec2 uv) {
-  for (int i = 0; i < ${EYES.length}; i++) {
-    float g = eyeGain(i);
-    float s = max(0.035, LENS_SIZE * EYES[i].z);
-    vec2 d = uv - EYES[i].xy;
-    d -= floor(d + 0.5); // nearest copy of the eye on the tiling texture
-    uv = EYES[i].xy + d / (1.0 + g * exp(-dot(d, d) / (s * s)));
-  }
-  return uv;
-}
-
 // Same foam as waterlayer(), plus the permanent eyes. One pass over the circles
 // gives both the plain distance (foam boundary, unchanged) and a smooth-min
 // distance (online log-sum-exp) that the eyes are cut from.
@@ -224,16 +184,10 @@ float foamlayer(vec2 uv) {
   if (m <= 0.0) return 0.0;
   float ds = m - EYE_SMOOTH * log(s);
   for (int i = 0; i < ${EYES.length}; i++) {
-    float fi = float(i);
     vec2 c = abs(uv - EYES[i].xy);
     c = min(c, 1.0 - c);
     float peak = EYES[i].z;
-    // Shut until the lens is EYE_APPEAR_AT inflated, then never smaller than EYE_MIN_OPEN.
-    float gn = eyeGain(i) / LENS_GAIN_MAX;
-    if (gn < EYE_APPEAR_AT) continue;
-    float open = mix(EYE_MIN_OPEN, EYE_MAX_OPEN, smoothstep(EYE_APPEAR_AT, 1.0, gn));
-    float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.3 * iTime + fi * 1.7));
-    if (ds > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
+    if (ds > peak * (1.0 - EYE_OPEN) + EYE_ROUND * dot(c, c) / peak) return 0.0;
   }
   return 1.0;
 }
@@ -287,7 +241,7 @@ vec3 water(vec2 uv, vec3 cdir) {
   vec2 foam = vec2(1.0) - uv - dist.yx;
   vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(under + indirect(under, t * 0.8 + 3.0)));
   vec2 foamWarped = foam + indirect(foam, t) + swellOffset(foam, iTime);
-  ret = mix(ret, FOAM_COL, foamlayer(applyLenses(foamWarped)));
+  ret = mix(ret, FOAM_COL, foamlayer(foamWarped));
   return ret;
 }
 
