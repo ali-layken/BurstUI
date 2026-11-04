@@ -30,7 +30,7 @@ const ANTIALIAS = 1; // 0 = 1 sample/pixel, 1 = 2x2 supersampling
 // Indirect warp (texture-tile units). Max stretch = 2*pi*WARP_FREQ*WARP_AMP, keep < 1.
 const WARP_AMP = 0.022; // how far the lookup is pushed around (band width swings ~+-35%)
 const WARP_FREQ = 5.0; // waves per texture tile (about one per cell edge)
-const WARP_SPEED = 1.0; // 1 = calm sea; the storm footage is roughly 2x
+const WARP_SPEED = 2.5; // morph speed. 2.5 moves band edges ~5-10% of a band width per 30fps frame, as measured in the game footage
 const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25): lower = bigger cells
 // Camera: looks down CAMERA_TILT_DEG from CAMERA_HEIGHT with a vertical half
 // field of view of HALF_FOV_DEG. The top edge of the screen is at
@@ -66,6 +66,7 @@ const JUNCTIONS: [number, number, number][] = [
 // foam stays in one piece.
 const EYE_MAX_OPEN = 0.28;
 const EYE_OPEN_FRACTION = 0.2; // share of time each eye is open (~share of junctions showing one)
+const EYE_PERSIST_CHANCE = 0.35; // chance per cycle that an eye becomes a big one: stays open ~half its cycle and morphs more
 const EYE_ROUND_MIN = 0.3; // sharpest (most junction-shaped)
 const EYE_ROUND_MAX = 0.6; // roundest
 
@@ -132,6 +133,7 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define WARP_SPEED ${glslFloat(WARP_SPEED)}
 #define EYE_MAX_OPEN ${glslFloat(EYE_MAX_OPEN)}
 #define EYE_THRESHOLD ${glslFloat(+Math.cos(Math.PI * EYE_OPEN_FRACTION).toFixed(4))}
+#define EYE_PERSIST_CHANCE ${glslFloat(EYE_PERSIST_CHANCE)}
 #define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
 #define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
@@ -182,10 +184,20 @@ float foamlayer(vec2 uv, float t) {
     vec2 c = abs(uv - JUNCTIONS[i].xy);
     c = min(c, 1.0 - c);
     float peak = JUNCTIONS[i].z;
+    // Each cycle rolls whether this eye is a big, lingering one. Cycles change
+    // where sin(angle) = 0, i.e. while the eye is shut, so the switch is invisible.
+    float angle = 0.45 * t + fi * 2.4;
+    float cycle = floor(angle / M_2PI);
+    bool big = fract(sin(cycle * 12.9898 + fi * 78.233) * 43758.5453) < EYE_PERSIST_CHANCE;
+    float threshold = big ? 0.0 : EYE_THRESHOLD; // big: open for half the cycle
+    float env = smoothstep(threshold, mix(threshold, 1.0, 0.6), sin(angle));
+    // While open, big eyes breathe in size and morph shape faster.
+    float breathe = big ? 0.8 + 0.2 * sin(1.9 * t + fi * 3.1) : 1.0;
+    float shapeRate = big ? 0.9 : 0.31;
     // Slightly below zero at rest so the peak itself never shows as a speck.
-    float phase = sin(0.45 * t + fi * 2.4);
-    float open = (EYE_MAX_OPEN + 0.04) * smoothstep(EYE_THRESHOLD, mix(EYE_THRESHOLD, 1.0, 0.6), phase) - 0.04;
-    float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.31 * t + fi * 1.7));
+    // Stays within EYE_MAX_OPEN and the EYE_ROUND range (the offline-verified limits).
+    float open = (EYE_MAX_OPEN + 0.04) * env * breathe - 0.04;
+    float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(shapeRate * t + fi * 1.7));
     if (d > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
   }
   return 1.0;
