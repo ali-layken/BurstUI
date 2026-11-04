@@ -24,11 +24,12 @@ import { createSpinController } from "../lib/oceanSpin";
  * Rendering: full resolution at the display's pixel density (capped at
  * MAX_PIXEL_RATIO), one sample per pixel with analytic antialiasing (each edge
  * pixel gets its exact coverage from the line field's screen-space gradient).
- * If the frame rate drops below MIN_FPS the resolution steps down, and back up
- * when there is headroom, so slower machines stay smooth.
+ * Frames run at the monitor's refresh rate (requestAnimationFrame). Before
+ * drawing, the loop measures that refresh rate; resolution only steps down if the
+ * GPU can't keep up with it, and steps back up as soon as it can.
  */
 const MAX_PIXEL_RATIO = 2;
-const MIN_FPS = 45;
+const FPS_TOLERANCE = 0.9; // step down only below 90% of the monitor's refresh rate
 
 // Indirect warp (texture-tile units). Max stretch = 2*pi*WARP_FREQ*WARP_AMP, keep < 1.
 const WARP_AMP = 0.022; // how far the lookup is pushed around (band width swings ~+-35%)
@@ -342,12 +343,15 @@ export default function OceanBackground() {
     canvas.style.height = "100%";
     canvas.style.display = "block";
     mount.appendChild(canvas);
-    // Fade in once the first frame is on screen (the html gradient is under it).
-    let fadeRaf = requestAnimationFrame(() => {
+    // The canvas stays invisible (page gradient shows) until the first real frame
+    // is drawn, then fades in; fadeIn() is called after that render.
+    let fadeRaf = 0;
+    const fadeIn = () => {
+      if (mount.style.opacity === "1") return;
       fadeRaf = requestAnimationFrame(() => {
         mount.style.opacity = "1";
       });
-    });
+    };
 
     const uniforms = {
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
@@ -393,9 +397,12 @@ export default function OceanBackground() {
     const start = performance.now() - Math.random() * 300_000;
     let last = performance.now();
     let raf = 0;
+    let calibrationTimeout = 0;
     const spin = reducedMotion.matches ? null : createSpinController();
-    // Adaptive resolution: every ~1 s, step quality down if below MIN_FPS and
-    // back up when comfortably above it (ignores long gaps like background tabs).
+    // Adaptive resolution against the monitor's own refresh rate (measured by
+    // calibrate() below): every ~1 s, step quality down if we fall short of it and
+    // back up when we're hitting it (ignores long gaps like background tabs).
+    let targetFps = 60;
     let frames = 0;
     let busy = 0;
     const frame = () => {
@@ -406,10 +413,10 @@ export default function OceanBackground() {
         busy += dt;
         if (busy > 1000) {
           const fps = (frames * 1000) / busy;
-          if (fps < MIN_FPS && quality > 0.4) {
+          if (fps < targetFps * FPS_TOLERANCE && quality > 0.4) {
             quality = Math.max(0.4, quality * 0.85);
             resize();
-          } else if (fps > MIN_FPS + 12 && quality < 1) {
+          } else if (fps > targetFps * 0.97 && quality < 1) {
             quality = Math.min(1, quality * 1.08);
             resize();
           }
@@ -423,19 +430,47 @@ export default function OceanBackground() {
       uniforms.uPitch.value = pose.pitch;
       last = now;
       renderer.render(scene, camera);
+      fadeIn();
       raf = requestAnimationFrame(frame);
     };
     if (reducedMotion.matches) {
       uniforms.iTime.value = 0;
       renderer.render(scene, camera);
+      fadeIn();
       window.addEventListener("resize", () => renderer.render(scene, camera));
     } else {
-      raf = requestAnimationFrame(frame);
+      // Measure the monitor's refresh rate with a few empty frames before the
+      // shader starts loading the GPU (median interval, so one hiccup doesn't skew
+      // it). The page gradient shows meanwhile; the ocean fades in after.
+      // Falls back after 1 s in case the browser throttles frames while nothing
+      // is visible (it starts with whatever ticks it has, or 60 fps).
+      const ticks: number[] = [];
+      let started = false;
+      const begin = () => {
+        if (started) return;
+        started = true;
+        clearTimeout(calibrationTimeout);
+        cancelAnimationFrame(raf);
+        if (ticks.length >= 4) {
+          const gaps = ticks.slice(1).map((t, i) => t - ticks[i]).sort((a, b) => a - b);
+          targetFps = 1000 / gaps[Math.floor(gaps.length / 2)];
+        }
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      };
+      const calibrate = (ts: number) => {
+        ticks.push(ts);
+        if (ticks.length >= 24) begin();
+        else raf = requestAnimationFrame(calibrate);
+      };
+      raf = requestAnimationFrame(calibrate);
+      calibrationTimeout = window.setTimeout(begin, 1000);
     }
 
     return () => {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(fadeRaf);
+      clearTimeout(calibrationTimeout);
       spin?.dispose();
       window.removeEventListener("resize", resize);
       geometry.dispose();

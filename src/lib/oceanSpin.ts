@@ -9,14 +9,19 @@
 export const SPIN = {
   /** Default spin (rad/s) when the mouse isn't on the page (or on touch devices). */
   base: 0.012,
-  /** Spin with the mouse at the far left/right edge of the background (rad/s). */
-  hoverMax: 0.2,
+  /** Spin with the mouse at the far left/right edge of the background (rad/s).
+   *  (The "Burst!" logo turns at 0.5 rad/s; throws can still go up to maxThrow.) */
+  hoverMax: 0.25,
   /** Fraction of the half-width around the centre that adds no steering. */
   deadzone: 0.12,
   /** Time constant (s) for easing toward the target spin: higher = longer glide after a throw. */
   settle: 1.4,
   /** Fastest a throw can spin the sea (rad/s). */
-  maxThrow: 1.2,
+  maxThrow: 2.0,
+  /** On release the sea accelerates to this multiple of the flick speed... */
+  throwBoost: 1.6,
+  /** ...over about this long (s), before friction takes over. */
+  throwAccelTime: 0.25,
   /** Drag sensitivity: dragging across the full window width turns this many radians. */
   dragPerWidth: 1.6,
   /** Vertical drag: dragging the full window height tilts this many radians. */
@@ -25,7 +30,7 @@ export const SPIN = {
   pitchMin: -0.5,
   pitchMax: 0.55,
   /** Spring back to the default tilt after release (rad/s natural frequency; critically damped). */
-  pitchReturn: 3.0,
+  pitchReturn: 4.0,
   /** Fastest a vertical flick can tilt (rad/s). */
   maxPitchThrow: 2.5,
 };
@@ -77,6 +82,8 @@ export function createSpinController(): SpinController {
   let lastT = 0;
   let dragVel = 0; // smoothed drag velocity, becomes the throw speed on release
   let dragPitchVel = 0;
+  let throwTarget = 0; // speed the sea accelerates to right after a throw
+  let throwTime = 0; // seconds of throw acceleration left
 
   const root = document.documentElement;
   const setCursor = (c: string) => {
@@ -127,6 +134,7 @@ export function createSpinController(): SpinController {
     lastT = performance.now();
     dragVel = 0;
     dragPitchVel = 0;
+    throwTime = 0; // grabbing cancels any throw in progress
     setCursor("grabbing");
     document.body.style.userSelect = "none";
   };
@@ -139,6 +147,8 @@ export function createSpinController(): SpinController {
     const idle = (performance.now() - lastT) / 1000;
     const flick = idle > 0.08 ? 0 : 1;
     vel = clamp(dragVel * flick, -SPIN.maxThrow, SPIN.maxThrow);
+    throwTarget = clamp(vel * SPIN.throwBoost, -SPIN.maxThrow, SPIN.maxThrow);
+    throwTime = flick ? SPIN.throwAccelTime : 0;
     pitchVel = clamp(dragPitchVel * flick, -SPIN.maxPitchThrow, SPIN.maxPitchThrow);
     setCursor("");
     document.body.style.userSelect = "";
@@ -162,8 +172,14 @@ export function createSpinController(): SpinController {
     step(dt) {
       dt = Math.min(dt, 0.05); // after a background tab, don't jump
       if (!dragging) {
-        // Friction-like ease from the current (possibly thrown) speed to the target.
-        vel += (target - vel) * (1 - Math.exp(-dt / SPIN.settle));
+        if (throwTime > 0) {
+          // Just thrown: accelerate toward the boosted throw speed.
+          throwTime -= dt;
+          vel += (throwTarget - vel) * (1 - Math.exp(-dt / (SPIN.throwAccelTime / 3)));
+        } else {
+          // Friction-like ease from the current (possibly thrown) speed to the target.
+          vel += (target - vel) * (1 - Math.exp(-dt / SPIN.settle));
+        }
         yaw += vel * dt;
         // Critically damped spring back to the default tilt (no wobble).
         const w = SPIN.pitchReturn;
