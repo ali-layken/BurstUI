@@ -63,22 +63,24 @@ const SWELL_FREQ = 1.0; // waves per texture tile
 // pushing the surrounding lines outward to make room. A radial lens
 // r -> r / (1 + g * exp(-r^2/s^2)) is strictly increasing in r for any g >= 0,
 // so it never folds: lines can't break. As the lens inflates the hole also
-// widens within its junction (EYE_BASE_OPEN -> EYE_MAX_OPEN) so a big eye sits
-// in a thin ring. Shapes are cut from a smooth-min distance field (globular, no
+// widens within its junction (up to EYE_MAX_OPEN) so a big eye sits
+// in a thin ring. Eyes are closed at rest and only appear once their lens is
+// well inflated, so there are no small specks, only big lingering eyes. Shapes are cut from a smooth-min distance field (globular, no
 // points). Verified offline: every lens at full gain, foam stays one piece and
 // each eye stays one hole.
 const EYE_SMOOTH = 0.012; // smooth-min radius (texture units)
-const EYE_BASE_OPEN = 0.2; // resting eye size (share of the junction's depth)
+const EYE_APPEAR_AT = 0.3; // eyes are closed at rest and only open once their lens is this inflated (0..1), so they appear already big
+const EYE_MIN_OPEN = 0.18; // smallest an open eye ever gets: it appears and vanishes at this size, never as a speck
 const EYE_MAX_OPEN = 0.4; // at full inflation (verified limit)
 const EYE_ROUND_MIN = 0.35; // most junction-shaped
 const EYE_ROUND_MAX = 0.5; // roundest
 const LENS_GAIN_MAX = 3.0; // peak magnification is 1 + this
 const LENS_SIZE = 2.2; // lens radius, in multiples of the junction's depth (min 0.035)
 const LENS_SPEED = 1.0; // how fast eyes inflate/deflate (1 = cycles of ~20-30 s)
-// Eyed junctions on the smooth field: x, y, peak depth (found offline).
+// Eyed junctions on the smooth field: x, y, peak depth (found offline). Only
+// the big junctions (depth >= 0.029) get an eye; smaller ones only ever made specks.
 const EYES: [number, number, number][] = [
-  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329], [0.908, 0.372, 0.0324],
-  [0.011, 0.371, 0.0129], [0.887, 0.656, 0.0134], [0.698, 0.842, 0.0296],
+  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329], [0.908, 0.372, 0.0324], [0.698, 0.842, 0.0296],
 ];
 
 // x, y, radius^2 (the shader compares dot(d, d) < s)
@@ -146,7 +148,8 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define SWELL_AMP ${glslFloat(SWELL_AMP)}
 #define SWELL_FREQ ${glslFloat(SWELL_FREQ)}
 #define EYE_SMOOTH ${glslFloat(EYE_SMOOTH)}
-#define EYE_BASE_OPEN ${glslFloat(EYE_BASE_OPEN)}
+#define EYE_APPEAR_AT ${glslFloat(EYE_APPEAR_AT)}
+#define EYE_MIN_OPEN ${glslFloat(EYE_MIN_OPEN)}
 #define LENS_GAIN_MAX ${glslFloat(LENS_GAIN_MAX)}
 #define LENS_SIZE ${glslFloat(LENS_SIZE)}
 #define LENS_SPEED ${glslFloat(LENS_SPEED)}
@@ -189,7 +192,8 @@ float eyeGain(int i) {
   float fi = float(i);
   float t = iTime * LENS_SPEED;
   float n = 0.5 + 0.5 * (0.6 * sin(0.23 * t + fi * 2.39) + 0.4 * sin(0.37 * t + fi * 4.1 + 1.0));
-  return LENS_GAIN_MAX * smoothstep(0.55, 0.9, n);
+  // Only the top of each cycle inflates: each eye shows ~10% of the time, ~4-5 s at a stretch.
+  return LENS_GAIN_MAX * smoothstep(0.8, 0.98, n);
 }
 
 // Pull the lookup toward each eye: magnifies the eye and the lines around it.
@@ -224,7 +228,10 @@ float foamlayer(vec2 uv) {
     vec2 c = abs(uv - EYES[i].xy);
     c = min(c, 1.0 - c);
     float peak = EYES[i].z;
-    float open = mix(EYE_BASE_OPEN, EYE_MAX_OPEN, eyeGain(i) / LENS_GAIN_MAX);
+    // Shut until the lens is EYE_APPEAR_AT inflated, then never smaller than EYE_MIN_OPEN.
+    float gn = eyeGain(i) / LENS_GAIN_MAX;
+    if (gn < EYE_APPEAR_AT) continue;
+    float open = mix(EYE_MIN_OPEN, EYE_MAX_OPEN, smoothstep(EYE_APPEAR_AT, 1.0, gn));
     float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.3 * iTime + fi * 1.7));
     if (ds > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
   }
