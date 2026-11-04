@@ -15,7 +15,7 @@ export const SPIN = {
   /** Fraction of the half-width around the centre that adds no steering. */
   deadzone: 0.12,
   /** Time constant (s) for easing toward the target spin: higher = longer glide after a throw. */
-  settle: 3.0,
+  settle: 1.4,
   /** Fastest a throw can spin the sea (rad/s). */
   maxThrow: 2.0,
   /** On release the sea accelerates to this multiple of the flick speed... */
@@ -30,7 +30,7 @@ export const SPIN = {
   pitchMin: -0.5,
   pitchMax: 0.55,
   /** Spring back to the default tilt after release (rad/s natural frequency; critically damped). */
-  pitchReturn: 6.0,
+  pitchReturn: 4.0,
   /** Fastest a vertical flick can tilt (rad/s). */
   maxPitchThrow: 2.5,
 };
