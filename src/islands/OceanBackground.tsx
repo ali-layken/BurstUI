@@ -34,6 +34,7 @@ const WARP_SPEED = 1.0; // 1 = calm sea; the storm footage is roughly 2x
 const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25; the game's cells read ~2x bigger)
 const HORIZON_FROM_TOP = 0.05; // horizon height, as a fraction of the screen from the top
 const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
+const CAMERA_HEIGHT = 8.0; // camera height above the water (original 4.0)
 
 // Colour sets (0..255). "windwaker" is measured from daytime HD footage of the
 // game; "burst" uses the site's own colours. Keep styles.css's html fallback
@@ -130,6 +131,7 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
 #define HORIZON_FROM_TOP ${glslFloat(HORIZON_FROM_TOP)}
 #define MAX_DIST ${glslFloat(MAX_DIST)}
+#define CAMERA_HEIGHT ${glslFloat(CAMERA_HEIGHT)}
 
 const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
   ${circleArray}
@@ -244,7 +246,7 @@ vec3 quatmul(vec4 q, vec3 v) {
 
 vec3 shade(vec2 fragCoord) {
   vec2 uv = fragCoord / iResolution.xy;
-  vec3 cpos = vec3(0.0, 4.0, 10.0); // Camera position
+  vec3 cpos = vec3(0.0, CAMERA_HEIGHT, 10.0); // Camera position
   vec3 cdir = pixtoray(uv);
 
   // Tilt down just enough that the horizon sits HORIZON_FROM_TOP below the top
