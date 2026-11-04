@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
+import { createSpinController } from "../lib/oceanSpin";
 
 /**
  * Full-page background: the "Wind Waker Ocean" shader by Polyflare
@@ -94,6 +95,7 @@ const junctionArray = JUNCTIONS.map(([x, y, r]) => `vec3(${glslFloat(x)}, ${glsl
 const FRAGMENT = /* glsl */ `
 uniform vec3 iResolution;
 uniform float iTime;
+uniform float uYaw; // camera spin, driven from JS (see lib/oceanSpin.ts)
 
 #define ANTIALIAS ${ANTIALIAS}
 
@@ -239,9 +241,9 @@ vec3 shade(vec2 fragCoord) {
   float tilt = atan((1.0 - 2.0 * HORIZON_FROM_TOP) * halfH / 0.6);
   cdir = quatmul(vec4(-sin(0.5 * tilt), 0.0, 0.0, cos(0.5 * tilt)), cdir);
 
-  // Rotating camera
-  float cost = cos(iTime * -0.05);
-  float sint = sin(iTime * -0.05);
+  // Rotating camera (orbits the point it looks at, so the sea turns like a turntable)
+  float cost = cos(uYaw);
+  float sint = sin(uYaw);
   cdir.xz = cost * cdir.xz + sint * vec2(-cdir.z, cdir.x);
   cpos.xz = cost * cpos.xz + sint * vec2(-cpos.z, cpos.x);
 
@@ -297,6 +299,7 @@ export default function OceanBackground() {
     const uniforms = {
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
       iTime: { value: 0 },
+      uYaw: { value: 0 },
     };
     const material = new THREE.ShaderMaterial({
       vertexShader: VERTEX,
@@ -327,9 +330,14 @@ export default function OceanBackground() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const start = performance.now();
+    let last = start;
     let raf = 0;
+    const spin = reducedMotion.matches ? null : createSpinController();
     const frame = () => {
-      uniforms.iTime.value = (performance.now() - start) / 1000;
+      const now = performance.now();
+      uniforms.iTime.value = (now - start) / 1000;
+      uniforms.uYaw.value = spin!.step((now - last) / 1000);
+      last = now;
       renderer.render(scene, camera);
       raf = requestAnimationFrame(frame);
     };
@@ -344,6 +352,7 @@ export default function OceanBackground() {
     return () => {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(fadeRaf);
+      spin?.dispose();
       window.removeEventListener("resize", resize);
       geometry.dispose();
       material.dispose();

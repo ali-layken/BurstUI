@@ -1,0 +1,151 @@
+// Camera spin for the ocean background: a slow default spin, mouse-position
+// steering over the background, and grab / drag / throw with friction.
+//
+// Yaw sign: positive turns the sea like "Burst!" (front moving right), so the
+// two never spin against each other.
+
+export const SPIN = {
+  /** Default spin (rad/s) when the mouse isn't on the page (or on touch devices). */
+  base: 0.012,
+  /** Spin with the mouse at the far left/right edge of the background (rad/s). */
+  hoverMax: 0.08,
+  /** Fraction of the half-width around the centre that adds no steering. */
+  deadzone: 0.12,
+  /** Time constant (s) for easing toward the target spin: higher = longer glide after a throw. */
+  settle: 1.4,
+  /** Fastest a throw can spin the sea (rad/s). */
+  maxThrow: 1.2,
+  /** Drag sensitivity: dragging across the full window width turns this many radians. */
+  dragPerWidth: 1.6,
+};
+
+/**
+ * Whether the element under the pointer is bare background rather than a panel.
+ * The layout wrappers are transparent; #main-container only is on wide screens
+ * (on narrow screens it is the content panel itself).
+ */
+export function isBackground(el: Element | null): boolean {
+  if (!el) return false;
+  if (el === document.documentElement || el === document.body) return true;
+  const id = el.id;
+  if (id === "background-container" || id === "wide-bottom-or-narrow-nav-container") return true;
+  if (el.classList.contains("layout")) return true;
+  if (id === "main-container") return window.matchMedia("(min-width: 768px)").matches;
+  return false;
+}
+
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
+export interface SpinController {
+  /** Advance by dt seconds and return the camera yaw (radians). */
+  step(dt: number): number;
+  dispose(): void;
+}
+
+export function createSpinController(): SpinController {
+  let yaw = 0;
+  let vel = SPIN.base;
+  let target = SPIN.base;
+
+  let dragging = false;
+  let pointerId = -1;
+  let lastX = 0;
+  let lastT = 0;
+  let dragVel = 0; // smoothed drag velocity, becomes the throw speed on release
+
+  const root = document.documentElement;
+  const setCursor = (c: string) => {
+    if (root.style.cursor !== c) root.style.cursor = c;
+  };
+
+  const steer = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    if (isBackground(e.target as Element)) {
+      const x = (e.clientX / window.innerWidth) * 2 - 1; // -1 left edge .. 1 right edge
+      const s = Math.sign(x) * smoothstep(SPIN.deadzone, 1, Math.abs(x));
+      target = SPIN.base + SPIN.hoverMax * s;
+      if (!dragging) setCursor("grab");
+    } else {
+      target = 0; // over a panel: let the sea come to rest
+      if (!dragging) setCursor("");
+    }
+  };
+
+  const onMove = (e: PointerEvent) => {
+    steer(e);
+    if (!dragging || e.pointerId !== pointerId) return;
+    const now = performance.now();
+    const dx = e.clientX - lastX;
+    const dYaw = (dx / window.innerWidth) * SPIN.dragPerWidth;
+    yaw += dYaw;
+    const dt = Math.max(1, now - lastT) / 1000;
+    // Weighted toward recent motion so a flick at the end of a drag is what gets thrown.
+    dragVel = dragVel * 0.6 + (dYaw / dt) * 0.4;
+    lastX = e.clientX;
+    lastT = now;
+  };
+
+  const onDown = (e: PointerEvent) => {
+    if (e.button !== 0 || e.pointerType === "touch") return; // touch keeps native scrolling
+    if (!isBackground(e.target as Element)) return;
+    e.preventDefault(); // no text selection while dragging
+    dragging = true;
+    pointerId = e.pointerId;
+    lastX = e.clientX;
+    lastT = performance.now();
+    dragVel = 0;
+    setCursor("grabbing");
+    document.body.style.userSelect = "none";
+  };
+
+  const release = () => {
+    if (!dragging) return;
+    dragging = false;
+    pointerId = -1;
+    // A drag that stopped before release shouldn't throw.
+    const idle = (performance.now() - lastT) / 1000;
+    const v = idle > 0.08 ? 0 : dragVel;
+    vel = Math.max(-SPIN.maxThrow, Math.min(SPIN.maxThrow, v));
+    setCursor("");
+    document.body.style.userSelect = "";
+  };
+
+  const onLeave = (e: MouseEvent) => {
+    if (e.relatedTarget === null) {
+      target = SPIN.base; // pointer left the window
+      if (!dragging) setCursor("");
+    }
+  };
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerdown", onDown);
+  window.addEventListener("pointerup", release);
+  window.addEventListener("pointercancel", release);
+  window.addEventListener("blur", release);
+  document.addEventListener("mouseout", onLeave);
+
+  return {
+    step(dt) {
+      dt = Math.min(dt, 0.05); // after a background tab, don't jump
+      if (!dragging) {
+        // Friction-like ease from the current (possibly thrown) speed to the target.
+        vel += (target - vel) * (1 - Math.exp(-dt / SPIN.settle));
+        yaw += vel * dt;
+      }
+      return yaw;
+    },
+    dispose() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
+      window.removeEventListener("blur", release);
+      document.removeEventListener("mouseout", onLeave);
+      setCursor("");
+      document.body.style.userSelect = "";
+    },
+  };
+}
