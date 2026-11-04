@@ -17,6 +17,7 @@ const { src, title, bg } = Astro.props;
   </div>
 </div>
 <div id="xf-bar" class="xf-bar">
+  {Astro.slots.has("bar-left") && <div class="xf-bar-left"><slot name="bar-left" /></div>}
   <ExpandButton3D client:load id="xf-expand" />
 </div>
 
@@ -42,9 +43,20 @@ const { src, title, bg } = Astro.props;
   }
   /* The button sits under the frame and flies to the bottom centre of the screen on expand. */
   .xf-bar {
+    position: relative;
     display: flex;
     justify-content: center;
     padding-top: 12px;
+  }
+  /* Optional content on the left of the bar (e.g. a source link). Absolutely positioned so the expand button stays
+     centred in the bar, which expandFrame.ts relies on for its fly-out position. */
+  .xf-bar-left {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 0;
+    display: flex;
+    align-items: center;
   }
   .expand-button-3d {
     display: block;

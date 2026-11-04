@@ -96,12 +96,18 @@ import { burstColors } from "../lib/colors";
     <BackButton3D client:load />
   </div>
 
-  <ExpandFrame src="/snake/index.html" title="Godot Game" bg={burstColors.bgAqua} />
-  <div class="flex items-center justify-center pt-5">
-    <a href="https://github.com/ali-layken/Snake-2.5" target="_blank" rel="noopener noreferrer">
-      <img src="/emojis/github.png" alt="GitHub" class="w-24 h-24" />
+  <ExpandFrame src="/snake/index.html" title="Godot Game" bg={burstColors.bgAqua}>
+    <a
+      slot="bar-left"
+      class="text-accGreen hover:text-accRed hover:underline transition-colors duration-200 text-xl font-fixel"
+      href="https://github.com/ali-layken/Snake-2.5"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img class="marked-emoji-img mr-1.5" alt="github" src="/emojis/github.png" />
+      Source
     </a>
-  </div>
+  </ExpandFrame>
 </Base>
 
 <script>
