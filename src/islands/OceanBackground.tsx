@@ -51,24 +51,33 @@ const PALETTES: Record<string, { water: Rgb; under: Rgb; foam: Rgb; fog: Rgb; sk
 const PALETTE = PALETTES.burst;
 const glslRgb = ([r, g, b]: Rgb) => `vec3(${(r / 255).toFixed(4)}, ${(g / 255).toFixed(4)}, ${(b / 255).toFixed(4)})`;
 
-// Foam junctions in the texture: x, y, peak foam depth (distance to the nearest
-// circle). Found offline as the local maxima (depth >= 0.023) of the foam's
-// distance field.
+// Slow swell: a broad, slow extra warp so whole regions of lines thicken and
+// thin over several seconds (on top of the fast WARP_* shimmer). Combined warp
+// verified offline not to fold (min stretch determinant 0.19 > 0).
+const SWELL_AMP = 0.03;
+const SWELL_FREQ = 1.0; // waves per texture tile
+
+// Junction eyes. They open where the swell is fattening the lines (local
+// magnification of the swell warp, computed exactly) and stay while it lasts:
+// open from EYE_MAG_START, fully open at EYE_MAG_FULL. With these values an
+// eye is open ~20% of the time, typically for ~4 s at a stretch.
+const EYE_MAG_START = 1.09;
+const EYE_MAG_FULL = 1.2;
+// Shape: the part of the junction deeper than (1 - open) of its peak in a
+// smooth-min distance field (rounds every crease, so eyes are globular with no
+// points), plus a radial term pulling toward a circle. Verified offline: up to
+// EYE_MAX_OPEN with EYE_ROUND_MIN every junction gets exactly one eye and the
+// foam stays in one piece; raising roundness only shrinks an eye.
+const EYE_SMOOTH = 0.012; // smooth-min radius (texture units)
+const EYE_MAX_OPEN = 0.4;
+const EYE_ROUND_MIN = 0.35; // most junction-shaped
+const EYE_ROUND_MAX = 0.5; // roundest
+// Junction centres and peaks on the smooth field: x, y, peak (found offline).
 const JUNCTIONS: [number, number, number][] = [
-  [0.247, 0.055, 0.0606], [0.761, 0.139, 0.0530], [0.797, 0.279, 0.0264], [0.173, 0.305, 0.0281],
-  [0.903, 0.371, 0.0530], [0.041, 0.373, 0.0276], [0.863, 0.493, 0.0235], [0.267, 0.545, 0.0293],
-  [0.887, 0.657, 0.0289], [0.149, 0.705, 0.0300], [0.231, 0.841, 0.0233], [0.695, 0.843, 0.0486],
+  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329], [0.786, 0.249, 0.0113], [0.173, 0.306, 0.0100],
+  [0.908, 0.372, 0.0324], [0.011, 0.371, 0.0129], [0.272, 0.543, 0.0100], [0.887, 0.656, 0.0134],
+  [0.146, 0.701, 0.0102], [0.698, 0.842, 0.0296],
 ];
-// Eye shape: the eye is the part of a junction deeper than (1 - open) of its
-// peak, so it is an inset of the junction's own outline (triangles, quads),
-// with a radial term that rounds it toward a circle. Verified offline: up to
-// EYE_MAX_OPEN with EYE_ROUND_MIN, every junction gets exactly one eye and the
-// foam stays in one piece.
-const EYE_MAX_OPEN = 0.28;
-const EYE_OPEN_FRACTION = 0.2; // share of time each eye is open (~share of junctions showing one)
-const EYE_PERSIST_CHANCE = 0.35; // chance per cycle that an eye becomes a big one: stays open ~half its cycle and morphs more
-const EYE_ROUND_MIN = 0.3; // sharpest (most junction-shaped)
-const EYE_ROUND_MAX = 0.6; // roundest
 
 // x, y, radius^2 (the shader compares dot(d, d) < s)
 const CIRCLES: [number, number, number][] = [
@@ -132,8 +141,11 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define WARP_FREQ ${glslFloat(WARP_FREQ)}
 #define WARP_SPEED ${glslFloat(WARP_SPEED)}
 #define EYE_MAX_OPEN ${glslFloat(EYE_MAX_OPEN)}
-#define EYE_THRESHOLD ${glslFloat(+Math.cos(Math.PI * EYE_OPEN_FRACTION).toFixed(4))}
-#define EYE_PERSIST_CHANCE ${glslFloat(EYE_PERSIST_CHANCE)}
+#define SWELL_AMP ${glslFloat(SWELL_AMP)}
+#define SWELL_FREQ ${glslFloat(SWELL_FREQ)}
+#define EYE_MAG_START ${glslFloat(EYE_MAG_START)}
+#define EYE_MAG_FULL ${glslFloat(EYE_MAG_FULL)}
+#define EYE_SMOOTH ${glslFloat(EYE_SMOOTH)}
 #define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
 #define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
@@ -166,41 +178,56 @@ float waterlayer(vec2 uv) {
   return max(ret, 0.0);
 }
 
-// Same foam as waterlayer(), but via its distance field (> 0 in foam = distance
-// to the nearest circle), so the junction eyes can take the junction's shape.
-// Each eye opens and shuts on its own slow cycle (open EYE_OPEN_FRACTION of the
-// time) and drifts between junction-shaped and rounder.
-float foamlayer(vec2 uv, float t) {
+// Same foam as waterlayer(), plus the junction eyes. One pass over the circles
+// gives both the plain distance (foam boundary, unchanged) and a smooth-min
+// distance (online log-sum-exp) that the eyes are cut from. mag = how much the
+// swell is fattening the lines here; eyes open with it.
+float foamlayer(vec2 uv, float mag) {
   uv = mod(uv, 1.0);
-  float d = 1e3;
+  float m = 1e3, s = 0.0;
   for (int i = 0; i < ${CIRCLES.length}; i++) {
     vec2 c = abs(uv - CIRCLES[i].xy);
     c = min(c, 1.0 - c);
-    d = min(d, length(c) - sqrt(CIRCLES[i].z));
+    float x = length(c) - sqrt(CIRCLES[i].z);
+    if (x < m) { s = s * exp((x - m) / EYE_SMOOTH) + 1.0; m = x; }
+    else { s += exp((m - x) / EYE_SMOOTH); }
   }
-  if (d <= 0.0) return 0.0;
+  if (m <= 0.0) return 0.0;
+  // Slightly below zero at rest so a junction's peak never shows as a speck.
+  float open = (EYE_MAX_OPEN + 0.02) * smoothstep(EYE_MAG_START, EYE_MAG_FULL, mag) - 0.02;
+  if (open <= 0.0) return 1.0;
+  float ds = m - EYE_SMOOTH * log(s);
   for (int i = 0; i < ${JUNCTIONS.length}; i++) {
     float fi = float(i);
     vec2 c = abs(uv - JUNCTIONS[i].xy);
     c = min(c, 1.0 - c);
     float peak = JUNCTIONS[i].z;
-    // Each cycle rolls whether this eye is a big, lingering one. Cycles change
-    // where sin(angle) = 0, i.e. while the eye is shut, so the switch is invisible.
-    float angle = 0.45 * t + fi * 2.4;
-    float cycle = floor(angle / M_2PI);
-    bool big = fract(sin(cycle * 12.9898 + fi * 78.233) * 43758.5453) < EYE_PERSIST_CHANCE;
-    float threshold = big ? 0.0 : EYE_THRESHOLD; // big: open for half the cycle
-    float env = smoothstep(threshold, mix(threshold, 1.0, 0.6), sin(angle));
-    // While open, big eyes breathe in size and morph shape faster.
-    float breathe = big ? 0.8 + 0.2 * sin(1.9 * t + fi * 3.1) : 1.0;
-    float shapeRate = big ? 0.9 : 0.31;
-    // Slightly below zero at rest so the peak itself never shows as a speck.
-    // Stays within EYE_MAX_OPEN and the EYE_ROUND range (the offline-verified limits).
-    float open = (EYE_MAX_OPEN + 0.04) * env * breathe - 0.04;
-    float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(shapeRate * t + fi * 1.7));
-    if (d > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
+    float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.3 * iTime + fi * 1.7));
+    if (ds > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
   }
   return 1.0;
+}
+
+// Slow swell offset and its local magnification (1 / det of the warp's Jacobian):
+// > 1 where the lookup is compressed, i.e. where the lines appear fattened.
+vec2 swellPhase(vec2 uv, float time) {
+  return M_2PI * SWELL_FREQ * vec2(dot(uv, vec2(0.6, 0.8)), dot(uv, vec2(-0.95, 0.31)))
+    + vec2(0.55, 0.4) * time + vec2(1.0, 3.7);
+}
+vec2 swellOffset(vec2 uv, float time) {
+  vec2 a = swellPhase(uv, time);
+  return SWELL_AMP / 2.0 * vec2(sin(a.x) + sin(a.y), cos(1.07 * a.x + 1.3) + cos(1.07 * a.y + 1.3));
+}
+float swellMag(vec2 uv, float time) {
+  vec2 a = swellPhase(uv, time);
+  float k = M_2PI * SWELL_FREQ * SWELL_AMP / 2.0;
+  vec2 c = cos(a) * k;
+  vec2 sn = -1.07 * sin(1.07 * a + 1.3) * k;
+  const vec2 d0 = vec2(0.6, 0.8);
+  const vec2 d1 = vec2(-0.95, 0.31);
+  float j11 = c.x * d0.x + c.y * d1.x, j12 = c.x * d0.y + c.y * d1.y;
+  float j21 = sn.x * d0.x + sn.y * d1.x, j22 = sn.x * d0.y + sn.y * d1.y;
+  return 1.0 / ((1.0 + j11) * (1.0 + j22) - j12 * j21);
 }
 
 // Indirect-texture style offset: three travelling waves in different directions.
@@ -241,7 +268,8 @@ vec3 water(vec2 uv, vec3 cdir) {
   vec2 under = uv + dist.xy;
   vec2 foam = vec2(1.0) - uv - dist.yx;
   vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(under + indirect(under, t * 0.8 + 3.0)));
-  ret = mix(ret, FOAM_COL, foamlayer(foam + indirect(foam, t), t));
+  vec2 foamWarped = foam + indirect(foam, t) + swellOffset(foam, iTime);
+  ret = mix(ret, FOAM_COL, foamlayer(foamWarped, swellMag(foam, iTime)));
   return ret;
 }
 
