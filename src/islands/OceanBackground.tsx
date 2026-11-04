@@ -278,9 +278,14 @@ vec3 shade(vec2 fragCoord) {
     // Far away the lines are thinner than a pixel and alias; settle to their
     // average colour before the haze takes over.
     wat = mix(wat, mix(WATER_COL, FOAM_COL, 0.16), smoothstep(60.0, 220.0, dist));
-    return mix(wat, FOG_COL, pow(dist / MAX_DIST, 0.8));
+    // Eases into full haze with zero slope at MAX_DIST, so there's no crease
+    // where the sea stops being drawn.
+    float fog = 1.0 - pow(1.0 - dist / MAX_DIST, 1.6);
+    return mix(wat, FOG_COL, fog);
   }
-  return mix(FOG_COL, SKY_COL, min(cdir.y * 4.0, 1.0));
+  // Clamped: rays just below the horizon land here too (beyond MAX_DIST) and must
+  // get plain haze, not an extrapolated colour.
+  return mix(FOG_COL, SKY_COL, clamp(cdir.y * 4.0, 0.0, 1.0));
 }
 
 void main() {
