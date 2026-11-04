@@ -41,7 +41,7 @@ const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 type Rgb = [number, number, number];
 const PALETTES: Record<string, { water: Rgb; under: Rgb; foam: Rgb; fog: Rgb; sky: Rgb }> = {
   windwaker: { water: [11, 101, 167], under: [6, 90, 154], foam: [192, 232, 236], fog: [127, 212, 221], sky: [92, 189, 237] },
-  burst: { water: [45, 6, 102], under: [35, 30, 135], foam: [240, 238, 255], fog: [128, 82, 196], sky: [197, 138, 249] },
+  burst: { water: [45, 6, 102], under: [35, 30, 135], foam: [240, 208, 236], fog: [128, 82, 196], sky: [197, 138, 249] },
 };
 const PALETTE = PALETTES.burst;
 const glslRgb = ([r, g, b]: Rgb) => `vec3(${(r / 255).toFixed(4)}, ${(g / 255).toFixed(4)}, ${(b / 255).toFixed(4)})`;
