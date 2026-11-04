@@ -34,14 +34,22 @@ const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25; the 
 const HORIZON_FROM_TOP = 0.05; // horizon height, as a fraction of the screen from the top
 const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
-// Foam junctions in the texture: x, y, eye radius. Found offline as the local
-// maxima (foam width >= 0.023) of the foam's distance field; radius is
-// min(0.45 * local foam half-width, 0.014) so an eye always sits inside foam.
+// Foam junctions in the texture: x, y, peak foam depth (distance to the nearest
+// circle). Found offline as the local maxima (depth >= 0.023) of the foam's
+// distance field.
 const JUNCTIONS: [number, number, number][] = [
-  [0.247, 0.055, 0.014], [0.761, 0.139, 0.014], [0.797, 0.279, 0.0119], [0.173, 0.305, 0.0126],
-  [0.903, 0.371, 0.014], [0.041, 0.373, 0.0124], [0.863, 0.493, 0.0106], [0.267, 0.545, 0.0132],
-  [0.887, 0.657, 0.013], [0.149, 0.705, 0.0135], [0.231, 0.841, 0.0105], [0.695, 0.843, 0.014],
+  [0.247, 0.055, 0.0606], [0.761, 0.139, 0.0530], [0.797, 0.279, 0.0264], [0.173, 0.305, 0.0281],
+  [0.903, 0.371, 0.0530], [0.041, 0.373, 0.0276], [0.863, 0.493, 0.0235], [0.267, 0.545, 0.0293],
+  [0.887, 0.657, 0.0289], [0.149, 0.705, 0.0300], [0.231, 0.841, 0.0233], [0.695, 0.843, 0.0486],
 ];
+// Eye shape: the eye is the part of a junction deeper than (1 - open) of its
+// peak, so it is an inset of the junction's own outline (triangles, quads),
+// with a radial term that rounds it toward a circle. Verified offline: up to
+// EYE_MAX_OPEN with EYE_ROUND_MIN, every junction gets exactly one eye and the
+// foam stays in one piece.
+const EYE_MAX_OPEN = 0.28;
+const EYE_ROUND_MIN = 0.3; // sharpest (most junction-shaped)
+const EYE_ROUND_MAX = 0.6; // roundest
 
 // x, y, radius^2 (the shader compares dot(d, d) < s)
 const CIRCLES: [number, number, number][] = [
@@ -102,6 +110,9 @@ uniform float iTime;
 #define WARP_AMP ${glslFloat(WARP_AMP)}
 #define WARP_FREQ ${glslFloat(WARP_FREQ)}
 #define WARP_SPEED ${glslFloat(WARP_SPEED)}
+#define EYE_MAX_OPEN ${glslFloat(EYE_MAX_OPEN)}
+#define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
+#define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
 #define HORIZON_FROM_TOP ${glslFloat(HORIZON_FROM_TOP)}
 #define MAX_DIST ${glslFloat(MAX_DIST)}
@@ -130,16 +141,30 @@ float waterlayer(vec2 uv) {
   return max(ret, 0.0);
 }
 
-// Same, plus the small eyes at the junctions. Each opens and shuts on its own
-// slow cycle (closed about half the time), so only a few show at once.
+// Same foam as waterlayer(), but via its distance field (> 0 in foam = distance
+// to the nearest circle), so the junction eyes can take the junction's shape.
+// Each eye opens and shuts on its own slow cycle (closed about half the time)
+// and drifts between junction-shaped and rounder.
 float foamlayer(vec2 uv, float t) {
-  float ret = waterlayer(uv);
   uv = mod(uv, 1.0);
-  for (int i = 0; i < ${JUNCTIONS.length}; i++) {
-    float r = JUNCTIONS[i].z * clamp(1.6 * sin(0.45 * t + float(i) * 2.4) - 0.3, 0.0, 1.0);
-    ret += circ(uv, JUNCTIONS[i].xy, r * r);
+  float d = 1e3;
+  for (int i = 0; i < ${CIRCLES.length}; i++) {
+    vec2 c = abs(uv - CIRCLES[i].xy);
+    c = min(c, 1.0 - c);
+    d = min(d, length(c) - sqrt(CIRCLES[i].z));
   }
-  return max(ret, 0.0);
+  if (d <= 0.0) return 0.0;
+  for (int i = 0; i < ${JUNCTIONS.length}; i++) {
+    float fi = float(i);
+    vec2 c = abs(uv - JUNCTIONS[i].xy);
+    c = min(c, 1.0 - c);
+    float peak = JUNCTIONS[i].z;
+    // Slightly below zero at rest so the peak itself never shows as a speck.
+    float open = (EYE_MAX_OPEN + 0.04) * clamp(1.6 * sin(0.45 * t + fi * 2.4) - 0.3, 0.0, 1.0) - 0.04;
+    float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.31 * t + fi * 1.7));
+    if (d > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
+  }
+  return 1.0;
 }
 
 // Indirect-texture style offset: three travelling waves in different directions.
