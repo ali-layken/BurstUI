@@ -343,12 +343,15 @@ export default function OceanBackground() {
     canvas.style.height = "100%";
     canvas.style.display = "block";
     mount.appendChild(canvas);
-    // Fade in once the first frame is on screen (the html gradient is under it).
-    let fadeRaf = requestAnimationFrame(() => {
+    // The canvas stays invisible (page gradient shows) until the first real frame
+    // is drawn, then fades in; fadeIn() is called after that render.
+    let fadeRaf = 0;
+    const fadeIn = () => {
+      if (mount.style.opacity === "1") return;
       fadeRaf = requestAnimationFrame(() => {
         mount.style.opacity = "1";
       });
-    });
+    };
 
     const uniforms = {
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
@@ -426,21 +429,18 @@ export default function OceanBackground() {
       uniforms.uPitch.value = pose.pitch;
       last = now;
       renderer.render(scene, camera);
+      fadeIn();
       raf = requestAnimationFrame(frame);
     };
     if (reducedMotion.matches) {
       uniforms.iTime.value = 0;
       renderer.render(scene, camera);
+      fadeIn();
       window.addEventListener("resize", () => renderer.render(scene, camera));
     } else {
       // Measure the monitor's refresh rate with a few empty frames before the
-      // shader starts loading the GPU (median interval, so one hiccup doesn't skew it).
-      // One real frame first so the canvas never fades in as black.
-      uniforms.iTime.value = (performance.now() - start) / 1000;
-      const pose0 = spin!.step(0);
-      uniforms.uYaw.value = pose0.yaw;
-      uniforms.uPitch.value = pose0.pitch;
-      renderer.render(scene, camera);
+      // shader starts loading the GPU (median interval, so one hiccup doesn't skew
+      // it). The page gradient shows meanwhile; the ocean fades in after.
       const ticks: number[] = [];
       const calibrate = (ts: number) => {
         ticks.push(ts);
