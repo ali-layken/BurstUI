@@ -114,7 +114,7 @@ export default function DynamicMarkdownItem() {
             // Prepare the block for rendering
             block.removeAttribute("data-processed");
             const code = decodeURIComponent(block.getAttribute("data-code") || "");
-            block.style.color = burstColors.bgAqua; // Hide text visually
+            block.style.color = burstColors.bgAquaSolid; // Hide text visually (blog panels are solid)
             block.innerHTML = code;
             block.style.visibility = "hidden";
     
