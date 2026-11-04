@@ -11,7 +11,7 @@ html {
      waves fade in over something that already looks like the ocean. */
   background: linear-gradient(
       to bottom,
-      rgb(90, 50, 155) 0%,
+      rgb(128, 82, 196) 0%,
       rgb(45, 6, 102) 35%
     )
     fixed rgb(45, 6, 102);

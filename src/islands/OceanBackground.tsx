@@ -32,13 +32,12 @@ const WARP_AMP = 0.022; // how far the lookup is pushed around (band width swing
 const WARP_FREQ = 5.0; // waves per texture tile (about one per cell edge)
 const WARP_SPEED = 1.0; // 1 = calm sea; the storm footage is roughly 2x
 const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25): lower = bigger cells
-// Camera: looks down CAMERA_TILT_DEG from CAMERA_HEIGHT. The field of view is
-// derived so the top edge of the screen looks TOP_EDGE_DEG below the horizon,
-// framing out the far distance where lines bunch up into harsh stripes.
-// (Dragging down still lets you look up to the horizon and sky.)
+// Camera: looks down CAMERA_TILT_DEG from CAMERA_HEIGHT with a vertical half
+// field of view of HALF_FOV_DEG. The top edge of the screen is at
+// (CAMERA_TILT_DEG - HALF_FOV_DEG) below the horizon: negative = horizon on screen.
 const CAMERA_HEIGHT = 12.0; // above the water (original 4.0)
-const CAMERA_TILT_DEG = 35.0; // how steeply the screen centre looks down
-const TOP_EDGE_DEG = 12.0; // top of the screen, in degrees below the horizon: lower = see further back
+const CAMERA_TILT_DEG = 22.0; // how steeply the screen centre looks down
+const HALF_FOV_DEG = 23.0; // vertical half field of view: lower = more zoomed in
 const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
 // Colour sets (0..255). "windwaker" is measured from daytime HD footage of the
@@ -137,7 +136,7 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define MAX_DIST ${glslFloat(MAX_DIST)}
 #define CAMERA_HEIGHT ${glslFloat(CAMERA_HEIGHT)}
 #define CAMERA_TILT ${glslFloat((CAMERA_TILT_DEG * Math.PI) / 180)}
-#define TOP_EDGE ${glslFloat((TOP_EDGE_DEG * Math.PI) / 180)}
+#define HALF_FOV ${glslFloat((HALF_FOV_DEG * Math.PI) / 180)}
 
 const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
   ${circleArray}
@@ -252,10 +251,9 @@ vec3 quatmul(vec4 q, vec3 v) {
 
 vec3 shade(vec2 fragCoord) {
   vec2 uv = fragCoord / iResolution.xy;
-  // Focal length chosen so the top edge sits TOP_EDGE below the horizon at any
-  // aspect ratio: half the vertical field of view = CAMERA_TILT - TOP_EDGE.
+  // Same vertical field of view at any aspect ratio.
   float halfH = 0.5 * iResolution.y / iResolution.x;
-  float focal = halfH / tan(CAMERA_TILT - TOP_EDGE);
+  float focal = halfH / tan(HALF_FOV);
   vec3 cdir = pixtoray(uv, focal);
   float tilt = CAMERA_TILT;
   // Stand back from the origin by exactly the distance to the point the screen
