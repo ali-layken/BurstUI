@@ -397,6 +397,7 @@ export default function OceanBackground() {
     const start = performance.now() - Math.random() * 300_000;
     let last = performance.now();
     let raf = 0;
+    let calibrationTimeout = 0;
     const spin = reducedMotion.matches ? null : createSpinController();
     // Adaptive resolution against the monitor's own refresh rate (measured by
     // calibrate() below): every ~1 s, step quality down if we fall short of it and
@@ -441,24 +442,35 @@ export default function OceanBackground() {
       // Measure the monitor's refresh rate with a few empty frames before the
       // shader starts loading the GPU (median interval, so one hiccup doesn't skew
       // it). The page gradient shows meanwhile; the ocean fades in after.
+      // Falls back after 1 s in case the browser throttles frames while nothing
+      // is visible (it starts with whatever ticks it has, or 60 fps).
       const ticks: number[] = [];
-      const calibrate = (ts: number) => {
-        ticks.push(ts);
-        if (ticks.length < 24) {
-          raf = requestAnimationFrame(calibrate);
-          return;
+      let started = false;
+      const begin = () => {
+        if (started) return;
+        started = true;
+        clearTimeout(calibrationTimeout);
+        cancelAnimationFrame(raf);
+        if (ticks.length >= 4) {
+          const gaps = ticks.slice(1).map((t, i) => t - ticks[i]).sort((a, b) => a - b);
+          targetFps = 1000 / gaps[Math.floor(gaps.length / 2)];
         }
-        const gaps = ticks.slice(1).map((t, i) => t - ticks[i]).sort((a, b) => a - b);
-        targetFps = 1000 / gaps[Math.floor(gaps.length / 2)];
         last = performance.now();
         raf = requestAnimationFrame(frame);
       };
+      const calibrate = (ts: number) => {
+        ticks.push(ts);
+        if (ticks.length >= 24) begin();
+        else raf = requestAnimationFrame(calibrate);
+      };
       raf = requestAnimationFrame(calibrate);
+      calibrationTimeout = window.setTimeout(begin, 1000);
     }
 
     return () => {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(fadeRaf);
+      clearTimeout(calibrationTimeout);
       spin?.dispose();
       window.removeEventListener("resize", resize);
       geometry.dispose();
