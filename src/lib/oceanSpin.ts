@@ -1,5 +1,7 @@
-// Camera spin for the ocean background: a slow default spin, mouse-position
-// steering over the background, and grab / drag / throw with friction.
+// Camera control for the ocean background: a slow default spin, mouse-position
+// steering over the background, and grab / drag / throw. Horizontal drag spins
+// (and throws, with friction back to the target spin); vertical drag tilts the
+// camera, which springs back to the default view after release.
 //
 // Yaw sign: positive turns the sea like "Burst!" (front moving right), so the
 // two never spin against each other.
@@ -8,7 +10,7 @@ export const SPIN = {
   /** Default spin (rad/s) when the mouse isn't on the page (or on touch devices). */
   base: 0.012,
   /** Spin with the mouse at the far left/right edge of the background (rad/s). */
-  hoverMax: 0.08,
+  hoverMax: 0.2,
   /** Fraction of the half-width around the centre that adds no steering. */
   deadzone: 0.12,
   /** Time constant (s) for easing toward the target spin: higher = longer glide after a throw. */
@@ -17,7 +19,21 @@ export const SPIN = {
   maxThrow: 1.2,
   /** Drag sensitivity: dragging across the full window width turns this many radians. */
   dragPerWidth: 1.6,
+  /** Vertical drag: dragging the full window height tilts this many radians. */
+  dragPerHeight: 1.2,
+  /** Tilt limits relative to the default view (rad): negative looks up toward the sky. */
+  pitchMin: -0.5,
+  pitchMax: 0.55,
+  /** Spring back to the default tilt after release (rad/s natural frequency; critically damped). */
+  pitchReturn: 3.0,
+  /** Fastest a vertical flick can tilt (rad/s). */
+  maxPitchThrow: 2.5,
 };
+
+export interface CameraPose {
+  yaw: number;
+  pitch: number;
+}
 
 /**
  * Whether the element under the pointer is bare background rather than a panel.
@@ -34,14 +50,16 @@ export function isBackground(el: Element | null): boolean {
   return false;
 }
 
+const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
 
 export interface SpinController {
-  /** Advance by dt seconds and return the camera yaw (radians). */
-  step(dt: number): number;
+  /** Advance by dt seconds and return the camera pose (radians). */
+  step(dt: number): CameraPose;
   dispose(): void;
 }
 
@@ -49,12 +67,16 @@ export function createSpinController(): SpinController {
   let yaw = 0;
   let vel = SPIN.base;
   let target = SPIN.base;
+  let pitch = 0;
+  let pitchVel = 0;
 
   let dragging = false;
   let pointerId = -1;
   let lastX = 0;
+  let lastY = 0;
   let lastT = 0;
   let dragVel = 0; // smoothed drag velocity, becomes the throw speed on release
+  let dragPitchVel = 0;
 
   const root = document.documentElement;
   const setCursor = (c: string) => {
@@ -79,12 +101,18 @@ export function createSpinController(): SpinController {
     if (!dragging || e.pointerId !== pointerId) return;
     const now = performance.now();
     const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
     const dYaw = (dx / window.innerWidth) * SPIN.dragPerWidth;
+    // Grabbing the sea and pulling it down means looking up (less tilt).
+    const before = pitch;
+    pitch = clamp(pitch - (dy / window.innerHeight) * SPIN.dragPerHeight, SPIN.pitchMin, SPIN.pitchMax);
     yaw += dYaw;
     const dt = Math.max(1, now - lastT) / 1000;
     // Weighted toward recent motion so a flick at the end of a drag is what gets thrown.
     dragVel = dragVel * 0.6 + (dYaw / dt) * 0.4;
+    dragPitchVel = dragPitchVel * 0.6 + ((pitch - before) / dt) * 0.4;
     lastX = e.clientX;
+    lastY = e.clientY;
     lastT = now;
   };
 
@@ -95,8 +123,10 @@ export function createSpinController(): SpinController {
     dragging = true;
     pointerId = e.pointerId;
     lastX = e.clientX;
+    lastY = e.clientY;
     lastT = performance.now();
     dragVel = 0;
+    dragPitchVel = 0;
     setCursor("grabbing");
     document.body.style.userSelect = "none";
   };
@@ -107,8 +137,9 @@ export function createSpinController(): SpinController {
     pointerId = -1;
     // A drag that stopped before release shouldn't throw.
     const idle = (performance.now() - lastT) / 1000;
-    const v = idle > 0.08 ? 0 : dragVel;
-    vel = Math.max(-SPIN.maxThrow, Math.min(SPIN.maxThrow, v));
+    const flick = idle > 0.08 ? 0 : 1;
+    vel = clamp(dragVel * flick, -SPIN.maxThrow, SPIN.maxThrow);
+    pitchVel = clamp(dragPitchVel * flick, -SPIN.maxPitchThrow, SPIN.maxPitchThrow);
     setCursor("");
     document.body.style.userSelect = "";
   };
@@ -134,8 +165,13 @@ export function createSpinController(): SpinController {
         // Friction-like ease from the current (possibly thrown) speed to the target.
         vel += (target - vel) * (1 - Math.exp(-dt / SPIN.settle));
         yaw += vel * dt;
+        // Critically damped spring back to the default tilt (no wobble).
+        const w = SPIN.pitchReturn;
+        pitchVel += (-w * w * pitch - 2 * w * pitchVel) * dt;
+        pitch = clamp(pitch + pitchVel * dt, SPIN.pitchMin, SPIN.pitchMax);
+        if (pitch === SPIN.pitchMin || pitch === SPIN.pitchMax) pitchVel *= 0.5;
       }
-      return yaw;
+      return { yaw, pitch };
     },
     dispose() {
       window.removeEventListener("pointermove", onMove);

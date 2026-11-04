@@ -96,6 +96,7 @@ const FRAGMENT = /* glsl */ `
 uniform vec3 iResolution;
 uniform float iTime;
 uniform float uYaw; // camera spin, driven from JS (see lib/oceanSpin.ts)
+uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 
 #define ANTIALIAS ${ANTIALIAS}
 
@@ -239,6 +240,7 @@ vec3 shade(vec2 fragCoord) {
   // edge, whatever the window's aspect ratio.
   float halfH = 0.5 * iResolution.y / iResolution.x;
   float tilt = atan((1.0 - 2.0 * HORIZON_FROM_TOP) * halfH / 0.6);
+  tilt = clamp(tilt + uPitch, -0.3, 1.4); // dragging can look up at the sky or down at the water
   cdir = quatmul(vec4(-sin(0.5 * tilt), 0.0, 0.0, cos(0.5 * tilt)), cdir);
 
   // Rotating camera (orbits the point it looks at, so the sea turns like a turntable)
@@ -300,6 +302,7 @@ export default function OceanBackground() {
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
       iTime: { value: 0 },
       uYaw: { value: 0 },
+      uPitch: { value: 0 },
     };
     const material = new THREE.ShaderMaterial({
       vertexShader: VERTEX,
@@ -336,7 +339,9 @@ export default function OceanBackground() {
     const frame = () => {
       const now = performance.now();
       uniforms.iTime.value = (now - start) / 1000;
-      uniforms.uYaw.value = spin!.step((now - last) / 1000);
+      const pose = spin!.step((now - last) / 1000);
+      uniforms.uYaw.value = pose.yaw;
+      uniforms.uPitch.value = pose.pitch;
       last = now;
       renderer.render(scene, camera);
       raf = requestAnimationFrame(frame);
