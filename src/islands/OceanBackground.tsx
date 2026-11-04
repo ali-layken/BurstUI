@@ -31,11 +31,15 @@ const ANTIALIAS = 1; // 0 = 1 sample/pixel, 1 = 2x2 supersampling
 const WARP_AMP = 0.022; // how far the lookup is pushed around (band width swings ~+-35%)
 const WARP_FREQ = 5.0; // waves per texture tile (about one per cell edge)
 const WARP_SPEED = 1.0; // 1 = calm sea; the storm footage is roughly 2x
-const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25). On-screen cell size goes as TEXTURE_SCALE * CAMERA_HEIGHT (zoom cancels out with the horizon pinned)
-const HORIZON_FROM_TOP = 0.05; // horizon height, as a fraction of the screen from the top
-const CAMERA_HEIGHT = 8.0; // camera height above the water (original 4.0)
-const ZOOM = 1.0; // focal length multiplier (original 1.0): higher = flatter, compressed lines pushed to the horizon
-const MAX_DIST = 400.0 * ZOOM; // how far the sea is drawn before it is all haze
+const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25): lower = bigger cells
+// Camera: looks down CAMERA_TILT_DEG from CAMERA_HEIGHT. The field of view is
+// derived so the top edge of the screen looks TOP_EDGE_DEG below the horizon,
+// framing out the far distance where lines bunch up into harsh stripes.
+// (Dragging down still lets you look up to the horizon and sky.)
+const CAMERA_HEIGHT = 12.0; // above the water (original 4.0)
+const CAMERA_TILT_DEG = 35.0; // how steeply the screen centre looks down
+const TOP_EDGE_DEG = 12.0; // top of the screen, in degrees below the horizon: lower = see further back
+const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
 // Colour sets (0..255). "windwaker" is measured from daytime HD footage of the
 // game; "burst" uses the site's own colours. Keep styles.css's html fallback
@@ -130,11 +134,10 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
 #define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
-#define HORIZON_FROM_TOP ${glslFloat(HORIZON_FROM_TOP)}
 #define MAX_DIST ${glslFloat(MAX_DIST)}
 #define CAMERA_HEIGHT ${glslFloat(CAMERA_HEIGHT)}
-#define FOCAL ${glslFloat(0.6 * ZOOM)}
-#define ZOOM ${glslFloat(ZOOM)}
+#define CAMERA_TILT ${glslFloat((CAMERA_TILT_DEG * Math.PI) / 180)}
+#define TOP_EDGE ${glslFloat((TOP_EDGE_DEG * Math.PI) / 180)}
 
 const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
   ${circleArray}
@@ -229,11 +232,11 @@ vec3 water(vec2 uv, vec3 cdir) {
 }
 
 // Camera perspective based on [0..1] viewport
-vec3 pixtoray(vec2 uv) {
+vec3 pixtoray(vec2 uv, float focal) {
   vec3 pixpos;
   pixpos.xy = uv - 0.5;
   pixpos.y *= iResolution.y / iResolution.x; // Aspect correction
-  pixpos.z = -FOCAL; // Focal length (Controls field of view)
+  pixpos.z = -focal; // Focal length (Controls field of view)
   return normalize(pixpos);
 }
 
@@ -249,12 +252,12 @@ vec3 quatmul(vec4 q, vec3 v) {
 
 vec3 shade(vec2 fragCoord) {
   vec2 uv = fragCoord / iResolution.xy;
-  vec3 cdir = pixtoray(uv);
-
-  // Tilt down just enough that the horizon sits HORIZON_FROM_TOP below the top
-  // edge, whatever the window's aspect ratio.
+  // Focal length chosen so the top edge sits TOP_EDGE below the horizon at any
+  // aspect ratio: half the vertical field of view = CAMERA_TILT - TOP_EDGE.
   float halfH = 0.5 * iResolution.y / iResolution.x;
-  float tilt = atan((1.0 - 2.0 * HORIZON_FROM_TOP) * halfH / FOCAL);
+  float focal = halfH / tan(CAMERA_TILT - TOP_EDGE);
+  vec3 cdir = pixtoray(uv, focal);
+  float tilt = CAMERA_TILT;
   // Stand back from the origin by exactly the distance to the point the screen
   // centre looks at, so the spin pivots on the middle of the screen.
   vec3 cpos = vec3(0.0, CAMERA_HEIGHT, CAMERA_HEIGHT / tan(tilt));
@@ -276,7 +279,7 @@ vec3 shade(vec2 fragCoord) {
     vec3 wat = water(pos.xz, cdir);
     // Far away the lines are thinner than a pixel and alias; settle to their
     // average colour before the haze takes over.
-    wat = mix(wat, mix(WATER_COL, FOAM_COL, 0.16), smoothstep(60.0 * ZOOM, 220.0 * ZOOM, dist));
+    wat = mix(wat, mix(WATER_COL, FOAM_COL, 0.16), smoothstep(60.0, 220.0, dist));
     return mix(wat, FOG_COL, pow(dist / MAX_DIST, 0.8));
   }
   return mix(FOG_COL, SKY_COL, min(cdir.y * 4.0, 1.0));
