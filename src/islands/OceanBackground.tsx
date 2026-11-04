@@ -65,6 +65,7 @@ const JUNCTIONS: [number, number, number][] = [
 // EYE_MAX_OPEN with EYE_ROUND_MIN, every junction gets exactly one eye and the
 // foam stays in one piece.
 const EYE_MAX_OPEN = 0.28;
+const EYE_OPEN_FRACTION = 0.2; // share of time each eye is open (~share of junctions showing one)
 const EYE_ROUND_MIN = 0.3; // sharpest (most junction-shaped)
 const EYE_ROUND_MAX = 0.6; // roundest
 
@@ -130,6 +131,7 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define WARP_FREQ ${glslFloat(WARP_FREQ)}
 #define WARP_SPEED ${glslFloat(WARP_SPEED)}
 #define EYE_MAX_OPEN ${glslFloat(EYE_MAX_OPEN)}
+#define EYE_THRESHOLD ${glslFloat(+Math.cos(Math.PI * EYE_OPEN_FRACTION).toFixed(4))}
 #define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
 #define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
@@ -164,8 +166,8 @@ float waterlayer(vec2 uv) {
 
 // Same foam as waterlayer(), but via its distance field (> 0 in foam = distance
 // to the nearest circle), so the junction eyes can take the junction's shape.
-// Each eye opens and shuts on its own slow cycle (closed about half the time)
-// and drifts between junction-shaped and rounder.
+// Each eye opens and shuts on its own slow cycle (open EYE_OPEN_FRACTION of the
+// time) and drifts between junction-shaped and rounder.
 float foamlayer(vec2 uv, float t) {
   uv = mod(uv, 1.0);
   float d = 1e3;
@@ -181,7 +183,8 @@ float foamlayer(vec2 uv, float t) {
     c = min(c, 1.0 - c);
     float peak = JUNCTIONS[i].z;
     // Slightly below zero at rest so the peak itself never shows as a speck.
-    float open = (EYE_MAX_OPEN + 0.04) * clamp(1.6 * sin(0.45 * t + fi * 2.4) - 0.3, 0.0, 1.0) - 0.04;
+    float phase = sin(0.45 * t + fi * 2.4);
+    float open = (EYE_MAX_OPEN + 0.04) * smoothstep(EYE_THRESHOLD, mix(EYE_THRESHOLD, 1.0, 0.6), phase) - 0.04;
     float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.31 * t + fi * 1.7));
     if (d > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
   }
