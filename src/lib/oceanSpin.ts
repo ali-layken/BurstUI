@@ -64,7 +64,7 @@ export interface SpinController {
 }
 
 export function createSpinController(): SpinController {
-  let yaw = 0;
+  let yaw = Math.random() * Math.PI * 2; // random spot on the spin path, so every visit looks different
   let vel = SPIN.base;
   let target = SPIN.base;
   let pitch = 0;

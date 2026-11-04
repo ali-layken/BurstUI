@@ -57,26 +57,28 @@ const glslRgb = ([r, g, b]: Rgb) => `vec3(${(r / 255).toFixed(4)}, ${(g / 255).t
 const SWELL_AMP = 0.03;
 const SWELL_FREQ = 1.0; // waves per texture tile
 
-// Junction eyes. They open where the swell is fattening the lines (local
-// magnification of the swell warp, computed exactly) and stay while it lasts:
-// open from EYE_MAG_START, fully open at EYE_MAG_FULL. With these values an
-// eye is open ~20% of the time, typically for ~4 s at a stretch.
-const EYE_MAG_START = 1.09;
-const EYE_MAG_FULL = 1.2;
-// Shape: the part of the junction deeper than (1 - open) of its peak in a
-// smooth-min distance field (rounds every crease, so eyes are globular with no
-// points), plus a radial term pulling toward a circle. Verified offline: up to
-// EYE_MAX_OPEN with EYE_ROUND_MIN every junction gets exactly one eye and the
-// foam stays in one piece; raising roundness only shrinks an eye.
+// Junction eyes, the way the game does it: small holes baked permanently into
+// the texture at some junctions. They grow because the texture around them gets
+// magnified: each eye has a lens warp that slowly inflates, holds, and deflates,
+// pushing the surrounding lines outward to make room. A radial lens
+// r -> r / (1 + g * exp(-r^2/s^2)) is strictly increasing in r for any g >= 0,
+// so it never folds: lines can't break. As the lens inflates the hole also
+// widens within its junction (EYE_BASE_OPEN -> EYE_MAX_OPEN) so a big eye sits
+// in a thin ring. Shapes are cut from a smooth-min distance field (globular, no
+// points). Verified offline: every lens at full gain, foam stays one piece and
+// each eye stays one hole.
 const EYE_SMOOTH = 0.012; // smooth-min radius (texture units)
-const EYE_MAX_OPEN = 0.4;
+const EYE_BASE_OPEN = 0.2; // resting eye size (share of the junction's depth)
+const EYE_MAX_OPEN = 0.4; // at full inflation (verified limit)
 const EYE_ROUND_MIN = 0.35; // most junction-shaped
 const EYE_ROUND_MAX = 0.5; // roundest
-// Junction centres and peaks on the smooth field: x, y, peak (found offline).
-const JUNCTIONS: [number, number, number][] = [
-  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329], [0.786, 0.249, 0.0113], [0.173, 0.306, 0.0100],
-  [0.908, 0.372, 0.0324], [0.011, 0.371, 0.0129], [0.272, 0.543, 0.0100], [0.887, 0.656, 0.0134],
-  [0.146, 0.701, 0.0102], [0.698, 0.842, 0.0296],
+const LENS_GAIN_MAX = 3.0; // peak magnification is 1 + this
+const LENS_SIZE = 2.2; // lens radius, in multiples of the junction's depth (min 0.035)
+const LENS_SPEED = 1.0; // how fast eyes inflate/deflate (1 = cycles of ~20-30 s)
+// Eyed junctions on the smooth field: x, y, peak depth (found offline).
+const EYES: [number, number, number][] = [
+  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329], [0.908, 0.372, 0.0324],
+  [0.011, 0.371, 0.0129], [0.887, 0.656, 0.0134], [0.698, 0.842, 0.0296],
 ];
 
 // x, y, radius^2 (the shader compares dot(d, d) < s)
@@ -117,7 +119,7 @@ void main() {
 }`;
 
 
-const junctionArray = JUNCTIONS.map(([x, y, r]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(r)})`).join(",\n  ");
+const eyeArray = EYES.map(([x, y, r]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(r)})`).join(",\n  ");
 
 const FRAGMENT = /* glsl */ `
 uniform vec3 iResolution;
@@ -143,9 +145,11 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 #define EYE_MAX_OPEN ${glslFloat(EYE_MAX_OPEN)}
 #define SWELL_AMP ${glslFloat(SWELL_AMP)}
 #define SWELL_FREQ ${glslFloat(SWELL_FREQ)}
-#define EYE_MAG_START ${glslFloat(EYE_MAG_START)}
-#define EYE_MAG_FULL ${glslFloat(EYE_MAG_FULL)}
 #define EYE_SMOOTH ${glslFloat(EYE_SMOOTH)}
+#define EYE_BASE_OPEN ${glslFloat(EYE_BASE_OPEN)}
+#define LENS_GAIN_MAX ${glslFloat(LENS_GAIN_MAX)}
+#define LENS_SIZE ${glslFloat(LENS_SIZE)}
+#define LENS_SPEED ${glslFloat(LENS_SPEED)}
 #define EYE_ROUND_MIN ${glslFloat(EYE_ROUND_MIN)}
 #define EYE_ROUND_MAX ${glslFloat(EYE_ROUND_MAX)}
 #define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
@@ -158,8 +162,8 @@ const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
   ${circleArray}
 );
 
-const vec3 JUNCTIONS[${JUNCTIONS.length}] = vec3[${JUNCTIONS.length}](
-  ${junctionArray}
+const vec3 EYES[${EYES.length}] = vec3[${EYES.length}](
+  ${eyeArray}
 );
 
 float circ(vec2 pos, vec2 c, float s) {
@@ -178,11 +182,32 @@ float waterlayer(vec2 uv) {
   return max(ret, 0.0);
 }
 
-// Same foam as waterlayer(), plus the junction eyes. One pass over the circles
+// How inflated eye i's lens is right now (0 = resting). Two slow incommensurate
+// waves per eye, so each one swells now and then, holds a few seconds, and
+// settles, independently of the others.
+float eyeGain(int i) {
+  float fi = float(i);
+  float t = iTime * LENS_SPEED;
+  float n = 0.5 + 0.5 * (0.6 * sin(0.23 * t + fi * 2.39) + 0.4 * sin(0.37 * t + fi * 4.1 + 1.0));
+  return LENS_GAIN_MAX * smoothstep(0.55, 0.9, n);
+}
+
+// Pull the lookup toward each eye: magnifies the eye and the lines around it.
+vec2 applyLenses(vec2 uv) {
+  for (int i = 0; i < ${EYES.length}; i++) {
+    float g = eyeGain(i);
+    float s = max(0.035, LENS_SIZE * EYES[i].z);
+    vec2 d = uv - EYES[i].xy;
+    d -= floor(d + 0.5); // nearest copy of the eye on the tiling texture
+    uv = EYES[i].xy + d / (1.0 + g * exp(-dot(d, d) / (s * s)));
+  }
+  return uv;
+}
+
+// Same foam as waterlayer(), plus the permanent eyes. One pass over the circles
 // gives both the plain distance (foam boundary, unchanged) and a smooth-min
-// distance (online log-sum-exp) that the eyes are cut from. mag = how much the
-// swell is fattening the lines here; eyes open with it.
-float foamlayer(vec2 uv, float mag) {
+// distance (online log-sum-exp) that the eyes are cut from.
+float foamlayer(vec2 uv) {
   uv = mod(uv, 1.0);
   float m = 1e3, s = 0.0;
   for (int i = 0; i < ${CIRCLES.length}; i++) {
@@ -193,23 +218,20 @@ float foamlayer(vec2 uv, float mag) {
     else { s += exp((m - x) / EYE_SMOOTH); }
   }
   if (m <= 0.0) return 0.0;
-  // Slightly below zero at rest so a junction's peak never shows as a speck.
-  float open = (EYE_MAX_OPEN + 0.02) * smoothstep(EYE_MAG_START, EYE_MAG_FULL, mag) - 0.02;
-  if (open <= 0.0) return 1.0;
   float ds = m - EYE_SMOOTH * log(s);
-  for (int i = 0; i < ${JUNCTIONS.length}; i++) {
+  for (int i = 0; i < ${EYES.length}; i++) {
     float fi = float(i);
-    vec2 c = abs(uv - JUNCTIONS[i].xy);
+    vec2 c = abs(uv - EYES[i].xy);
     c = min(c, 1.0 - c);
-    float peak = JUNCTIONS[i].z;
+    float peak = EYES[i].z;
+    float open = mix(EYE_BASE_OPEN, EYE_MAX_OPEN, eyeGain(i) / LENS_GAIN_MAX);
     float roundness = mix(EYE_ROUND_MIN, EYE_ROUND_MAX, 0.5 + 0.5 * sin(0.3 * iTime + fi * 1.7));
     if (ds > peak * (1.0 - open) + roundness * dot(c, c) / peak) return 0.0;
   }
   return 1.0;
 }
 
-// Slow swell offset and its local magnification (1 / det of the warp's Jacobian):
-// > 1 where the lookup is compressed, i.e. where the lines appear fattened.
+// Slow swell offset: regions of lines thicken/thin over several seconds.
 vec2 swellPhase(vec2 uv, float time) {
   return M_2PI * SWELL_FREQ * vec2(dot(uv, vec2(0.6, 0.8)), dot(uv, vec2(-0.95, 0.31)))
     + vec2(0.55, 0.4) * time + vec2(1.0, 3.7);
@@ -217,17 +239,6 @@ vec2 swellPhase(vec2 uv, float time) {
 vec2 swellOffset(vec2 uv, float time) {
   vec2 a = swellPhase(uv, time);
   return SWELL_AMP / 2.0 * vec2(sin(a.x) + sin(a.y), cos(1.07 * a.x + 1.3) + cos(1.07 * a.y + 1.3));
-}
-float swellMag(vec2 uv, float time) {
-  vec2 a = swellPhase(uv, time);
-  float k = M_2PI * SWELL_FREQ * SWELL_AMP / 2.0;
-  vec2 c = cos(a) * k;
-  vec2 sn = -1.07 * sin(1.07 * a + 1.3) * k;
-  const vec2 d0 = vec2(0.6, 0.8);
-  const vec2 d1 = vec2(-0.95, 0.31);
-  float j11 = c.x * d0.x + c.y * d1.x, j12 = c.x * d0.y + c.y * d1.y;
-  float j21 = sn.x * d0.x + sn.y * d1.x, j22 = sn.x * d0.y + sn.y * d1.y;
-  return 1.0 / ((1.0 + j11) * (1.0 + j22) - j12 * j21);
 }
 
 // Indirect-texture style offset: three travelling waves in different directions.
@@ -269,7 +280,7 @@ vec3 water(vec2 uv, vec3 cdir) {
   vec2 foam = vec2(1.0) - uv - dist.yx;
   vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(under + indirect(under, t * 0.8 + 3.0)));
   vec2 foamWarped = foam + indirect(foam, t) + swellOffset(foam, iTime);
-  ret = mix(ret, FOAM_COL, foamlayer(foamWarped, swellMag(foam, iTime)));
+  ret = mix(ret, FOAM_COL, foamlayer(applyLenses(foamWarped)));
   return ret;
 }
 
@@ -399,8 +410,10 @@ export default function OceanBackground() {
     window.addEventListener("resize", resize);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const start = performance.now();
-    let last = start;
+    // Random head start on the wave/eye clock (up to 5 min) so each visit
+    // starts in a different phase; the spin controller also starts at a random yaw.
+    const start = performance.now() - Math.random() * 300_000;
+    let last = performance.now();
     let raf = 0;
     const spin = reducedMotion.matches ? null : createSpinController();
     const frame = () => {
