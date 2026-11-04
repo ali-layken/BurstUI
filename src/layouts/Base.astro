@@ -15,6 +15,8 @@ interface Props {
   ogType?: string;
   /** Rendered verbatim inside <head> for page-specific meta (article:*). */
   robots?: string;
+  /** Opaque content panel (long-form reading); default is translucent over the ocean. */
+  solid?: boolean;
 }
 
 const {
@@ -25,7 +27,11 @@ const {
   ogDescription = description,
   ogType = "website",
   robots,
+  solid = false,
 } = Astro.props;
+
+const panelBg = solid ? "bg-bgAquaSolid" : "bg-bgAqua2";
+const panelBgMd = solid ? "md:bg-bgAquaSolid" : "md:bg-bgAqua2";
 
 const absolute = new URL(path, Astro.site).toString();
 ---
@@ -59,11 +65,11 @@ const absolute = new URL(path, Astro.site).toString();
       >
         <div
           id="main-container"
-          class="w-full min-w-0 md:flex gap-8 justify-start md:justify-center bg-bgAqua md:bg-transparent max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none min-h-screen md:min-h-0"
+          class:list={["w-full min-w-0 md:flex gap-8 justify-start md:justify-center", panelBg, "md:bg-transparent max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none min-h-screen md:min-h-0"]}
         >
           <div
             id="wide-nav-container"
-            class="hidden md:flex flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex-col"
+            class="hidden md:flex flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua2 rounded-md shadow-lg self-start sticky flex-col"
           >
             <slot name="nav">
               <div id="site-nav-container">
@@ -73,7 +79,7 @@ const absolute = new URL(path, Astro.site).toString();
           </div>
           <div
             id="component-container"
-            class="max-w-4xl px-2 md:px-8 py-0 md:py-8 bg-none md:bg-bgAqua rounded-md shadow-none md:shadow-lg static md:relative w-full"
+            class:list={["max-w-4xl px-2 md:px-8 py-0 md:py-8 bg-none", panelBgMd, "rounded-md shadow-none md:shadow-lg static md:relative w-full"]}
           >
             <slot />
           </div>

@@ -178,6 +178,12 @@ export default function OceanBackground() {
     canvas.style.height = "100%";
     canvas.style.display = "block";
     mount.appendChild(canvas);
+    // Fade in once the first frame is on screen (the html gradient is under it).
+    let fadeRaf = requestAnimationFrame(() => {
+      fadeRaf = requestAnimationFrame(() => {
+        mount.style.opacity = "1";
+      });
+    });
 
     const uniforms = {
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
@@ -228,6 +234,7 @@ export default function OceanBackground() {
 
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(fadeRaf);
       window.removeEventListener("resize", resize);
       geometry.dispose();
       material.dispose();
@@ -236,5 +243,5 @@ export default function OceanBackground() {
     };
   }, []);
 
-  return <div ref={mountRef} aria-hidden="true" style="position:fixed;inset:0;z-index:-1;pointer-events:none;" />;
+  return <div ref={mountRef} aria-hidden="true" style="position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity 2.5s ease-out;" />;
 }

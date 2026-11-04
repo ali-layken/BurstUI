@@ -27,6 +27,7 @@ const fullTitle = `${meta.name}:${subtitle}`;
   ogTitle={subtitle || title}
   ogDescription={fullTitle}
   ogType="article"
+  solid
 >
   <Fragment slot="head">
     <meta property="article:modified_time" content={meta.modifiedAt.toISOString()} />
