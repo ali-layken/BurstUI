@@ -2,52 +2,96 @@ import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
 
 /**
- * Full-page Wind Waker style ocean, rendered as a three.js fullscreen triangle.
- * Started from "Wind Waker Ocean" by Polyflare (https://www.shadertoy.com/view/ltfGD7,
- * CC BY 4.0): camera, parallax waves and texture sway are still theirs.
+ * Full-page background: the "Wind Waker Ocean" shader by Polyflare
+ * (https://www.shadertoy.com/view/ltfGD7, CC BY 4.0), ported to a three.js
+ * fullscreen triangle. The foam texture is still Polyflare's 75 circles
+ * (fitted to the game's texture; its ~16% foam coverage matches the footage).
  *
- * The foam is a cell network (jittered Voronoi), because its borders are always
- * connected: lines can thin but never break. What makes it move like the game:
- *  - cell points drift, so junctions slide and lines change angle;
- *  - a slow warp bends the whole network (the game's indirect-texture wobble);
- *  - band width breathes along each line between a min and max, never zero;
- *  - every junction is a rounded foam web, and some junctions open a small
- *    water "eye" in the middle that pulses open and shut. Eyes only ever
- *    appear at junctions.
- * Underneath runs a second, darker and softer network at a different scale.
+ * Changes from the original, each matched against gameplay footage:
+ *  - Indirect warp: the game samples the foam through a scrolling offset map
+ *    (GameCube indirect texturing), so the lines bend and thicken/thin locally
+ *    instead of the whole texture sliding as one piece. Modelled as three
+ *    travelling sine waves offsetting the texture lookup. The offset is smooth
+ *    and never folds (max stretch < 1), so lines can never break and no new
+ *    holes can appear.
+ *  - Junction eyes: small water holes at the 12 foam junctions of the texture
+ *    (the local maxima of the foam's distance field), sized to sit inside the
+ *    foam and pulsing slowly. Nowhere else.
+ *  - Palette measured from daytime HD footage; horizon held near the top of
+ *    the screen; sea drawn further out.
  *
- * Edges are antialiased analytically with fwidth (no supersampling).
+ * Cost is per pixel (2x2 supersampling x 2 layers x 75 circles), so the canvas
+ * renders at RENDER_SCALE of CSS size and is stretched by the browser.
  */
-const RENDER_SCALE = 0.75;
+const RENDER_SCALE = 0.6;
+const ANTIALIAS = 1; // 0 = 1 sample/pixel, 1 = 2x2 supersampling
 
-// Tunables. Network units: 1 = roughly one cell across.
-const CELL_SCALE = 0.4; // cells per world unit (lower = bigger cells)
-const LINE_WIDTH = 0.045; // half-width of a foam band
-const LINE_BREATHE = 0.45; // band width swings +-45% (never below 55%: lines never break)
-const JUNCTION_RADIUS = 0.085; // foam web at each junction
-const JUNCTION_SMOOTH = 0.07; // how much the web fillets into the lines
-const EYE_RADIUS = 0.04; // max radius of a junction eye
-const EYE_CHANCE = 0.45; // fraction of junctions that grow an eye
-const WARP = 0.35; // large-scale bend across several cells
-const CURL = 0.2; // per-cell wobble that turns straight edges into curves
-const MORPH_SPEED = 1.0; // overall animation speed (the storm footage is ~2-3)
+// Indirect warp (texture-tile units). Max stretch = 2*pi*WARP_FREQ*WARP_AMP, keep < 1.
+const WARP_AMP = 0.022; // how far the lookup is pushed around (band width swings ~+-35%)
+const WARP_FREQ = 5.0; // waves per texture tile (about one per cell edge)
+const WARP_SPEED = 1.0; // 1 = calm sea; the storm footage is roughly 2x
+const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25; the game's cells read ~2x bigger)
 const HORIZON_FROM_TOP = 0.05; // horizon height, as a fraction of the screen from the top
 const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
+// Foam junctions in the texture: x, y, eye radius. Found offline as the local
+// maxima (foam width >= 0.023) of the foam's distance field; radius is
+// min(0.45 * local foam half-width, 0.014) so an eye always sits inside foam.
+const JUNCTIONS: [number, number, number][] = [
+  [0.247, 0.055, 0.014], [0.761, 0.139, 0.014], [0.797, 0.279, 0.0119], [0.173, 0.305, 0.0126],
+  [0.903, 0.371, 0.014], [0.041, 0.373, 0.0124], [0.863, 0.493, 0.0106], [0.267, 0.545, 0.0132],
+  [0.887, 0.657, 0.013], [0.149, 0.705, 0.0135], [0.231, 0.841, 0.0105], [0.695, 0.843, 0.014],
+];
+
+// x, y, radius^2 (the shader compares dot(d, d) < s)
+const CIRCLES: [number, number, number][] = [
+  [0.37378, 0.277169, 0.0268181], [0.0317477, 0.540372, 0.0193742], [0.430044, 0.882218, 0.0232337],
+  [0.641033, 0.695106, 0.0117864], [0.0146398, 0.0791346, 0.0299458], [0.43871, 0.394445, 0.0289087],
+  [0.909446, 0.878141, 0.028466], [0.310149, 0.686637, 0.0128496], [0.928617, 0.195986, 0.0152041],
+  [0.0438506, 0.868153, 0.0268601], [0.308619, 0.194937, 0.00806102], [0.349922, 0.449714, 0.00928667],
+  [0.0449556, 0.953415, 0.023126], [0.117761, 0.503309, 0.0151272], [0.563517, 0.244991, 0.0292322],
+  [0.566936, 0.954457, 0.00981141], [0.0489944, 0.200931, 0.0178746], [0.569297, 0.624893, 0.0132408],
+  [0.298347, 0.710972, 0.0114426], [0.878141, 0.771279, 0.00322719], [0.150995, 0.376221, 0.00216157],
+  [0.119673, 0.541984, 0.0124621], [0.629598, 0.295629, 0.0198736], [0.334357, 0.266278, 0.0187145],
+  [0.918044, 0.968163, 0.0182928], [0.965445, 0.505026, 0.006348], [0.514847, 0.865444, 0.00623523],
+  [0.710575, 0.0415131, 0.00322689], [0.71403, 0.576945, 0.0215641], [0.748873, 0.413325, 0.0110795],
+  [0.0623365, 0.896713, 0.0236203], [0.980482, 0.473849, 0.00573439], [0.647463, 0.654349, 0.0188713],
+  [0.651406, 0.981297, 0.00710875], [0.428928, 0.382426, 0.0298806], [0.811545, 0.62568, 0.00265539],
+  [0.400787, 0.74162, 0.00486609], [0.331283, 0.418536, 0.00598028], [0.894762, 0.0657997, 0.00760375],
+  [0.525104, 0.572233, 0.0141796], [0.431526, 0.911372, 0.0213234], [0.658212, 0.910553, 0.000741023],
+  [0.514523, 0.243263, 0.0270685], [0.0249494, 0.252872, 0.00876653], [0.502214, 0.47269, 0.0234534],
+  [0.693271, 0.431469, 0.0246533], [0.415, 0.884418, 0.0271696], [0.149073, 0.41204, 0.00497198],
+  [0.533816, 0.897634, 0.00650833], [0.0409132, 0.83406, 0.0191398], [0.638585, 0.646019, 0.0206129],
+  [0.660342, 0.966541, 0.0053511], [0.513783, 0.142233, 0.00471653], [0.124305, 0.644263, 0.00116724],
+  [0.99871, 0.583864, 0.0107329], [0.894879, 0.233289, 0.00667092], [0.246286, 0.682766, 0.00411623],
+  [0.0761895, 0.16327, 0.0145935], [0.949386, 0.802936, 0.0100873], [0.480122, 0.196554, 0.0110185],
+  [0.896854, 0.803707, 0.013969], [0.292865, 0.762973, 0.00566413], [0.0995585, 0.117457, 0.00869407],
+  [0.377713, 0.00335442, 0.0063147], [0.506365, 0.531118, 0.0144016], [0.408806, 0.894771, 0.0243923],
+  [0.143579, 0.85138, 0.00418529], [0.0902811, 0.181775, 0.0108896], [0.780695, 0.394644, 0.00475475],
+  [0.298036, 0.625531, 0.00325285], [0.218423, 0.714537, 0.00157212], [0.658836, 0.159556, 0.00225897],
+  [0.987324, 0.146545, 0.0288391], [0.222646, 0.251694, 0.00092276], [0.159826, 0.528063, 0.00605293],
+];
+
 const glslFloat = (n: number) => (Number.isInteger(n) ? n.toFixed(1) : String(n));
+const circleArray = CIRCLES.map(([x, y, s]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(s)})`).join(",\n  ");
 
 const VERTEX = /* glsl */ `
 void main() {
   gl_Position = vec4(position.xy, 0.0, 1.0);
 }`;
 
+
+const junctionArray = JUNCTIONS.map(([x, y, r]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(r)})`).join(",\n  ");
+
 const FRAGMENT = /* glsl */ `
 uniform vec3 iResolution;
 uniform float iTime;
 
+#define ANTIALIAS ${ANTIALIAS}
+
 // Palette measured from daytime HD footage of the game.
 #define WATER_COL vec3(0.043, 0.396, 0.655)
-#define UNDER_COL vec3(0.024, 0.353, 0.604)
+#define WATER2_COL vec3(0.024, 0.353, 0.604)
 #define FOAM_COL vec3(0.753, 0.910, 0.925)
 #define FOG_COL vec3(0.498, 0.831, 0.867)
 #define SKY_COL vec3(0.36, 0.74, 0.93)
@@ -55,152 +99,101 @@ uniform float iTime;
 #define M_2PI 6.283185307
 #define M_6PI 18.84955592
 
-#define CELL_SCALE ${glslFloat(CELL_SCALE)}
-#define LINE_WIDTH ${glslFloat(LINE_WIDTH)}
-#define LINE_BREATHE ${glslFloat(LINE_BREATHE)}
-#define JUNCTION_RADIUS ${glslFloat(JUNCTION_RADIUS)}
-#define JUNCTION_SMOOTH ${glslFloat(JUNCTION_SMOOTH)}
-#define EYE_RADIUS ${glslFloat(EYE_RADIUS)}
-#define EYE_CHANCE ${glslFloat(EYE_CHANCE)}
-#define WARP ${glslFloat(WARP)}
-#define CURL ${glslFloat(CURL)}
-#define MORPH_SPEED ${glslFloat(MORPH_SPEED)}
+#define WARP_AMP ${glslFloat(WARP_AMP)}
+#define WARP_FREQ ${glslFloat(WARP_FREQ)}
+#define WARP_SPEED ${glslFloat(WARP_SPEED)}
+#define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
 #define HORIZON_FROM_TOP ${glslFloat(HORIZON_FROM_TOP)}
 #define MAX_DIST ${glslFloat(MAX_DIST)}
 
-vec2 hash22(vec2 p) {
-  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.xx + p3.yz) * p3.zy);
-}
-float hash12(vec2 p) {
-  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-  p3 += dot(p3, p3.yzx + 33.33);
-  return fract((p3.x + p3.y) * p3.z);
-}
-float vnoise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
-             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
+const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
+  ${circleArray}
+);
+
+const vec3 JUNCTIONS[${JUNCTIONS.length}] = vec3[${JUNCTIONS.length}](
+  ${junctionArray}
+);
+
+float circ(vec2 pos, vec2 c, float s) {
+  c = abs(pos - c);
+  c = min(c, 1.0 - c);
+  return dot(c, c) < s ? -1.0 : 0.0;
 }
 
-// Polynomial smooth max (iq): a rounded union of two "inside > 0" fields.
-float smax(float a, float b, float k) {
-  float h = max(k - abs(a - b), 0.0) / k;
-  return max(a, b) + h * h * k * 0.25;
-}
-
-// Jittered cell network around p. Returns
-//   x: distance to the nearest cell border (the foam line's centre)
-//   y: distance to the nearest junction (where three cells meet)
-//   z: a hash identifying that junction (same value from all three cells)
-vec3 network(vec2 p, float t) {
-  vec2 n = floor(p), f = fract(p);
-  float d1 = 64.0, d2 = 64.0, d3 = 64.0;
-  vec2 v1 = vec2(0.0), v2 = vec2(0.0), v3 = vec2(0.0);
-  vec2 i1 = vec2(0.0), i2 = vec2(0.0), i3 = vec2(0.0);
-  for (int j = -1; j <= 1; j++) {
-    for (int i = -1; i <= 1; i++) {
-      vec2 g = vec2(float(i), float(j));
-      vec2 h = hash22(n + g);
-      vec2 v = g + 0.5 + 0.32 * sin(t * (0.6 + 0.5 * h.yx) + M_2PI * h) - f;
-      float d = dot(v, v);
-      if (d < d1) {
-        d3 = d2; v3 = v2; i3 = i2;
-        d2 = d1; v2 = v1; i2 = i1;
-        d1 = d; v1 = v; i1 = n + g;
-      } else if (d < d2) {
-        d3 = d2; v3 = v2; i3 = i2;
-        d2 = d; v2 = v; i2 = n + g;
-      } else if (d < d3) {
-        d3 = d; v3 = v; i3 = n + g;
-      }
-    }
+// Foam pattern for the water constructed out of a series of circles
+float waterlayer(vec2 uv) {
+  uv = mod(uv, 1.0); // Clamp to [0..1]
+  float ret = 1.0;
+  for (int i = 0; i < ${CIRCLES.length}; i++) {
+    ret += circ(uv, CIRCLES[i].xy, CIRCLES[i].z);
   }
-  // Exact distance to the bisector between the two nearest points.
-  float edge = dot(0.5 * (v1 + v2), normalize(v2 - v1));
-  // The junction is the circumcentre of the three nearest points (pixel at origin).
-  vec2 ab = v2 - v1, ac = v3 - v1;
-  float D = 2.0 * (ab.x * ac.y - ab.y * ac.x);
-  float junc = 1e3;
-  if (abs(D) > 1e-6) {
-    vec2 cc = v1 + vec2(ac.y * dot(ab, ab) - ab.y * dot(ac, ac), ab.x * dot(ac, ac) - ac.x * dot(ab, ab)) / D;
-    junc = length(cc);
+  return max(ret, 0.0);
+}
+
+// Same, plus the small eyes at the junctions. Each opens and shuts on its own
+// slow cycle (closed about half the time), so only a few show at once.
+float foamlayer(vec2 uv, float t) {
+  float ret = waterlayer(uv);
+  uv = mod(uv, 1.0);
+  for (int i = 0; i < ${JUNCTIONS.length}; i++) {
+    float r = JUNCTIONS[i].z * clamp(1.6 * sin(0.45 * t + float(i) * 2.4) - 0.3, 0.0, 1.0);
+    ret += circ(uv, JUNCTIONS[i].xy, r * r);
   }
-  return vec3(edge, junc, hash12(i1 + i2 + i3));
+  return max(ret, 0.0);
 }
 
-// Foam lines as a signed field: > 0 on foam.
-float lines(vec2 p, float t, float width, float jRadius, float eyeRadius, float seed) {
-  // Slow warp: bends the lines and makes them sway like the game's indirect texturing.
-  vec2 w = vec2(vnoise(p * 0.3 + vec2(seed, t * 0.11)), vnoise(p * 0.3 + vec2(t * 0.09, 7.3 + seed))) - 0.5;
-  p += w * WARP;
-  // Finer wobble (about one per cell) so each edge curves instead of running straight.
-  vec2 c = vec2(vnoise(p * 1.3 + vec2(3.1 + seed, t * 0.2)), vnoise(p * 1.3 + vec2(t * 0.17, 9.4 - seed))) - 0.5;
-  p += c * CURL;
-  vec3 nw = network(p, t * 0.9 + seed);
-
-  // Band width breathes along each line but never drops below (1 - LINE_BREATHE).
-  float breathe = vnoise(p * 0.9 + vec2(t * 0.35, -t * 0.27) + seed);
-  float s = 1.0 + LINE_BREATHE * (2.0 * breathe - 1.0);
-  float line = width * s - nw.x;
-  float web = jRadius * s - nw.y;
-  float f = smax(line, web, JUNCTION_SMOOTH * s);
-
-  // Some junctions open an eye, pulsing between closed and fully open.
-  float pick = step(1.0 - EYE_CHANCE, fract(nw.z * 13.7));
-  float open = smoothstep(0.25, 0.85, 0.5 + 0.5 * sin(t * 0.8 + nw.z * M_2PI * 3.0));
-  float er = eyeRadius * s * open * pick;
-  return min(f, nw.y - er);
+// Indirect-texture style offset: three travelling waves in different directions.
+// Smooth and never folds over, so the network's shape changes but not its topology.
+vec2 indirect(vec2 uv, float t) {
+  vec3 a = M_2PI * WARP_FREQ * vec3(
+    dot(uv, vec2(0.83, 0.56)),
+    dot(uv, vec2(-0.42, 0.91)),
+    dot(uv, vec2(0.97, -0.26))
+  ) + vec3(1.1, 0.8, 1.4) * t + vec3(0.0, 2.1, 4.2);
+  return WARP_AMP / 3.0 * vec2(
+    sin(a.x) + sin(a.y) + sin(a.z),
+    cos(a.x * 1.07 + 1.3) + cos(a.y * 1.07 + 1.3) + cos(a.z * 1.07 + 1.3)
+  );
 }
 
-vec3 water(vec2 pos, vec3 cdir) {
-  vec2 uv = pos * 0.25;
-  float t = iTime * MORPH_SPEED;
+vec3 water(vec2 uv, vec3 cdir) {
+  uv *= vec2(TEXTURE_SCALE);
+  float t = iTime * WARP_SPEED;
 
-  // Parallax height distortion with two directional waves (original).
-  vec2 a = 0.025 * cdir.xz / cdir.y;
-  float h = sin(uv.x + iTime);
+  // Parallax height distortion with two directional waves at slightly different angles.
+  vec2 a = 0.025 * cdir.xz / cdir.y; // Parallax offset
+  float h = sin(uv.x + iTime); // Height at UV
   uv += a * h;
   h = sin(0.841471 * uv.x - 0.540302 * uv.y + iTime);
   uv += a * h;
 
-  // Lateral texture sway (original).
+  // Texture distortion
   float d1 = mod(uv.x + uv.y, M_2PI);
   float d2 = mod((uv.x + uv.y + 0.25) * 1.3, M_6PI);
   d1 = iTime * 0.07 + d1;
   d2 = iTime * 0.5 + d2;
-  vec2 sway = vec2(sin(d1) * 0.15 + sin(d2) * 0.05, cos(d1) * 0.15 + cos(d2) * 0.05);
+  vec2 dist = vec2(
+    sin(d1) * 0.15 + sin(d2) * 0.05,
+    cos(d1) * 0.15 + cos(d2) * 0.05
+  );
 
-  vec2 p = (uv + sway) * (CELL_SCALE / 0.25);
-
-  // When a pixel spans more than a band width, fade to the average coverage
-  // instead of letting the lines alias into noise.
-  float px = fwidth(p.x) + fwidth(p.y);
-  float far = smoothstep(LINE_WIDTH * 1.5, LINE_WIDTH * 8.0, px);
-
-  // Under-layer: bigger, fainter, softer, its own drift.
-  float u = lines(p * 0.7 + vec2(13.7, 4.1), t * 0.8, LINE_WIDTH * 1.4, JUNCTION_RADIUS * 1.3, 0.0, 5.0);
-  // AA width from the pixel footprint, not fwidth(field): the field has seams where
-  // the nearest cells switch, and fwidth there smears faint false lines.
-  float uw = px * 0.7 + 0.01;
-  vec3 col = mix(WATER_COL, UNDER_COL, mix(smoothstep(-uw, uw, u), 0.25, far));
-
-  // Foam.
-  float f = lines(p, t, LINE_WIDTH, JUNCTION_RADIUS, EYE_RADIUS, 0.0);
-  float fw = px * 0.4;
-  return mix(col, FOAM_COL, mix(smoothstep(-fw, fw, f), 0.2, far));
+  vec2 under = uv + dist.xy;
+  vec2 foam = vec2(1.0) - uv - dist.yx;
+  vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(under + indirect(under, t * 0.8 + 3.0)));
+  ret = mix(ret, FOAM_COL, foamlayer(foam + indirect(foam, t), t));
+  return ret;
 }
 
+// Camera perspective based on [0..1] viewport
 vec3 pixtoray(vec2 uv) {
   vec3 pixpos;
   pixpos.xy = uv - 0.5;
-  pixpos.y *= iResolution.y / iResolution.x;
-  pixpos.z = -0.6; // focal length
+  pixpos.y *= iResolution.y / iResolution.x; // Aspect correction
+  pixpos.z = -0.6; // Focal length (Controls field of view)
   return normalize(pixpos);
 }
 
+// Quaternion-vector multiplication
 vec3 quatmul(vec4 q, vec3 v) {
   vec3 qvec = q.xyz;
   vec3 uv = cross(qvec, v);
@@ -210,9 +203,9 @@ vec3 quatmul(vec4 q, vec3 v) {
   return v + uv + uuv;
 }
 
-void main() {
-  vec2 uv = gl_FragCoord.xy / iResolution.xy;
-  vec3 cpos = vec3(0.0, 4.0, 10.0);
+vec3 shade(vec2 fragCoord) {
+  vec2 uv = fragCoord / iResolution.xy;
+  vec3 cpos = vec3(0.0, 4.0, 10.0); // Camera position
   vec3 cdir = pixtoray(uv);
 
   // Tilt down just enough that the horizon sits HORIZON_FROM_TOP below the top
@@ -227,15 +220,33 @@ void main() {
   cdir.xz = cost * cdir.xz + sint * vec2(-cdir.z, cdir.x);
   cpos.xz = cost * cpos.xz + sint * vec2(-cpos.z, cpos.x);
 
-  // Water is evaluated for every pixel (no branch) so fwidth stays valid;
-  // above the horizon the ray is clamped and the result discarded.
-  vec3 wdir = vec3(cdir.x, min(cdir.y, -1e-4), cdir.z);
-  float dist = min(cpos.y / -wdir.y, MAX_DIST);
-  vec3 pos = cpos + dist * wdir;
-  float fog = pow(dist / MAX_DIST, 0.8);
-  vec3 sea = mix(water(pos.xz, wdir), FOG_COL, fog);
-  vec3 sky = mix(FOG_COL, SKY_COL, clamp(cdir.y * 4.0, 0.0, 1.0));
-  gl_FragColor = vec4(cdir.y < 0.0 ? sea : sky, 1.0);
+  // Ray-plane intersection
+  const vec3 ocean = vec3(0.0, 1.0, 0.0);
+  float dist = -dot(cpos, ocean) / dot(cdir, ocean);
+  vec3 pos = cpos + dist * cdir;
+
+  if (dist > 0.0 && dist < MAX_DIST) {
+    vec3 wat = water(pos.xz, cdir);
+    // Far away the lines are thinner than a pixel and alias; settle to their
+    // average colour before the haze takes over.
+    wat = mix(wat, mix(WATER_COL, FOAM_COL, 0.16), smoothstep(60.0, 220.0, dist));
+    return mix(wat, FOG_COL, pow(dist / MAX_DIST, 0.8));
+  }
+  return mix(FOG_COL, SKY_COL, min(cdir.y * 4.0, 1.0));
+}
+
+void main() {
+#if ANTIALIAS
+  vec3 col = vec3(0.0);
+  for (int y = 0; y < 2; y++) {
+    for (int x = 0; x < 2; x++) {
+      col += shade(gl_FragCoord.xy + vec2(0.5) * vec2(x, y) - vec2(0.25)) * 0.25;
+    }
+  }
+  gl_FragColor = vec4(col, 1.0);
+#else
+  gl_FragColor = vec4(shade(gl_FragCoord.xy), 1.0);
+#endif
 }`;
 
 export default function OceanBackground() {
