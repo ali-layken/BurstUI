@@ -21,11 +21,14 @@ import { createSpinController } from "../lib/oceanSpin";
  *  - Palette measured from daytime HD footage; horizon held near the top of
  *    the screen; sea drawn further out.
  *
- * Cost is per pixel (2x2 supersampling x 2 layers x 75 circles), so the canvas
- * renders at RENDER_SCALE of CSS size and is stretched by the browser.
+ * Rendering: full resolution at the display's pixel density (capped at
+ * MAX_PIXEL_RATIO), one sample per pixel with analytic antialiasing (each edge
+ * pixel gets its exact coverage from the line field's screen-space gradient).
+ * If the frame rate drops below MIN_FPS the resolution steps down, and back up
+ * when there is headroom, so slower machines stay smooth.
  */
-const RENDER_SCALE = 0.6;
-const ANTIALIAS = 1; // 0 = 1 sample/pixel, 1 = 2x2 supersampling
+const MAX_PIXEL_RATIO = 2;
+const MIN_FPS = 45;
 
 // Indirect warp (texture-tile units). Max stretch = 2*pi*WARP_FREQ*WARP_AMP, keep < 1.
 const WARP_AMP = 0.022; // how far the lookup is pushed around (band width swings ~+-35%)
@@ -124,7 +127,6 @@ uniform float iTime;
 uniform float uYaw; // camera spin, driven from JS (see lib/oceanSpin.ts)
 uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 
-#define ANTIALIAS ${ANTIALIAS}
 
 // Active palette (see PALETTES).
 #define WATER_COL ${glslRgb(PALETTE.water)}
@@ -159,9 +161,10 @@ const vec3 EYES[${EYES.length}] = vec3[${EYES.length}](
   ${eyeArray}
 );
 
-// Line pattern constructed out of a series of circles: 1 on the lines (the gaps
-// between circles), 0 inside the cells. Cell outlines use a smooth-min of the
-// circle distances (online log-sum-exp) so they have no sharp notches.
+// Line pattern constructed out of a series of circles, as a signed field: > 0 on
+// the lines (the gaps between circles), < 0 inside the cells, in texture units.
+// Cell outlines use a smooth-min of the circle distances (online log-sum-exp) so
+// they have no sharp notches.
 float waterlayer(vec2 uv) {
   uv = mod(uv, 1.0); // Clamp to [0..1]
   float m = 1e3, s = 0.0;
@@ -172,7 +175,7 @@ float waterlayer(vec2 uv) {
     if (x < m) { s = s * exp((x - m) / CELL_SMOOTH) + 1.0; m = x; }
     else { s += exp((m - x) / CELL_SMOOTH); }
   }
-  return m - CELL_SMOOTH * log(s) + CELL_SMOOTH * 0.693147 > 0.0 ? 1.0 : 0.0;
+  return m - CELL_SMOOTH * log(s) + CELL_SMOOTH * 0.693147;
 }
 
 // Same foam as waterlayer(), plus the permanent eyes. One pass over the circles
@@ -195,15 +198,22 @@ float foamlayer(vec2 uv) {
       se += exp((m - x) / EYE_SMOOTH);
     }
   }
-  if (m - CELL_SMOOTH * log(s) + CELL_SMOOTH * 0.693147 <= 0.0) return 0.0;
+  float f = m - CELL_SMOOTH * log(s) + CELL_SMOOTH * 0.693147;
   float ds = m - EYE_SMOOTH * log(se);
   for (int i = 0; i < ${EYES.length}; i++) {
     vec2 c = abs(uv - EYES[i].xy);
     c = min(c, 1.0 - c);
     float peak = EYES[i].z;
-    if (ds > peak * (1.0 - EYE_OPEN) + EYE_ROUND * dot(c, c) / peak) return 0.0;
+    // Eye = where ds exceeds the level; cut it out of the foam (min = intersection).
+    f = min(f, peak * (1.0 - EYE_OPEN) + EYE_ROUND * dot(c, c) / peak - ds);
   }
-  return 1.0;
+  return f;
+}
+
+// Analytic antialiasing: coverage of a signed field across this pixel.
+float coverage(float field) {
+  float w = fwidth(field) * 0.6 + 1e-6;
+  return smoothstep(-w, w, field);
 }
 
 // Slow swell offset: regions of lines thicken/thin over several seconds.
@@ -253,9 +263,9 @@ vec3 water(vec2 uv, vec3 cdir) {
 
   vec2 under = uv + dist.xy;
   vec2 foam = vec2(1.0) - uv - dist.yx;
-  vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(under + indirect(under, t * 0.8 + 3.0)));
+  vec3 ret = mix(WATER_COL, WATER2_COL, coverage(waterlayer(under + indirect(under, t * 0.8 + 3.0))));
   vec2 foamWarped = foam + indirect(foam, t) + swellOffset(foam, iTime);
-  ret = mix(ret, FOAM_COL, foamlayer(foamWarped));
+  ret = mix(ret, FOAM_COL, coverage(foamlayer(foamWarped)));
   return ret;
 }
 
@@ -297,38 +307,26 @@ vec3 shade(vec2 fragCoord) {
   cdir.xz = cost * cdir.xz + sint * vec2(-cdir.z, cdir.x);
   cpos.xz = cost * cpos.xz + sint * vec2(-cpos.z, cpos.x);
 
-  // Ray-plane intersection
-  const vec3 ocean = vec3(0.0, 1.0, 0.0);
-  float dist = -dot(cpos, ocean) / dot(cdir, ocean);
-  vec3 pos = cpos + dist * cdir;
-
-  if (dist > 0.0 && dist < MAX_DIST) {
-    vec3 wat = water(pos.xz, cdir);
-    // Far away the lines are thinner than a pixel and alias; settle to their
-    // average colour before the haze takes over.
-    wat = mix(wat, mix(WATER_COL, FOAM_COL, 0.16), smoothstep(60.0, 220.0, dist));
-    // Eases into full haze with zero slope at MAX_DIST, so there's no crease
-    // where the sea stops being drawn.
-    float fog = 1.0 - pow(1.0 - dist / MAX_DIST, 1.6);
-    return mix(wat, FOG_COL, fog);
-  }
-  // Clamped: rays just below the horizon land here too (beyond MAX_DIST) and must
-  // get plain haze, not an extrapolated colour.
-  return mix(FOG_COL, SKY_COL, clamp(cdir.y * 4.0, 0.0, 1.0));
+  // Ray-plane intersection. The water is evaluated for every pixel (no branch)
+  // so the antialiasing derivatives stay valid; rays at or above the horizon are
+  // clamped to MAX_DIST and their result is replaced by sky below.
+  vec3 wdir = vec3(cdir.x, min(cdir.y, -1e-4), cdir.z);
+  float dist = min(cpos.y / -wdir.y, MAX_DIST);
+  vec3 pos = cpos + dist * wdir;
+  vec3 wat = water(pos.xz, wdir);
+  // Far away the lines are thinner than a pixel; settle to their average colour
+  // before the haze takes over.
+  wat = mix(wat, mix(WATER_COL, FOAM_COL, 0.16), smoothstep(60.0, 220.0, dist));
+  // Eases into full haze with zero slope at MAX_DIST, so there's no crease
+  // where the sea stops being drawn.
+  float fog = 1.0 - pow(1.0 - dist / MAX_DIST, 1.6);
+  vec3 sea = mix(wat, FOG_COL, fog);
+  vec3 sky = mix(FOG_COL, SKY_COL, clamp(cdir.y * 4.0, 0.0, 1.0));
+  return cdir.y < 0.0 && dist < MAX_DIST ? sea : sky;
 }
 
 void main() {
-#if ANTIALIAS
-  vec3 col = vec3(0.0);
-  for (int y = 0; y < 2; y++) {
-    for (int x = 0; x < 2; x++) {
-      col += shade(gl_FragCoord.xy + vec2(0.5) * vec2(x, y) - vec2(0.25)) * 0.25;
-    }
-  }
-  gl_FragColor = vec4(col, 1.0);
-#else
   gl_FragColor = vec4(shade(gl_FragCoord.xy), 1.0);
-#endif
 }`;
 
 export default function OceanBackground() {
@@ -338,7 +336,7 @@ export default function OceanBackground() {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "low-power" });
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
     const canvas = renderer.domElement;
     canvas.style.width = "100%";
     canvas.style.height = "100%";
@@ -374,9 +372,14 @@ export default function OceanBackground() {
     scene.add(mesh);
     const camera = new THREE.Camera();
 
+    // Resolution: CSS size x the display's pixel density (capped), times a
+    // quality factor the frame loop lowers if the GPU can't keep up.
+    const maxRatio = () => Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+    let quality = 1;
     const resize = () => {
-      const w = Math.max(1, Math.floor(window.innerWidth * RENDER_SCALE));
-      const h = Math.max(1, Math.floor(window.innerHeight * RENDER_SCALE));
+      const ratio = maxRatio() * quality;
+      const w = Math.max(1, Math.floor(window.innerWidth * ratio));
+      const h = Math.max(1, Math.floor(window.innerHeight * ratio));
       renderer.setPixelRatio(1);
       renderer.setSize(w, h, false);
       uniforms.iResolution.value.set(w, h, 1);
@@ -391,10 +394,31 @@ export default function OceanBackground() {
     let last = performance.now();
     let raf = 0;
     const spin = reducedMotion.matches ? null : createSpinController();
+    // Adaptive resolution: every ~1 s, step quality down if below MIN_FPS and
+    // back up when comfortably above it (ignores long gaps like background tabs).
+    let frames = 0;
+    let busy = 0;
     const frame = () => {
       const now = performance.now();
+      const dt = now - last;
+      if (dt < 250) {
+        frames++;
+        busy += dt;
+        if (busy > 1000) {
+          const fps = (frames * 1000) / busy;
+          if (fps < MIN_FPS && quality > 0.4) {
+            quality = Math.max(0.4, quality * 0.85);
+            resize();
+          } else if (fps > MIN_FPS + 12 && quality < 1) {
+            quality = Math.min(1, quality * 1.08);
+            resize();
+          }
+          frames = 0;
+          busy = 0;
+        }
+      }
       uniforms.iTime.value = (now - start) / 1000;
-      const pose = spin!.step((now - last) / 1000);
+      const pose = spin!.step(dt / 1000);
       uniforms.uYaw.value = pose.yaw;
       uniforms.uPitch.value = pose.pitch;
       last = now;
