@@ -35,8 +35,8 @@ const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25): low
 // Camera: looks down CAMERA_TILT_DEG from CAMERA_HEIGHT with a vertical half
 // field of view of HALF_FOV_DEG. The top edge of the screen is at
 // (CAMERA_TILT_DEG - HALF_FOV_DEG) below the horizon: negative = horizon on screen.
-const CAMERA_HEIGHT = 12.0; // above the water (original 4.0)
-const CAMERA_TILT_DEG = 19.0; // how steeply the screen centre looks down
+const CAMERA_HEIGHT = 30.0; // above the water (original 4.0)
+const CAMERA_TILT_DEG = 55.0; // how steeply the screen centre looks down
 const HALF_FOV_DEG = 20.0; // vertical half field of view: lower = more zoomed in
 const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
