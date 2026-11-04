@@ -11,11 +11,11 @@ html {
      waves fade in over something that already looks like the ocean. */
   background: linear-gradient(
       to bottom,
-      rgb(0, 209, 255) 0%,
-      rgb(163, 241, 238) 14%,
-      rgb(0, 114, 186) 40%
+      rgb(92, 189, 237) 0%,
+      rgb(127, 212, 221) 14%,
+      rgb(11, 101, 167) 40%
     )
-    fixed rgb(0, 114, 186);
+    fixed rgb(11, 101, 167);
 }
 
 @media (prefers-reduced-motion: no-preference) {

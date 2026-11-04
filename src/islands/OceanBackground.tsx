@@ -2,19 +2,40 @@ import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
 
 /**
- * Full-page background: the "Wind Waker Ocean" shader by Polyflare
+ * Full-page background based on the "Wind Waker Ocean" shader by Polyflare
  * (https://www.shadertoy.com/view/ltfGD7, CC BY 4.0), ported to a three.js
- * fullscreen triangle. The foam texture is 75 hard-coded circles, packed into
- * one const array instead of 75 unrolled calls.
+ * fullscreen triangle and reworked to match how the game's sea actually moves.
  *
- * Cost is per pixel (2x2 supersampling x 2 layers x 75 circles), so the canvas
- * renders at RENDER_SCALE of CSS size and is stretched by the browser. Drop it
- * further (or set ANTIALIAS to 0) on slow GPUs.
+ * What frame-by-frame analysis of the real game showed, and how it's modelled:
+ *  - Each foam band is two copies of the same line network, offset slightly and
+ *    drifting relative to each other. Overlapping copies read as one band; when
+ *    they drift apart the band thickens, splits into parallel strands, and
+ *    pinches shut where they cross, leaving the little lens-shaped "eyes".
+ *    -> foam = union of two copies of the network with a slowly varying offset.
+ *  - On top of that the whole band dilates/erodes over time (width "breathes").
+ *    -> the network is a signed distance field, thresholded at a moving level.
+ *  - Under the foam there is a second, fainter layer of darker lines (~12%
+ *    darker than the water) doing the same thing with its own drift.
+ *
+ * The network itself is still Polyflare's 75 circles (fitted to the game's
+ * texture); foam is the gaps between them. Edges are antialiased analytically
+ * with fwidth, so there is no supersampling.
  */
-const RENDER_SCALE = 0.6;
-const ANTIALIAS = 1; // 0 = 1 sample/pixel, 1 = 2x2 supersampling
+const RENDER_SCALE = 0.75;
 
-// x, y, radius^2 (the shader compares dot(d, d) < s)
+// Tunables (texture-tile units; one tile = 4 world units)
+const FOAM_SEPARATION = 0.014; // how far the two foam copies drift apart (eyes/double lines)
+const FOAM_BREATHE = 0.006; // how much band width swells/shrinks
+const UNDER_SEPARATION = 0.02;
+const UNDER_BREATHE = 0.008;
+const MORPH_SPEED = 1.0; // 1 = calm; the storm footage is roughly 2-3
+const CELL_ROUNDING = 0.008; // smooth-min radius between circles (rounder cells, softer junctions)
+const STRAND_MERGE = 0.006; // water gaps thinner than this between strands close up
+const LINE_THIN = 0.002; // global erosion of the lines (lower foam coverage)
+const BAND_CAP = 0.045; // max foam band width per copy; wider gaps open into eyes
+const TEXTURE_SCALE = 0.2; // texture tiles per world unit (original 0.25; lower = bigger cells)
+
+// x, y, s from the original shader, where s = radius^2
 const CIRCLES: [number, number, number][] = [
   [0.37378, 0.277169, 0.0268181], [0.0317477, 0.540372, 0.0193742], [0.430044, 0.882218, 0.0232337],
   [0.641033, 0.695106, 0.0117864], [0.0146398, 0.0791346, 0.0299458], [0.43871, 0.394445, 0.0289087],
@@ -44,7 +65,10 @@ const CIRCLES: [number, number, number][] = [
 ];
 
 const glslFloat = (n: number) => (Number.isInteger(n) ? n.toFixed(1) : String(n));
-const circleArray = CIRCLES.map(([x, y, s]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(s)})`).join(",\n  ");
+// The GLSL array stores the radius, so the shader can build a distance field.
+const circleArray = CIRCLES.map(
+  ([x, y, s]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(+Math.sqrt(s).toPrecision(6))})`,
+).join(",\n  ");
 
 const VERTEX = /* glsl */ `
 void main() {
@@ -55,39 +79,78 @@ const FRAGMENT = /* glsl */ `
 uniform vec3 iResolution;
 uniform float iTime;
 
-#define ANTIALIAS ${ANTIALIAS}
-
-#define WATER_COL vec3(0.0, 0.4453, 0.7305)
-#define WATER2_COL vec3(0.0, 0.4180, 0.6758)
-#define FOAM_COL vec3(0.8125, 0.9609, 0.9648)
-#define FOG_COL vec3(0.6406, 0.9453, 0.9336)
-#define SKY_COL vec3(0.0, 0.8203, 1.0)
+// Palette measured from daytime HD footage of the game.
+#define WATER_COL vec3(0.043, 0.396, 0.655)
+#define UNDER_COL vec3(0.024, 0.353, 0.604)
+#define FOAM_COL vec3(0.753, 0.910, 0.925)
+#define FOG_COL vec3(0.498, 0.831, 0.867)
+#define SKY_COL vec3(0.36, 0.74, 0.93)
 
 #define M_2PI 6.283185307
 #define M_6PI 18.84955592
 
+#define MORPH_SPEED ${glslFloat(MORPH_SPEED)}
+#define FOAM_SEPARATION ${glslFloat(FOAM_SEPARATION)}
+#define FOAM_BREATHE ${glslFloat(FOAM_BREATHE)}
+#define UNDER_SEPARATION ${glslFloat(UNDER_SEPARATION)}
+#define UNDER_BREATHE ${glslFloat(UNDER_BREATHE)}
+#define CELL_ROUNDING ${glslFloat(CELL_ROUNDING)}
+#define STRAND_MERGE ${glslFloat(STRAND_MERGE)}
+#define LINE_THIN ${glslFloat(LINE_THIN)}
+#define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
+#define BAND_CAP ${glslFloat(BAND_CAP)}
+
+// x, y, radius
 const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
   ${circleArray}
 );
 
-float circ(vec2 pos, vec2 c, float s) {
-  c = abs(pos - c);
-  c = min(c, 1.0 - c);
-  return dot(c, c) < s ? -1.0 : 0.0;
+// Polynomial smooth min/max (iq). k = blend radius in tile units.
+float smin(float a, float b, float k) {
+  float h = max(k - abs(a - b), 0.0) / k;
+  return min(a, b) - h * h * k * 0.25;
+}
+float smax(float a, float b, float k) { return -smin(-a, -b, k); }
+
+// Signed distance to the circle set on a wrapping unit tile:
+// > 0 in the gaps between circles (the line network), < 0 inside a circle.
+// Smooth-min rounds the cusps where circles meet, so cells read as soft blobs
+// and line junctions get the game's rounded concave triangles.
+float network(vec2 uv) {
+  uv = fract(uv);
+  float d = 1e3;
+  for (int i = 0; i < ${CIRCLES.length}; i++) {
+    vec2 c = abs(uv - CIRCLES[i].xy);
+    c = min(c, 1.0 - c);
+    d = smin(d, length(c) - CIRCLES[i].z, CELL_ROUNDING);
+  }
+  return d;
 }
 
-// Foam pattern for the water constructed out of a series of circles
-float waterlayer(vec2 uv) {
-  uv = mod(uv, 1.0);
-  float ret = 1.0;
-  for (int i = 0; i < ${CIRCLES.length}; i++) {
-    ret += circ(uv, CIRCLES[i].xy, CIRCLES[i].z);
-  }
-  return max(ret, 0.0);
+// Two copies of the network drifting relative to each other, unioned, then
+// dilated/eroded by a slowly travelling amount. Signed: > 0 means "on a line".
+// Where the copies overlap you get one band; slightly apart, a fat band; further
+// apart, two strands that pinch shut where they cross, leaving lens-shaped eyes.
+float morphLines(vec2 uv, float t, float sep, float breathe, float seed) {
+  vec2 off = sep * vec2(
+    sin(t * 0.83 + uv.y * 9.0 + 1.3 * sin(uv.x * 7.0 + seed)),
+    cos(t * 0.67 + uv.x * 8.0 + 1.1 * sin(uv.y * 6.0 - seed))
+  );
+  // Cap each copy's band: gaps wider than 2*BAND_CAP (voids between circles)
+  // become a foam outline around water instead of a big solid foam blob.
+  float a = network(uv + off);
+  float b = network(uv - off);
+  a = min(a, BAND_CAP - a);
+  b = min(b, BAND_CAP - b);
+  // Smooth union = union + closing: water slivers thinner than STRAND_MERGE
+  // between the two strands fill in, so only plump lens-shaped eyes survive.
+  float grow = breathe * sin(t * 1.1 + (uv.x - uv.y) * 11.0 + seed) - LINE_THIN;
+  return smax(a, b, STRAND_MERGE) + grow;
 }
 
 vec3 water(vec2 uv, vec3 cdir) {
-  uv *= vec2(0.25);
+  uv *= vec2(TEXTURE_SCALE);
+  float t = iTime * MORPH_SPEED;
 
   // Parallax height distortion with two directional waves at slightly different angles.
   vec2 a = 0.025 * cdir.xz / cdir.y;
@@ -96,7 +159,7 @@ vec3 water(vec2 uv, vec3 cdir) {
   h = sin(0.841471 * uv.x - 0.540302 * uv.y + iTime);
   uv += a * h;
 
-  // Texture distortion
+  // Lateral texture distortion (original).
   float d1 = mod(uv.x + uv.y, M_2PI);
   float d2 = mod((uv.x + uv.y + 0.25) * 1.3, M_6PI);
   d1 = iTime * 0.07 + d1;
@@ -106,9 +169,22 @@ vec3 water(vec2 uv, vec3 cdir) {
     cos(d1) * 0.15 + cos(d2) * 0.05
   );
 
-  vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(uv + dist.xy));
-  ret = mix(ret, FOAM_COL, waterlayer(vec2(1.0) - uv - dist.yx));
-  return ret;
+  // Once a pixel covers more texture than a band is wide, lines would alias into
+  // noise; fade both layers to their average coverage instead.
+  float px = fwidth(uv.x) + fwidth(uv.y);
+  float far = smoothstep(0.006, 0.03, px);
+
+  // Under-layer: fainter, darker lines with their own drift and a softer edge.
+  float u = morphLines(uv + dist.xy, t, UNDER_SEPARATION, UNDER_BREATHE, 3.1);
+  float uw = fwidth(u) + 0.0015;
+  float under = mix(smoothstep(-uw, uw, u), 0.3, far);
+  vec3 col = mix(WATER_COL, UNDER_COL, under);
+
+  // Foam layer.
+  float f = morphLines(vec2(1.0) - uv - dist.yx, t, FOAM_SEPARATION, FOAM_BREATHE, 0.0);
+  float fw = fwidth(f) * 0.75;
+  float foam = mix(smoothstep(-fw, fw, f), 0.25, far);
+  return mix(col, FOAM_COL, foam);
 }
 
 vec3 pixtoray(vec2 uv) {
@@ -128,8 +204,8 @@ vec3 quatmul(vec4 q, vec3 v) {
   return v + uv + uuv;
 }
 
-vec3 shade(vec2 fragCoord) {
-  vec2 uv = fragCoord / iResolution.xy;
+void main() {
+  vec2 uv = gl_FragCoord.xy / iResolution.xy;
   vec3 cpos = vec3(0.0, 4.0, 10.0);
   vec3 cdir = pixtoray(uv);
   cdir = quatmul(vec4(-0.19867, 0.0, 0.0, 0.980067), cdir); // tilt down slightly
@@ -140,29 +216,14 @@ vec3 shade(vec2 fragCoord) {
   cdir.xz = cost * cdir.xz + sint * vec2(-cdir.z, cdir.x);
   cpos.xz = cost * cpos.xz + sint * vec2(-cpos.z, cpos.x);
 
-  const vec3 ocean = vec3(0.0, 1.0, 0.0);
-  float dist = -dot(cpos, ocean) / dot(cdir, ocean);
-  vec3 pos = cpos + dist * cdir;
-
-  if (dist > 0.0 && dist < 100.0) {
-    vec3 wat = water(pos.xz, cdir);
-    return mix(wat, FOG_COL, min(dist * 0.01, 1.0));
-  }
-  return mix(FOG_COL, SKY_COL, min(cdir.y * 4.0, 1.0));
-}
-
-void main() {
-#if ANTIALIAS
-  vec3 col = vec3(0.0);
-  for (int y = 0; y < 2; y++) {
-    for (int x = 0; x < 2; x++) {
-      col += shade(gl_FragCoord.xy + vec2(0.5) * vec2(x, y) - vec2(0.25)) * 0.25;
-    }
-  }
-  gl_FragColor = vec4(col, 1.0);
-#else
-  gl_FragColor = vec4(shade(gl_FragCoord.xy), 1.0);
-#endif
+  // Water is evaluated for every pixel (no branch) so fwidth stays valid;
+  // above the horizon the ray is clamped and the result discarded.
+  vec3 wdir = vec3(cdir.x, min(cdir.y, -1e-3), cdir.z);
+  float dist = min(cpos.y / -wdir.y, 100.0);
+  vec3 pos = cpos + dist * wdir;
+  vec3 sea = mix(water(pos.xz, wdir), FOG_COL, min(dist * 0.01, 1.0));
+  vec3 sky = mix(FOG_COL, SKY_COL, clamp(cdir.y * 4.0, 0.0, 1.0));
+  gl_FragColor = vec4(cdir.y < 0.0 ? sea : sky, 1.0);
 }`;
 
 export default function OceanBackground() {
