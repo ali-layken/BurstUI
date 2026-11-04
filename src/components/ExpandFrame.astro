@@ -17,6 +17,7 @@ const { src, title, bg } = Astro.props;
   </div>
 </div>
 <div id="xf-bar" class="xf-bar">
+  {Astro.slots.has("bar-left") && <div class="xf-bar-left"><slot name="bar-left" /></div>}
   <ExpandButton3D client:load id="xf-expand" />
 </div>
 
@@ -42,9 +43,49 @@ const { src, title, bg } = Astro.props;
   }
   /* The button sits under the frame and flies to the bottom centre of the screen on expand. */
   .xf-bar {
+    position: relative;
     display: flex;
     justify-content: center;
     padding-top: 12px;
+  }
+  /* The button sits XF_GAP below the frame and the panel ends XF_GAP below the button: equal, tight margins instead of
+     the panel's normal bottom padding. */
+  :root {
+    --xf-gap: 12px;
+  }
+  .xf-bar {
+    padding-top: var(--xf-gap) !important;
+  }
+  #component-container:has(#xf-bar),
+  #main-container:has(#xf-bar) {
+    padding-bottom: var(--xf-gap);
+  }
+  /* On wide screens the content panel is stretched to the sidebar's height; let the frame take up that extra room
+     rather than leaving dead space under the button. */
+  #component-container:has(#xf-bar) {
+    display: flex;
+    flex-direction: column;
+  }
+  #component-container:has(#xf-bar) > .xf-slot {
+    flex: 1 0 auto;
+    min-height: 75vh;
+  }
+  /* Optional content on the left of the bar (e.g. a source link), tucked into the panel's bottom-left corner with the
+     same XF_GAP from both edges. Absolutely positioned so the expand button stays centred in the bar, which
+     expandFrame.ts relies on for its fly-out position. The negative left cancels the panel's side padding
+     (main px-5 + component px-2 on narrow screens, component md:px-8 on wide). */
+  .xf-bar-left {
+    position: absolute;
+    left: calc(var(--xf-gap) - 28px);
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    line-height: 1;
+  }
+  @media (min-width: 768px) {
+    .xf-bar-left {
+      left: calc(var(--xf-gap) - 32px);
+    }
   }
   .expand-button-3d {
     display: block;

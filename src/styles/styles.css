@@ -5,6 +5,19 @@
 /* Fresh's client-nav smooth-scrolled to #hash targets (ToC links). Astro's
    ClientRouter lets the browser handle same-page anchors natively, which
    jumps unless the page opts in to smooth scrolling. */
+/* Fallback under the ocean canvas (and before WebGL starts). */
+html {
+  /* Sky -> fog at the horizon -> water, same colors as the shader, so the
+     waves fade in over something that already looks like the ocean. */
+  background: linear-gradient(
+      to bottom,
+      rgb(128, 82, 196) 0%,
+      rgb(45, 6, 102) 35%
+    )
+    fixed rgb(45, 6, 102);
+  /* Wind Waker palette: rgb(92, 189, 237) / rgb(127, 212, 221) / rgb(11, 101, 167) */
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

@@ -86,7 +86,7 @@ export default function ResizeDetector(): JSX.Element {
     } else {
       if (wideNavDiv) {
         wideNavDiv.className =
-          "flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua rounded-md shadow-lg self-start sticky flex flex-col";
+          "flex-2 w-[31rem] px-4 py-5 top-24 bg-bgAqua2 rounded-md shadow-lg self-start sticky flex flex-col";
         if (siteNavDiv) {
           wideNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.className = "";
@@ -95,7 +95,7 @@ export default function ResizeDetector(): JSX.Element {
       if (bottomNavDiv) {
         // Clear narrow navigation
         bottomNavDiv.innerHTML = "";
-        bottomNavDiv.className = "h-12 bg-bgPurple";
+        bottomNavDiv.className = "h-12";
       }
     }
 

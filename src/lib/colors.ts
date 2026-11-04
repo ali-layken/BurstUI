@@ -3,6 +3,7 @@ export const burstColors = {
     accLitePurple: "rgb(197, 138, 249)",
     bgAqua:        "rgba(11, 54, 91, 0.82)",
     bgAqua2:        "rgba(11, 54, 91, 0.90)",
+    bgAquaSolid:   "rgb(11, 54, 91)",
     accOrange:     "rgb(244, 96, 54)",
     accYellow:     "rgb(205, 205, 31)",
     accRed:        "rgb(231, 29, 54)",
