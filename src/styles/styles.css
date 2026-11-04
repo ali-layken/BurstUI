@@ -11,11 +11,12 @@ html {
      waves fade in over something that already looks like the ocean. */
   background: linear-gradient(
       to bottom,
-      rgb(92, 189, 237) 0%,
-      rgb(127, 212, 221) 14%,
-      rgb(11, 101, 167) 40%
+      rgb(197, 138, 249) 0%,
+      rgb(128, 82, 196) 14%,
+      rgb(45, 6, 102) 40%
     )
-    fixed rgb(11, 101, 167);
+    fixed rgb(45, 6, 102);
+  /* Wind Waker palette: rgb(92, 189, 237) / rgb(127, 212, 221) / rgb(11, 101, 167) */
 }
 
 @media (prefers-reduced-motion: no-preference) {

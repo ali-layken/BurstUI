@@ -35,6 +35,17 @@ const TEXTURE_SCALE = 0.13; // texture tiles per world unit (original 0.25; the 
 const HORIZON_FROM_TOP = 0.05; // horizon height, as a fraction of the screen from the top
 const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
+// Colour sets (0..255). "windwaker" is measured from daytime HD footage of the
+// game; "burst" uses the site's own colours. Keep styles.css's html fallback
+// gradient in sync with whichever is active.
+type Rgb = [number, number, number];
+const PALETTES: Record<string, { water: Rgb; under: Rgb; foam: Rgb; fog: Rgb; sky: Rgb }> = {
+  windwaker: { water: [11, 101, 167], under: [6, 90, 154], foam: [192, 232, 236], fog: [127, 212, 221], sky: [92, 189, 237] },
+  burst: { water: [45, 6, 102], under: [35, 30, 135], foam: [240, 238, 255], fog: [128, 82, 196], sky: [197, 138, 249] },
+};
+const PALETTE = PALETTES.burst;
+const glslRgb = ([r, g, b]: Rgb) => `vec3(${(r / 255).toFixed(4)}, ${(g / 255).toFixed(4)}, ${(b / 255).toFixed(4)})`;
+
 // Foam junctions in the texture: x, y, peak foam depth (distance to the nearest
 // circle). Found offline as the local maxima (depth >= 0.023) of the foam's
 // distance field.
@@ -100,12 +111,12 @@ uniform float uPitch; // extra downward tilt from dragging (0 = default view)
 
 #define ANTIALIAS ${ANTIALIAS}
 
-// Palette measured from daytime HD footage of the game.
-#define WATER_COL vec3(0.043, 0.396, 0.655)
-#define WATER2_COL vec3(0.024, 0.353, 0.604)
-#define FOAM_COL vec3(0.753, 0.910, 0.925)
-#define FOG_COL vec3(0.498, 0.831, 0.867)
-#define SKY_COL vec3(0.36, 0.74, 0.93)
+// Active palette (see PALETTES).
+#define WATER_COL ${glslRgb(PALETTE.water)}
+#define WATER2_COL ${glslRgb(PALETTE.under)}
+#define FOAM_COL ${glslRgb(PALETTE.foam)}
+#define FOG_COL ${glslRgb(PALETTE.fog)}
+#define SKY_COL ${glslRgb(PALETTE.sky)}
 
 #define M_2PI 6.283185307
 #define M_6PI 18.84955592
