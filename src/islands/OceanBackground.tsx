@@ -57,19 +57,19 @@ const glslRgb = ([r, g, b]: Rgb) => `vec3(${(r / 255).toFixed(4)}, ${(g / 255).t
 const SWELL_AMP = 0.03;
 const SWELL_FREQ = 1.0; // waves per texture tile
 
-// Junction eyes: small holes baked permanently into the texture at the 4 big
-// junctions, like the rest of the pattern. They move and morph only through the
+// Junction eyes: holes baked permanently into the texture at the 2 biggest
+// junctions (most junctions in the game have none), like the rest of the pattern. They move and morph only through the
 // same warp as every other line. Shape: the part of the junction deeper than
 // (1 - EYE_OPEN) of its peak in a smooth-min distance field (globular, no
-// points), pulled toward a circle by EYE_ROUND. Verified offline (up to 0.4
-// open, roundness >= 0.35): foam stays one piece, each eye is one hole.
+// points), pulled toward a circle by EYE_ROUND. Verified offline (up to 0.9
+// open, roundness >= 0.2): foam stays one piece, each eye is one hole.
 const EYE_SMOOTH = 0.012; // smooth-min radius (texture units)
-const EYE_OPEN = 0.3; // eye size, as a share of the junction's depth (max 0.4)
-const EYE_ROUND = 0.4; // 0.35 = most junction-shaped, higher = rounder
-// Eyed junctions on the smooth field: x, y, peak depth (found offline). Only
-// the big junctions (depth >= 0.029) get an eye; smaller ones only ever made specks.
+const EYE_OPEN = 0.85; // eye size, as a share of the junction's depth (verified up to 0.9)
+const EYE_ROUND = 0.22; // lower = follows the junction's shape, higher = rounder (verified >= 0.2)
+// Eyed junctions on the smooth field: x, y, peak depth (found offline): the two
+// biggest. Others that could take one: [0.908, 0.372, 0.0324], [0.698, 0.842, 0.0296].
 const EYES: [number, number, number][] = [
-  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329], [0.908, 0.372, 0.0324], [0.698, 0.842, 0.0296],
+  [0.248, 0.054, 0.0412], [0.762, 0.137, 0.0329],
 ];
 
 // x, y, radius^2 (the shader compares dot(d, d) < s)
