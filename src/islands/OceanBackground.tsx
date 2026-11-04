@@ -2,73 +2,39 @@ import { useEffect, useRef } from "preact/hooks";
 import * as THREE from "three";
 
 /**
- * Full-page background based on the "Wind Waker Ocean" shader by Polyflare
- * (https://www.shadertoy.com/view/ltfGD7, CC BY 4.0), ported to a three.js
- * fullscreen triangle and reworked to match how the game's sea actually moves.
+ * Full-page Wind Waker style ocean, rendered as a three.js fullscreen triangle.
+ * Started from "Wind Waker Ocean" by Polyflare (https://www.shadertoy.com/view/ltfGD7,
+ * CC BY 4.0): camera, parallax waves and texture sway are still theirs.
  *
- * What frame-by-frame analysis of the real game showed, and how it's modelled:
- *  - Each foam band is two copies of the same line network, offset slightly and
- *    drifting relative to each other. Overlapping copies read as one band; when
- *    they drift apart the band thickens, splits into parallel strands, and
- *    pinches shut where they cross, leaving the little lens-shaped "eyes".
- *    -> foam = union of two copies of the network with a slowly varying offset.
- *  - On top of that the whole band dilates/erodes over time (width "breathes").
- *    -> the network is a signed distance field, thresholded at a moving level.
- *  - Under the foam there is a second, fainter layer of darker lines (~12%
- *    darker than the water) doing the same thing with its own drift.
+ * The foam is a cell network (jittered Voronoi), because its borders are always
+ * connected: lines can thin but never break. What makes it move like the game:
+ *  - cell points drift, so junctions slide and lines change angle;
+ *  - a slow warp bends the whole network (the game's indirect-texture wobble);
+ *  - band width breathes along each line between a min and max, never zero;
+ *  - every junction is a rounded foam web, and some junctions open a small
+ *    water "eye" in the middle that pulses open and shut. Eyes only ever
+ *    appear at junctions.
+ * Underneath runs a second, darker and softer network at a different scale.
  *
- * The network itself is still Polyflare's 75 circles (fitted to the game's
- * texture); foam is the gaps between them. Edges are antialiased analytically
- * with fwidth, so there is no supersampling.
+ * Edges are antialiased analytically with fwidth (no supersampling).
  */
 const RENDER_SCALE = 0.75;
 
-// Tunables (texture-tile units; one tile = 4 world units)
-const FOAM_SEPARATION = 0.014; // how far the two foam copies drift apart (eyes/double lines)
-const FOAM_BREATHE = 0.006; // how much band width swells/shrinks
-const UNDER_SEPARATION = 0.02;
-const UNDER_BREATHE = 0.008;
-const MORPH_SPEED = 1.0; // 1 = calm; the storm footage is roughly 2-3
-const CELL_ROUNDING = 0.008; // smooth-min radius between circles (rounder cells, softer junctions)
-const STRAND_MERGE = 0.006; // water gaps thinner than this between strands close up
-const LINE_THIN = 0.002; // global erosion of the lines (lower foam coverage)
-const BAND_CAP = 0.045; // max foam band width per copy; wider gaps open into eyes
-const TEXTURE_SCALE = 0.2; // texture tiles per world unit (original 0.25; lower = bigger cells)
-
-// x, y, s from the original shader, where s = radius^2
-const CIRCLES: [number, number, number][] = [
-  [0.37378, 0.277169, 0.0268181], [0.0317477, 0.540372, 0.0193742], [0.430044, 0.882218, 0.0232337],
-  [0.641033, 0.695106, 0.0117864], [0.0146398, 0.0791346, 0.0299458], [0.43871, 0.394445, 0.0289087],
-  [0.909446, 0.878141, 0.028466], [0.310149, 0.686637, 0.0128496], [0.928617, 0.195986, 0.0152041],
-  [0.0438506, 0.868153, 0.0268601], [0.308619, 0.194937, 0.00806102], [0.349922, 0.449714, 0.00928667],
-  [0.0449556, 0.953415, 0.023126], [0.117761, 0.503309, 0.0151272], [0.563517, 0.244991, 0.0292322],
-  [0.566936, 0.954457, 0.00981141], [0.0489944, 0.200931, 0.0178746], [0.569297, 0.624893, 0.0132408],
-  [0.298347, 0.710972, 0.0114426], [0.878141, 0.771279, 0.00322719], [0.150995, 0.376221, 0.00216157],
-  [0.119673, 0.541984, 0.0124621], [0.629598, 0.295629, 0.0198736], [0.334357, 0.266278, 0.0187145],
-  [0.918044, 0.968163, 0.0182928], [0.965445, 0.505026, 0.006348], [0.514847, 0.865444, 0.00623523],
-  [0.710575, 0.0415131, 0.00322689], [0.71403, 0.576945, 0.0215641], [0.748873, 0.413325, 0.0110795],
-  [0.0623365, 0.896713, 0.0236203], [0.980482, 0.473849, 0.00573439], [0.647463, 0.654349, 0.0188713],
-  [0.651406, 0.981297, 0.00710875], [0.428928, 0.382426, 0.0298806], [0.811545, 0.62568, 0.00265539],
-  [0.400787, 0.74162, 0.00486609], [0.331283, 0.418536, 0.00598028], [0.894762, 0.0657997, 0.00760375],
-  [0.525104, 0.572233, 0.0141796], [0.431526, 0.911372, 0.0213234], [0.658212, 0.910553, 0.000741023],
-  [0.514523, 0.243263, 0.0270685], [0.0249494, 0.252872, 0.00876653], [0.502214, 0.47269, 0.0234534],
-  [0.693271, 0.431469, 0.0246533], [0.415, 0.884418, 0.0271696], [0.149073, 0.41204, 0.00497198],
-  [0.533816, 0.897634, 0.00650833], [0.0409132, 0.83406, 0.0191398], [0.638585, 0.646019, 0.0206129],
-  [0.660342, 0.966541, 0.0053511], [0.513783, 0.142233, 0.00471653], [0.124305, 0.644263, 0.00116724],
-  [0.99871, 0.583864, 0.0107329], [0.894879, 0.233289, 0.00667092], [0.246286, 0.682766, 0.00411623],
-  [0.0761895, 0.16327, 0.0145935], [0.949386, 0.802936, 0.0100873], [0.480122, 0.196554, 0.0110185],
-  [0.896854, 0.803707, 0.013969], [0.292865, 0.762973, 0.00566413], [0.0995585, 0.117457, 0.00869407],
-  [0.377713, 0.00335442, 0.0063147], [0.506365, 0.531118, 0.0144016], [0.408806, 0.894771, 0.0243923],
-  [0.143579, 0.85138, 0.00418529], [0.0902811, 0.181775, 0.0108896], [0.780695, 0.394644, 0.00475475],
-  [0.298036, 0.625531, 0.00325285], [0.218423, 0.714537, 0.00157212], [0.658836, 0.159556, 0.00225897],
-  [0.987324, 0.146545, 0.0288391], [0.222646, 0.251694, 0.00092276], [0.159826, 0.528063, 0.00605293],
-];
+// Tunables. Network units: 1 = roughly one cell across.
+const CELL_SCALE = 0.4; // cells per world unit (lower = bigger cells)
+const LINE_WIDTH = 0.045; // half-width of a foam band
+const LINE_BREATHE = 0.45; // band width swings +-45% (never below 55%: lines never break)
+const JUNCTION_RADIUS = 0.085; // foam web at each junction
+const JUNCTION_SMOOTH = 0.07; // how much the web fillets into the lines
+const EYE_RADIUS = 0.04; // max radius of a junction eye
+const EYE_CHANCE = 0.45; // fraction of junctions that grow an eye
+const WARP = 0.35; // large-scale bend across several cells
+const CURL = 0.2; // per-cell wobble that turns straight edges into curves
+const MORPH_SPEED = 1.0; // overall animation speed (the storm footage is ~2-3)
+const HORIZON_FROM_TOP = 0.05; // horizon height, as a fraction of the screen from the top
+const MAX_DIST = 400.0; // how far the sea is drawn before it is all haze
 
 const glslFloat = (n: number) => (Number.isInteger(n) ? n.toFixed(1) : String(n));
-// The GLSL array stores the radius, so the shader can build a distance field.
-const circleArray = CIRCLES.map(
-  ([x, y, s]) => `vec3(${glslFloat(x)}, ${glslFloat(y)}, ${glslFloat(+Math.sqrt(s).toPrecision(6))})`,
-).join(",\n  ");
 
 const VERTEX = /* glsl */ `
 void main() {
@@ -89,102 +55,142 @@ uniform float iTime;
 #define M_2PI 6.283185307
 #define M_6PI 18.84955592
 
+#define CELL_SCALE ${glslFloat(CELL_SCALE)}
+#define LINE_WIDTH ${glslFloat(LINE_WIDTH)}
+#define LINE_BREATHE ${glslFloat(LINE_BREATHE)}
+#define JUNCTION_RADIUS ${glslFloat(JUNCTION_RADIUS)}
+#define JUNCTION_SMOOTH ${glslFloat(JUNCTION_SMOOTH)}
+#define EYE_RADIUS ${glslFloat(EYE_RADIUS)}
+#define EYE_CHANCE ${glslFloat(EYE_CHANCE)}
+#define WARP ${glslFloat(WARP)}
+#define CURL ${glslFloat(CURL)}
 #define MORPH_SPEED ${glslFloat(MORPH_SPEED)}
-#define FOAM_SEPARATION ${glslFloat(FOAM_SEPARATION)}
-#define FOAM_BREATHE ${glslFloat(FOAM_BREATHE)}
-#define UNDER_SEPARATION ${glslFloat(UNDER_SEPARATION)}
-#define UNDER_BREATHE ${glslFloat(UNDER_BREATHE)}
-#define CELL_ROUNDING ${glslFloat(CELL_ROUNDING)}
-#define STRAND_MERGE ${glslFloat(STRAND_MERGE)}
-#define LINE_THIN ${glslFloat(LINE_THIN)}
-#define TEXTURE_SCALE ${glslFloat(TEXTURE_SCALE)}
-#define BAND_CAP ${glslFloat(BAND_CAP)}
+#define HORIZON_FROM_TOP ${glslFloat(HORIZON_FROM_TOP)}
+#define MAX_DIST ${glslFloat(MAX_DIST)}
 
-// x, y, radius
-const vec3 CIRCLES[${CIRCLES.length}] = vec3[${CIRCLES.length}](
-  ${circleArray}
-);
+vec2 hash22(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.xx + p3.yz) * p3.zy);
+}
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
+             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
+}
 
-// Polynomial smooth min/max (iq). k = blend radius in tile units.
-float smin(float a, float b, float k) {
+// Polynomial smooth max (iq): a rounded union of two "inside > 0" fields.
+float smax(float a, float b, float k) {
   float h = max(k - abs(a - b), 0.0) / k;
-  return min(a, b) - h * h * k * 0.25;
+  return max(a, b) + h * h * k * 0.25;
 }
-float smax(float a, float b, float k) { return -smin(-a, -b, k); }
 
-// Signed distance to the circle set on a wrapping unit tile:
-// > 0 in the gaps between circles (the line network), < 0 inside a circle.
-// Smooth-min rounds the cusps where circles meet, so cells read as soft blobs
-// and line junctions get the game's rounded concave triangles.
-float network(vec2 uv) {
-  uv = fract(uv);
-  float d = 1e3;
-  for (int i = 0; i < ${CIRCLES.length}; i++) {
-    vec2 c = abs(uv - CIRCLES[i].xy);
-    c = min(c, 1.0 - c);
-    d = smin(d, length(c) - CIRCLES[i].z, CELL_ROUNDING);
+// Jittered cell network around p. Returns
+//   x: distance to the nearest cell border (the foam line's centre)
+//   y: distance to the nearest junction (where three cells meet)
+//   z: a hash identifying that junction (same value from all three cells)
+vec3 network(vec2 p, float t) {
+  vec2 n = floor(p), f = fract(p);
+  float d1 = 64.0, d2 = 64.0, d3 = 64.0;
+  vec2 v1 = vec2(0.0), v2 = vec2(0.0), v3 = vec2(0.0);
+  vec2 i1 = vec2(0.0), i2 = vec2(0.0), i3 = vec2(0.0);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 g = vec2(float(i), float(j));
+      vec2 h = hash22(n + g);
+      vec2 v = g + 0.5 + 0.32 * sin(t * (0.6 + 0.5 * h.yx) + M_2PI * h) - f;
+      float d = dot(v, v);
+      if (d < d1) {
+        d3 = d2; v3 = v2; i3 = i2;
+        d2 = d1; v2 = v1; i2 = i1;
+        d1 = d; v1 = v; i1 = n + g;
+      } else if (d < d2) {
+        d3 = d2; v3 = v2; i3 = i2;
+        d2 = d; v2 = v; i2 = n + g;
+      } else if (d < d3) {
+        d3 = d; v3 = v; i3 = n + g;
+      }
+    }
   }
-  return d;
+  // Exact distance to the bisector between the two nearest points.
+  float edge = dot(0.5 * (v1 + v2), normalize(v2 - v1));
+  // The junction is the circumcentre of the three nearest points (pixel at origin).
+  vec2 ab = v2 - v1, ac = v3 - v1;
+  float D = 2.0 * (ab.x * ac.y - ab.y * ac.x);
+  float junc = 1e3;
+  if (abs(D) > 1e-6) {
+    vec2 cc = v1 + vec2(ac.y * dot(ab, ab) - ab.y * dot(ac, ac), ab.x * dot(ac, ac) - ac.x * dot(ab, ab)) / D;
+    junc = length(cc);
+  }
+  return vec3(edge, junc, hash12(i1 + i2 + i3));
 }
 
-// Two copies of the network drifting relative to each other, unioned, then
-// dilated/eroded by a slowly travelling amount. Signed: > 0 means "on a line".
-// Where the copies overlap you get one band; slightly apart, a fat band; further
-// apart, two strands that pinch shut where they cross, leaving lens-shaped eyes.
-float morphLines(vec2 uv, float t, float sep, float breathe, float seed) {
-  vec2 off = sep * vec2(
-    sin(t * 0.83 + uv.y * 9.0 + 1.3 * sin(uv.x * 7.0 + seed)),
-    cos(t * 0.67 + uv.x * 8.0 + 1.1 * sin(uv.y * 6.0 - seed))
-  );
-  // Cap each copy's band: gaps wider than 2*BAND_CAP (voids between circles)
-  // become a foam outline around water instead of a big solid foam blob.
-  float a = network(uv + off);
-  float b = network(uv - off);
-  a = min(a, BAND_CAP - a);
-  b = min(b, BAND_CAP - b);
-  // Smooth union = union + closing: water slivers thinner than STRAND_MERGE
-  // between the two strands fill in, so only plump lens-shaped eyes survive.
-  float grow = breathe * sin(t * 1.1 + (uv.x - uv.y) * 11.0 + seed) - LINE_THIN;
-  return smax(a, b, STRAND_MERGE) + grow;
+// Foam lines as a signed field: > 0 on foam.
+float lines(vec2 p, float t, float width, float jRadius, float eyeRadius, float seed) {
+  // Slow warp: bends the lines and makes them sway like the game's indirect texturing.
+  vec2 w = vec2(vnoise(p * 0.3 + vec2(seed, t * 0.11)), vnoise(p * 0.3 + vec2(t * 0.09, 7.3 + seed))) - 0.5;
+  p += w * WARP;
+  // Finer wobble (about one per cell) so each edge curves instead of running straight.
+  vec2 c = vec2(vnoise(p * 1.3 + vec2(3.1 + seed, t * 0.2)), vnoise(p * 1.3 + vec2(t * 0.17, 9.4 - seed))) - 0.5;
+  p += c * CURL;
+  vec3 nw = network(p, t * 0.9 + seed);
+
+  // Band width breathes along each line but never drops below (1 - LINE_BREATHE).
+  float breathe = vnoise(p * 0.9 + vec2(t * 0.35, -t * 0.27) + seed);
+  float s = 1.0 + LINE_BREATHE * (2.0 * breathe - 1.0);
+  float line = width * s - nw.x;
+  float web = jRadius * s - nw.y;
+  float f = smax(line, web, JUNCTION_SMOOTH * s);
+
+  // Some junctions open an eye, pulsing between closed and fully open.
+  float pick = step(1.0 - EYE_CHANCE, fract(nw.z * 13.7));
+  float open = smoothstep(0.25, 0.85, 0.5 + 0.5 * sin(t * 0.8 + nw.z * M_2PI * 3.0));
+  float er = eyeRadius * s * open * pick;
+  return min(f, nw.y - er);
 }
 
-vec3 water(vec2 uv, vec3 cdir) {
-  uv *= vec2(TEXTURE_SCALE);
+vec3 water(vec2 pos, vec3 cdir) {
+  vec2 uv = pos * 0.25;
   float t = iTime * MORPH_SPEED;
 
-  // Parallax height distortion with two directional waves at slightly different angles.
+  // Parallax height distortion with two directional waves (original).
   vec2 a = 0.025 * cdir.xz / cdir.y;
   float h = sin(uv.x + iTime);
   uv += a * h;
   h = sin(0.841471 * uv.x - 0.540302 * uv.y + iTime);
   uv += a * h;
 
-  // Lateral texture distortion (original).
+  // Lateral texture sway (original).
   float d1 = mod(uv.x + uv.y, M_2PI);
   float d2 = mod((uv.x + uv.y + 0.25) * 1.3, M_6PI);
   d1 = iTime * 0.07 + d1;
   d2 = iTime * 0.5 + d2;
-  vec2 dist = vec2(
-    sin(d1) * 0.15 + sin(d2) * 0.05,
-    cos(d1) * 0.15 + cos(d2) * 0.05
-  );
+  vec2 sway = vec2(sin(d1) * 0.15 + sin(d2) * 0.05, cos(d1) * 0.15 + cos(d2) * 0.05);
 
-  // Once a pixel covers more texture than a band is wide, lines would alias into
-  // noise; fade both layers to their average coverage instead.
-  float px = fwidth(uv.x) + fwidth(uv.y);
-  float far = smoothstep(0.006, 0.03, px);
+  vec2 p = (uv + sway) * (CELL_SCALE / 0.25);
 
-  // Under-layer: fainter, darker lines with their own drift and a softer edge.
-  float u = morphLines(uv + dist.xy, t, UNDER_SEPARATION, UNDER_BREATHE, 3.1);
-  float uw = fwidth(u) + 0.0015;
-  float under = mix(smoothstep(-uw, uw, u), 0.3, far);
-  vec3 col = mix(WATER_COL, UNDER_COL, under);
+  // When a pixel spans more than a band width, fade to the average coverage
+  // instead of letting the lines alias into noise.
+  float px = fwidth(p.x) + fwidth(p.y);
+  float far = smoothstep(LINE_WIDTH * 1.5, LINE_WIDTH * 8.0, px);
 
-  // Foam layer.
-  float f = morphLines(vec2(1.0) - uv - dist.yx, t, FOAM_SEPARATION, FOAM_BREATHE, 0.0);
-  float fw = fwidth(f) * 0.75;
-  float foam = mix(smoothstep(-fw, fw, f), 0.25, far);
-  return mix(col, FOAM_COL, foam);
+  // Under-layer: bigger, fainter, softer, its own drift.
+  float u = lines(p * 0.7 + vec2(13.7, 4.1), t * 0.8, LINE_WIDTH * 1.4, JUNCTION_RADIUS * 1.3, 0.0, 5.0);
+  // AA width from the pixel footprint, not fwidth(field): the field has seams where
+  // the nearest cells switch, and fwidth there smears faint false lines.
+  float uw = px * 0.7 + 0.01;
+  vec3 col = mix(WATER_COL, UNDER_COL, mix(smoothstep(-uw, uw, u), 0.25, far));
+
+  // Foam.
+  float f = lines(p, t, LINE_WIDTH, JUNCTION_RADIUS, EYE_RADIUS, 0.0);
+  float fw = px * 0.4;
+  return mix(col, FOAM_COL, mix(smoothstep(-fw, fw, f), 0.2, far));
 }
 
 vec3 pixtoray(vec2 uv) {
@@ -208,7 +214,12 @@ void main() {
   vec2 uv = gl_FragCoord.xy / iResolution.xy;
   vec3 cpos = vec3(0.0, 4.0, 10.0);
   vec3 cdir = pixtoray(uv);
-  cdir = quatmul(vec4(-0.19867, 0.0, 0.0, 0.980067), cdir); // tilt down slightly
+
+  // Tilt down just enough that the horizon sits HORIZON_FROM_TOP below the top
+  // edge, whatever the window's aspect ratio.
+  float halfH = 0.5 * iResolution.y / iResolution.x;
+  float tilt = atan((1.0 - 2.0 * HORIZON_FROM_TOP) * halfH / 0.6);
+  cdir = quatmul(vec4(-sin(0.5 * tilt), 0.0, 0.0, cos(0.5 * tilt)), cdir);
 
   // Rotating camera
   float cost = cos(iTime * -0.05);
@@ -218,10 +229,11 @@ void main() {
 
   // Water is evaluated for every pixel (no branch) so fwidth stays valid;
   // above the horizon the ray is clamped and the result discarded.
-  vec3 wdir = vec3(cdir.x, min(cdir.y, -1e-3), cdir.z);
-  float dist = min(cpos.y / -wdir.y, 100.0);
+  vec3 wdir = vec3(cdir.x, min(cdir.y, -1e-4), cdir.z);
+  float dist = min(cpos.y / -wdir.y, MAX_DIST);
   vec3 pos = cpos + dist * wdir;
-  vec3 sea = mix(water(pos.xz, wdir), FOG_COL, min(dist * 0.01, 1.0));
+  float fog = pow(dist / MAX_DIST, 0.8);
+  vec3 sea = mix(water(pos.xz, wdir), FOG_COL, fog);
   vec3 sky = mix(FOG_COL, SKY_COL, clamp(cdir.y * 4.0, 0.0, 1.0));
   gl_FragColor = vec4(cdir.y < 0.0 ? sea : sky, 1.0);
 }`;
