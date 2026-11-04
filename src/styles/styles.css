@@ -5,6 +5,11 @@
 /* Fresh's client-nav smooth-scrolled to #hash targets (ToC links). Astro's
    ClientRouter lets the browser handle same-page anchors natively, which
    jumps unless the page opts in to smooth scrolling. */
+/* Fallback under the ocean canvas (and before WebGL starts). */
+html {
+  background: rgb(45, 6, 102);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

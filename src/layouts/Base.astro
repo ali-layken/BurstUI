@@ -2,6 +2,7 @@
 import { ClientRouter } from "astro:transitions";
 import ResizeDetector from "../islands/ResizeDetector";
 import BackButton3D from "../islands/BackButton3D";
+import OceanBackground from "../islands/OceanBackground";
 import "../styles/styles.css";
 
 interface Props {
@@ -50,14 +51,15 @@ const absolute = new URL(path, Astro.site).toString();
   </head>
   <body>
     <ResizeDetector client:load />
+    <OceanBackground client:load transition:persist />
     <div class="layout">
       <div
         id="background-container"
-        class="min-h-screen bg-bgPurple flex flex-col items-center"
+        class="min-h-screen flex flex-col items-center"
       >
         <div
           id="main-container"
-          class="w-full min-w-0 md:flex gap-8 justify-start md:justify-center bg-bgAqua md:bg-bgPurple max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none min-h-screen md:min-h-0"
+          class="w-full min-w-0 md:flex gap-8 justify-start md:justify-center bg-bgAqua md:bg-transparent max-w-4xl md:max-w-full px-5 py-8 rounded-md shadow-lg md:shadow-none min-h-screen md:min-h-0"
         >
           <div
             id="wide-nav-container"
