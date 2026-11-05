@@ -75,8 +75,9 @@ html {
   border-image: var(--wire-image) 16 / 16px stretch;
   box-shadow: none;
 }
-/* Only below / above Tailwind's md breakpoint, matching which element is the panel at each width. */
-@media (max-width: 767px) {
+/* Only below / above Tailwind's md breakpoint (1463px in tailwind.config.ts, same as ResizeDetector's narrow switch),
+   matching which element is the panel at each width. */
+@media (max-width: 1462.98px) {
   .wire-frame-narrow {
     background-color: transparent;
     border: 3px solid transparent;
@@ -84,7 +85,7 @@ html {
     box-shadow: none;
   }
 }
-@media (min-width: 768px) {
+@media (min-width: 1463px) {
   .wire-frame-wide {
     background-color: transparent;
     border: 3px solid transparent;

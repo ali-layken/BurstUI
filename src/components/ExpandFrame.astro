@@ -84,7 +84,8 @@ const { src, title, bg } = Astro.props;
     align-items: flex-end;
     line-height: 1;
   }
-  @media (min-width: 768px) {
+  @media (min-width: 1463px) {
+    /* Tailwind's md (tailwind.config.ts), where the component panel's md:px-8 kicks in. */
     .xf-bar-left {
       left: calc(var(--xf-gap) + var(--xf-wire-room) - 32px);
     }
