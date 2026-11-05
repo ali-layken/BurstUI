@@ -67,14 +67,14 @@ html {
   /* Filled with the panel colour inside the orange inner line (border-image `fill`), so neither line sits on the fill. */
   .wide-nav,
   .wire-frame-wide {
-    border-image: url("/wire-frame-filled.svg?v=3") 16 fill / 16px stretch;
+    border-image: url("/wire-frame-filled.svg?v=4") 16 fill / 16px stretch;
   }
 }
 @media not all and (min-width: theme("screens.md")) {
   /* See-through, so the ocean shows round the text; filling it would cover the whole screen. The corner flowers reach
      to within ~0.3px of the box edge, so keep 2px clear of the screen without adding scroll. */
   .wire-frame-narrow {
-    border-image: url("/wire-frame.svg?v=3") 16 / 16px stretch;
+    border-image: url("/wire-frame.svg?v=4") 16 / 16px stretch;
     margin: 2px;
     width: calc(100% - 4px);
     min-height: calc(100vh - 4px);
