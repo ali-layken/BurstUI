@@ -43,17 +43,23 @@ export interface CameraPose {
 }
 
 /**
- * Whether the element under the pointer is bare background rather than a panel. The layout wrappers are transparent;
- * #main-container only is above md (below it, it is the content panel itself).
+ * Whether the element under the pointer is bare ocean rather than a panel. The layout wrappers are transparent.
+ * Above md the content panel is #component-container, so only #main-container (the gap round it) is ocean. Below md
+ * the wire-framed panels (#main-container, and #component-container inside it) are see-through, so the ocean shows
+ * through wherever no text plate or other content sits (and the 3D title, marked data-ocean, is drawn straight onto
+ * it); solid panels (blog posts) and the drawer are real surfaces.
  */
 export function isBackground(el: Element | null): boolean {
   if (!el) return false;
   if (el === document.documentElement || el === document.body) return true;
-  const id = el.id;
-  if (id === "background-container" || id === "wide-bottom-or-narrow-nav-container") return true;
   if (el.classList.contains("layout")) return true;
-  if (id === "main-container") return window.innerWidth >= MD_PX;
-  return false;
+  const id = el.id;
+  if (id === "background-container") return true;
+  if (id === "wide-bottom-or-narrow-nav-container") return !el.classList.contains("drawer");
+  const narrow = window.innerWidth < MD_PX;
+  if (id === "main-container") return !narrow || el.classList.contains("wire-frame-narrow");
+  if (id === "component-container") return narrow && !!el.closest("#main-container.wire-frame-narrow");
+  return narrow && !!el.closest("[data-ocean]") && !!el.closest("#main-container.wire-frame-narrow");
 }
 
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
@@ -125,7 +131,9 @@ export function createSpinController(): SpinController {
   };
 
   const onDown = (e: PointerEvent) => {
-    if (e.button !== 0 || e.pointerType === "touch") return; // touch keeps native scrolling
+    if (e.button !== 0) return;
+    // Touch only grabs the ocean from its bare areas, and styles.css (touch-action: pan-y) leaves vertical swipes
+    // there to the browser, so the page still scrolls and a sideways swipe spins the sea.
     if (!isBackground(e.target as Element)) return;
     e.preventDefault(); // no text selection while dragging
     dragging = true;
