@@ -8,7 +8,7 @@ interface TableOfContentsProps {
 export default function TableOfContents({ headings }: TableOfContentsProps): JSX.Element {
   const isLong = headings.length > 15;
   return (
-    <ul class="space-y-1 md:space-y-2 px-1 md:px-5">
+    <ul class="text-plate space-y-1 md:space-y-2 px-1 md:px-2">
       {headings.map(({ id, text, level }) => (
         <li key={id} class="relative" style={{ paddingLeft: `${level * 1.2}rem` }}>
           {/* Vertical Line for Tree */}

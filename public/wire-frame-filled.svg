@@ -1,0 +1,36 @@
+<!-- wire-frame.svg plus the panel fill (96% bgAqua), for filled panels (styles.css .filled-panels, used with the
+     border-image `fill` keyword so the middle slice paints too). The fill stops at the orange inner line instead of
+     running under it, so both lines show the same colours as on the see-through panels. It starts 0.5px under the
+     line's inner edge (line 11-13, fill from 12.5) so no hairline of ocean shows between them. Keep in sync with
+     wire-frame.svg. Gen 1 Pokemon text box style double line, with a flower in each corner instead of its knobs.
+     Lilac = the ocean's sky colour, orange = the heading colour. Lines at 96% (one group, so overlaps don't darken); the lilac parts (outer line + petals) are their own
+     sub-group so they can be dimmed separately (opacity on that <g>). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <defs>
+    <g id="petals" fill="rgb(197,138,249)">
+      <circle cx="3" cy="0" r="2.7"/>
+      <circle cx="-3" cy="0" r="2.7"/>
+      <circle cx="0" cy="3" r="2.7"/>
+      <circle cx="0" cy="-3" r="2.7"/>
+    </g>
+  </defs>
+  <rect x="12.5" y="12.5" width="23" height="23" rx="1.5" fill="rgba(11,54,91,0.96)"/>
+  <g opacity="0.96" fill="none">
+    <!-- lilac: outer line + corner petals -->
+    <g>
+      <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
+      <use href="#petals" x="6" y="6"/>
+      <use href="#petals" x="42" y="6"/>
+      <use href="#petals" x="42" y="42"/>
+      <use href="#petals" x="6" y="42"/>
+    </g>
+    <!-- orange: inner line + flower centres -->
+    <rect x="12" y="12" width="24" height="24" rx="2" stroke="rgb(255,144,84)" stroke-width="2"/>
+    <g fill="rgb(255,144,84)">
+      <circle cx="6" cy="6" r="1.6"/>
+      <circle cx="42" cy="6" r="1.6"/>
+      <circle cx="42" cy="42" r="1.6"/>
+      <circle cx="6" cy="42" r="1.6"/>
+    </g>
+  </g>
+</svg>
