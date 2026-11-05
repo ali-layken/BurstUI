@@ -52,6 +52,7 @@ const { src, title, bg } = Astro.props;
      the panel's normal bottom padding. */
   :root {
     --xf-gap: 12px;
+    --xf-wire-room: 10px;
   }
   .xf-bar {
     padding-top: var(--xf-gap) !important;
@@ -71,20 +72,21 @@ const { src, title, bg } = Astro.props;
     min-height: 75vh;
   }
   /* Optional content on the left of the bar (e.g. a source link), tucked into the panel's bottom-left corner with the
-     same XF_GAP from both edges. Absolutely positioned so the expand button stays centred in the bar, which
+     same XF_GAP from both edges, plus --xf-wire-room so it (and its text plate's wavy edge) clears the wire frame's
+     double line. Absolutely positioned so the expand button stays centred in the bar, which
      expandFrame.ts relies on for its fly-out position. The negative left cancels the panel's side padding
      (main px-5 + component px-2 on narrow screens, component md:px-8 on wide). */
   .xf-bar-left {
     position: absolute;
-    left: calc(var(--xf-gap) - 28px);
-    bottom: 0;
+    left: calc(var(--xf-gap) + var(--xf-wire-room) - 28px);
+    bottom: var(--xf-wire-room);
     display: flex;
     align-items: flex-end;
     line-height: 1;
   }
   @media (min-width: 768px) {
     .xf-bar-left {
-      left: calc(var(--xf-gap) - 32px);
+      left: calc(var(--xf-gap) + var(--xf-wire-room) - 32px);
     }
   }
   .expand-button-3d {
