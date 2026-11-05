@@ -67,7 +67,7 @@ html {
    a warm complement to the purples. */
 :root {
   --plate-bg: rgba(11, 54, 91, 0.96); /* bgAqua: same opacity the old filled panels used */
-  --wire-image: url("/wire-frame.svg?v=2");
+  --wire-image: url("/wire-frame.svg?v=3");
 }
 .wire-frame {
   background-color: transparent;
@@ -199,7 +199,7 @@ html {
 @media (min-width: 1463px) {
   .filled-panels .wire-frame,
   .filled-panels .wire-frame-wide {
-    border-image: url("/wire-frame-filled.svg?v=2") 16 fill / 16px stretch;
+    border-image: url("/wire-frame-filled.svg?v=3") 16 fill / 16px stretch;
   }
   .filled-panels .text-plate {
     background: none;

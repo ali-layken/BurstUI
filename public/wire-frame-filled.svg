@@ -3,8 +3,8 @@
      running under it, so both lines show the same colours as on the see-through panels. It starts 0.5px under the
      line's inner edge (line 11-13, fill from 12.5) so no hairline of ocean shows between them. Keep in sync with
      wire-frame.svg. Gen 1 Pokemon text box style double line, with a flower in each corner instead of its knobs.
-     Lilac = the ocean's sky colour, orange = the heading colour. Lines at 60%, with the lilac parts (outer line + petals) a
-     sub-group at 75% of that (45%); groups, so overlaps don't darken. -->
+     Lilac = the ocean's sky colour, orange = the heading colour. Lines at 96% (one group, so overlaps don't darken); the lilac parts (outer line + petals) are their own
+     sub-group so they can be dimmed separately (opacity on that <g>). -->
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
   <defs>
     <g id="petals" fill="rgb(197,138,249)">
@@ -15,7 +15,7 @@
     </g>
   </defs>
   <rect x="12.5" y="12.5" width="23" height="23" rx="1.5" fill="rgba(11,54,91,0.96)"/>
-  <g fill="none">
+  <g opacity="0.96" fill="none">
     <!-- lilac: outer line + corner petals -->
     <g>
       <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
