@@ -89,5 +89,10 @@ const absolute = new URL(path, Astro.site).toString();
         <div id="wide-bottom-or-narrow-nav-container"></div>
       </div>
     </div>
+    <script>
+      import { initPlateShapes } from "../lib/plateShapes";
+      // New random flower outlines for the text plates on every page load (and every client-side navigation).
+      document.addEventListener("astro:page-load", initPlateShapes);
+    </script>
   </body>
 </html>

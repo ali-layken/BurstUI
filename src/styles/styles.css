@@ -102,4 +102,19 @@ html {
     border-radius: 6px;
     padding: 0.25rem 0.75rem;
   }
+  /* Once src/lib/plateShapes.ts has drawn its flower outline, paint that instead of the plain rectangle. The ::before
+     reaches --plate-margin past the box so the petals grow outward, and sits behind the plate's own text. */
+  .text-plate.plate-shaped {
+    position: relative;
+    isolation: isolate;
+    background-color: transparent;
+  }
+  .text-plate.plate-shaped::before {
+    content: "";
+    position: absolute;
+    inset: calc(var(--plate-margin) * -1);
+    z-index: -1;
+    pointer-events: none;
+    background: var(--plate-shape) center / 100% 100% no-repeat;
+  }
 }
