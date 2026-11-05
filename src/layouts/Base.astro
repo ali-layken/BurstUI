@@ -13,9 +13,8 @@ interface Props {
   ogTitle?: string;
   ogDescription?: string;
   ogType?: string;
-  /** Rendered verbatim inside <head> for page-specific meta (article:*). */
   robots?: string;
-  /** Opaque content panel (long-form reading); default is translucent over the ocean. */
+  /** Opaque content panel for long-form reading (blog posts); default is the wire-framed panel over the ocean. */
   solid?: boolean;
 }
 
@@ -30,15 +29,10 @@ const {
   solid = false,
 } = Astro.props;
 
-// Solid pages (blog posts) get a filled content panel for reading; everything else gets a wireframe panel over the
-// ocean (styles.css). The sidebar is a wireframe on every page.
-// TEMP switch: true = on wide screens the wire panels are filled with the old 96% panel colour (no text plate
-// backgrounds); on narrow screens the panels stay see-through and text sits on plain rounded 96% plates. Blog content
-// stays 100% either way. false = see-through wire panels with flower-edged plates everywhere (tag wire-complete-gas).
-const FILLED_PANELS = true;
-
-const panelBg = solid ? "bg-bgAquaSolid shadow-lg" : "wire-frame-narrow";
-const panelBgMd = solid ? "md:bg-bgAquaSolid md:shadow-lg" : "wire-frame-wide";
+// Below md the content panel is the whole screen (#main-container); above it, a card beside the sidebar
+// (#component-container). styles.css .wire-frame-* draws the frame on whichever is the panel at that width.
+const panelNarrow = solid ? "bg-bgAquaSolid shadow-lg" : "wire-frame-narrow";
+const panelWide = solid ? "md:bg-bgAquaSolid md:shadow-lg" : "wire-frame-wide";
 
 const absolute = new URL(path, Astro.site).toString();
 ---
@@ -62,22 +56,19 @@ const absolute = new URL(path, Astro.site).toString();
 
     <ClientRouter />
   </head>
-  <body class:list={[FILLED_PANELS && "filled-panels"]}>
+  <body>
     <ResizeDetector client:load />
     <OceanBackground client:load transition:persist />
     <div class="layout">
-      <div
-        id="background-container"
-        class="min-h-screen flex flex-col items-center"
-      >
+      <div id="background-container" class="min-h-screen flex flex-col items-center">
         <div
           id="main-container"
-          class:list={["w-full min-w-0 md:flex gap-8 justify-start md:justify-center", panelBg, "md:bg-transparent max-w-4xl md:max-w-full px-5 py-8 rounded-md md:shadow-none min-h-screen md:min-h-0"]}
+          class:list={[
+            "w-full min-w-0 max-w-4xl min-h-screen px-5 py-8 rounded-md md:flex md:justify-center md:gap-8 md:max-w-full md:min-h-0 md:bg-transparent md:shadow-none",
+            panelNarrow,
+          ]}
         >
-          <div
-            id="wide-nav-container"
-            class="hidden md:flex flex-2 w-[31rem] px-4 py-5 top-24 rounded-md self-start sticky flex-col wire-frame"
-          >
+          <div id="wide-nav-container" class="hidden md:flex wide-nav">
             <slot name="nav">
               <div id="site-nav-container">
                 <BackButton3D client:load />
@@ -86,7 +77,7 @@ const absolute = new URL(path, Astro.site).toString();
           </div>
           <div
             id="component-container"
-            class:list={["max-w-4xl px-2 md:px-8 py-0 md:py-8 bg-none", panelBgMd, "rounded-md shadow-none static md:relative w-full"]}
+            class:list={["w-full max-w-4xl px-2 py-0 rounded-md md:relative md:px-8 md:py-8", panelWide]}
           >
             <slot />
           </div>
@@ -94,12 +85,5 @@ const absolute = new URL(path, Astro.site).toString();
         <div id="wide-bottom-or-narrow-nav-container"></div>
       </div>
     </div>
-    <script>
-      import { initPlateShapes } from "../lib/plateShapes";
-      // New random flower outlines for the text plates on every page load (and every client-side navigation).
-      document.addEventListener("astro:page-load", () => {
-        if (!document.body.classList.contains("filled-panels")) initPlateShapes();
-      });
-    </script>
   </body>
 </html>

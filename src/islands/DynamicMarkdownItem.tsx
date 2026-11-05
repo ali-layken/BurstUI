@@ -49,7 +49,6 @@ export default function DynamicMarkdownItem() {
 
           // MermaidBlock logic
           if (componentName === "MermaidBlock") {
-            placeholder.classList.remove("invisible");
             if (runMermaid) {
               runMermaid = false;
 

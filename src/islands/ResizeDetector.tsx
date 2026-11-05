@@ -1,9 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import type { JSX } from "preact/jsx-runtime";
+import { isNarrowWidth } from "../lib/breakpoint";
 import { isNarrowSignal } from "../lib/signals";
-
-/** Narrow below Tailwind's md (tailwind.config.ts: min-width 1463px), so this and the CSS switch at the same width. */
-const isNarrowWidth = () => globalThis.innerWidth < 1463;
 
 // Module-level (shared by every ResizeDetector instance, including ones left over from earlier client-side
 // navigations) so a breakpoint crossing animates once.
@@ -25,10 +23,7 @@ function animateBreakpointSwap(narrow: boolean) {
   });
 }
 
-/**
- * Soft-fade the drawer sidebar's edges where there's more to scroll (styles.css .drawer-scroll.more-above/-below):
- * the scrollbar is hidden, so this is the hint that the list continues.
- */
+/** Toggle the drawer sidebar's edge fades (styles.css .drawer-scroll.more-above / .more-below). */
 function updateScrollFades(el: HTMLElement) {
   const more = el.scrollHeight - el.clientHeight;
   el.classList.toggle("more-above", more > 1 && el.scrollTop > 1);
@@ -46,19 +41,15 @@ function watchScrollFades(el: HTMLElement, on: boolean) {
   fadeObservers.set(el, ro);
 }
 
+/**
+ * Moves the sidebar (#site-nav-container) between the wide layout's sticky column and the narrow layout's bottom
+ * drawer, and builds the drawer and its toggle. Renders nothing itself. Styles live in styles.css (.drawer*) rather
+ * than Tailwind classes built here: under `astro dev`, classes that only appear in this file can be missing from the
+ * CSS that client-side navigation swaps in.
+ */
 export default function ResizeDetector(): JSX.Element {
-  if (typeof globalThis === "undefined") {
-    return <></>;
-  }
-
   const [isNarrow, setIsNarrow] = useState<boolean>(isNarrowWidth());
-
   const [isOpen, setIsOpen] = useState(false);
-
-  const toggleMenu = () =>
-    setIsOpen((prev) => {
-      return !prev;
-    });
 
   useEffect(() => {
     lastNarrow ??= isNarrowWidth();
@@ -68,30 +59,20 @@ export default function ResizeDetector(): JSX.Element {
       setIsNarrow(narrow);
       isNarrowSignal.value = narrow;
     };
-
     globalThis.addEventListener("resize", updateScreenSize);
-
-    return () => {
-      globalThis.removeEventListener("resize", updateScreenSize);
-    };
+    return () => globalThis.removeEventListener("resize", updateScreenSize);
   }, []);
 
   useEffect(() => {
     const wideNavDiv = document.getElementById("wide-nav-container");
-    const bottomNavDiv = document.getElementById(
-      "wide-bottom-or-narrow-nav-container",
-    );
+    const drawer = document.getElementById("wide-bottom-or-narrow-nav-container");
     const siteNavDiv = document.getElementById("site-nav-container");
 
-    const handleSiteNavigation = (event: any) => {
-      const action = event.target.dataset.action;
-      if (action === "toggle") {
-        toggleMenu();
-      }
-
-      if (action === "close") {
-        setIsOpen(false);
-      }
+    // Clicks inside the drawer: the toggle flips it; links (data-action="close") shut it.
+    const handleSiteNavigation = (event: Event) => {
+      const action = (event.target as HTMLElement).dataset.action;
+      if (action === "toggle") setIsOpen((prev) => !prev);
+      if (action === "close") setIsOpen(false);
     };
 
     if (isNarrow) {
@@ -99,33 +80,23 @@ export default function ResizeDetector(): JSX.Element {
         wideNavDiv.innerHTML = "";
         wideNavDiv.className = "hidden";
       }
-      if (bottomNavDiv) {
-        // Configure bottom nav with initial state offscreen
-        bottomNavDiv.innerHTML = ""; // Clear previous content
-        bottomNavDiv.className =
-          `fixed border-t-4 border-l-2 border-r-2 border-accRed3 shadow-lg top-[calc(100%+2.5rem)] transform w-full max-w-4xl bg-bgAqua2 rounded-t-lg z-50 transition-transform duration-300 ${
-            isOpen ? "-translate-y-[calc(100%+2.5rem)]" : "-translate-y-10"
-          }`;
-        bottomNavDiv.onclick = handleSiteNavigation;
-        // Add toggle button
-        const toggleButton = document.createElement("div");
-        // A floating circle that rides on top of the drawer: ~20px above its top edge and 24px in from the right, so while
-        // the drawer is closed it sits inside the wire frame's double line in the bottom-right corner.
-        // Styled by .drawer-toggle* in styles.css rather than Tailwind classes built here: in `astro dev`, classes that only
-        // appear in this file can be missing from the CSS that client-side navigation swaps in, which hid the button.
-        toggleButton.className = "drawer-toggle-row";
+      if (drawer) {
+        drawer.innerHTML = "";
+        drawer.className = `drawer${isOpen ? " open" : ""}`;
+        drawer.onclick = handleSiteNavigation;
+
+        const toggleRow = document.createElement("div");
+        toggleRow.className = "drawer-toggle-row";
         const button = document.createElement("button");
         button.className = "drawer-toggle";
         button.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-        // Same up/down swap as before, but drawn as one glyph flipped, since "⌄" sits lower and smaller than "⌃". The glyph
-        // sits ~2.5px above centre in its line box, so nudge it back (after the flip, for the open state).
-        button.innerHTML = `<span class="drawer-toggle-arrow${isOpen ? " open" : ""}">⌃</span>`;
         button.setAttribute("data-action", "toggle");
-        toggleButton.appendChild(button);
-        bottomNavDiv.appendChild(toggleButton);
+        button.innerHTML = `<span class="drawer-toggle-arrow${isOpen ? " open" : ""}">⌃</span>`;
+        toggleRow.appendChild(button);
+        drawer.appendChild(toggleRow);
 
         if (siteNavDiv) {
-          bottomNavDiv.appendChild(siteNavDiv); // Move the element
+          drawer.appendChild(siteNavDiv);
           siteNavDiv.classList.remove("hidden");
           siteNavDiv.classList.add("px-6", "py-8", "drawer-scroll");
           watchScrollFades(siteNavDiv, true);
@@ -133,23 +104,22 @@ export default function ResizeDetector(): JSX.Element {
       }
     } else {
       if (wideNavDiv) {
-        wideNavDiv.className =
-          "flex-2 w-[31rem] px-4 py-5 top-24 rounded-md self-start sticky flex flex-col wire-frame";
+        wideNavDiv.className = "flex wide-nav";
         if (siteNavDiv) {
-          wideNavDiv.appendChild(siteNavDiv); // Move the element
+          wideNavDiv.appendChild(siteNavDiv);
           siteNavDiv.className = "";
           watchScrollFades(siteNavDiv, false);
         }
       }
-      if (bottomNavDiv) {
-        // Clear narrow navigation
-        bottomNavDiv.innerHTML = "";
-        bottomNavDiv.className = "h-12";
+      if (drawer) {
+        drawer.innerHTML = "";
+        drawer.className = "h-12";
       }
     }
 
+    // Islands inside the moved sidebar (BackButton3D, the 3D title) re-measure on resize.
     globalThis.dispatchEvent(new Event("resize"));
   }, [isNarrow, isOpen]);
 
-  return <></>; // No visible output
+  return <></>;
 }

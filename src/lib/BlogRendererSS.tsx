@@ -54,25 +54,9 @@ customRenderer.heading = ({ text, depth }: Tokens.Heading): string => {
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, ""); // Generate unique ID for TOC
   text = md.parseInline(text) as string;
-  const tocHtml = text.replace(/<a[^>]*>(.*?)<\/a>/g, "$1");
-  headings.push({ id, text: tocHtml, level: depth }); // Add heading to TOC array
-
-
-  switch (depth) {
-    case 1:
-      return `
-        <${tag} id="${id}">${text}</${tag}>
-    `;
-    case 3:
-      return `
-        <${tag} id="${id}">${text}</${tag}>
-        <hr />
-    `;
-    default:
-      return `
-      <${tag} id="${id}">${text}</${tag}>
-      `;
-  }
+  headings.push({ id, text: text.replace(/<a[^>]*>(.*?)<\/a>/g, "$1"), level: depth }); // ToC entries carry no links
+  // h3s get a rule under them.
+  return `<${tag} id="${id}">${text}</${tag}>${depth === 3 ? "<hr />" : ""}\n`;
 };
 
 const hlExt = markedHighlight({
@@ -86,47 +70,31 @@ const hlExt = markedHighlight({
     const language = hljs.getLanguage(lang) ? lang : "plaintext";
     const codeLines = code.split('\n');
   
-    const linesWithButtons = codeLines.map((code, index) => {
-      if (code === ""){
-        return `<br />`
-      } else{
-        const line = hljs.highlight(code, { language }).value;
-        return `<div class="code-line relative group">
-        <span 
+    // One row per line, each with a hover dot on the left and a copy button on the right (wired up client-side by
+    // islands/CopyableCodeBlock.tsx).
+    const linesWithButtons = codeLines.map((line) => {
+      if (line === "") return `<br />`;
+      return `<div class="code-line relative group">
+        <span
           class="absolute group-hover:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style="top: 8px; left: -12px; width: 6px; height: 6px; background-color:${burstTextColors.subtitles}; border-radius: 50%;">
         </span>
-        <span class="pl-2 text-base">${line}</span>
-        <span 
+        <span class="pl-2 text-base">${hljs.highlight(line, { language }).value}</span>
+        <span
           class="copy-line-button absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 cursor-pointer text-base"
-          data-line="${encodeURIComponent(code.split("\n")[index] || "")}"
+          data-line="${encodeURIComponent(line)}"
           title="Copy Button">📋</span>
       </div>`;
-      }
-
     });
-  
+
     return `<div data-component="CopyableCodeBlock" data-lang="${language}" data-code="${
       encodeURIComponent(code)
     }">${linesWithButtons.join("")}</div>`;
   }
 });
 
-// gitEmojis comes from the static file scripts/generate_emojis.mjs writes, instead of
-// calling octokit.rest.emojis.get() live here - CONFIRMED (2026-09-14) that
-// doing this as a top-level-await network call in a module every route's
-// module graph pulls in meant a single slow/504 response from GitHub's API
-// took down isolate BOOT itself (BOOT_FAILED/502 on every route, not just
-// blog pages), plus a standing risk of hitting GitHub's 60-req/hour
-// unauthenticated rate limit on every cold isolate. allemojislist.json is
-// kept fresh by .github/workflows/update-emojis.yml (runs
-// scripts/generate_emojis.mjs on every merge to main) - see that script's
-// own header comment for the full story. This whole module now only ever
-// runs inside `astro build`, so even a bad import here can only fail a
-// build, never a live request.
-
-
-// Custom emoji set
+// GitHub's emoji set comes from the committed allemojislist.json (scripts/generate_emojis.mjs keeps it fresh), never
+// from a live API call: this module runs inside `astro build` only. Plus the site's own logos:
 const customEmojis = {
   "arch_linux": "/emojis/arch.png",
   "google_logo": "/emojis/google.ico",
@@ -175,10 +143,10 @@ const md = new Marked(
 export function renderBlogPost(content: string): RendererResult {
   headings.length = 0;
 
-    // Extract tags from content
-    const tagMatch = content.match(/tags:\s*([^\n]+)/i); // Look for "tags:" followed by a comma-separated list
-    const tags = tagMatch ? tagMatch[1].split(",").map(tag => tag.trim()) : [];
-    content = content.replace(/tags:\s*([^\n]+)/i, "");
+  // A "tags: a, b, c" line anywhere in the post becomes og article:tag metadata and is dropped from the body.
+  const tagMatch = content.match(/tags:\s*([^\n]+)/i);
+  const tags = tagMatch ? tagMatch[1].split(",").map((tag) => tag.trim()) : [];
+  content = content.replace(/tags:\s*([^\n]+)/i, "");
 
   const renderedContent = md.parse(
     content.replace(/{{(\w+)}}/g, (_match, componentName) => {

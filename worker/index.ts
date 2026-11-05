@@ -47,7 +47,8 @@ async function serveLarge(request: Request, ctx: ExecutionContext, path: string)
   // than on every game load. (On a bare *.workers.dev hostname the Cache
   // API may be a no-op; then this simply proxies every time, which still
   // works - GitHub's release CDN is fast.)
-  const cache = caches.default;
+  // `caches.default` is Workers-only; the lib.dom CacheStorage type that astro check resolves here lacks it.
+  const cache = (caches as unknown as { default: Cache }).default;
   const cacheKey = new Request(new URL(request.url).toString(), { method: "GET" });
   const cached = await cache.match(cacheKey);
   if (cached) return cached;

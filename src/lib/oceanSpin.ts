@@ -6,6 +6,8 @@
 // Yaw sign: positive turns the sea like "Burst!" (front moving right), so the
 // two never spin against each other.
 
+import { MD_PX } from "./breakpoint";
+
 export const SPIN = {
   /** Default spin (rad/s) when the mouse isn't on the page (or on touch devices). */
   base: 0.012,
@@ -41,9 +43,8 @@ export interface CameraPose {
 }
 
 /**
- * Whether the element under the pointer is bare background rather than a panel.
- * The layout wrappers are transparent; #main-container only is on wide screens
- * (on narrow screens it is the content panel itself).
+ * Whether the element under the pointer is bare background rather than a panel. The layout wrappers are transparent;
+ * #main-container only is above md (below it, it is the content panel itself).
  */
 export function isBackground(el: Element | null): boolean {
   if (!el) return false;
@@ -51,7 +52,7 @@ export function isBackground(el: Element | null): boolean {
   const id = el.id;
   if (id === "background-container" || id === "wide-bottom-or-narrow-nav-container") return true;
   if (el.classList.contains("layout")) return true;
-  if (id === "main-container") return window.matchMedia("(min-width: 768px)").matches;
+  if (id === "main-container") return window.innerWidth >= MD_PX;
   return false;
 }
 

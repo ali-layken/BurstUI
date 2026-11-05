@@ -16,7 +16,12 @@ It used to be a Deno Fresh app on Deno Deploy; that moved here in October
   created/modified times (`npm run timestamps` regenerates it from the
   filesystem on the machine the posts were written on).
 - `src/pages/` - routes. `src/layouts/Base.astro` is the shell every page
-  shares (head/meta, wide nav column, bottom nav on narrow screens).
+  shares (head/meta, wide nav column, bottom drawer on narrow screens).
+  `src/styles/styles.css` holds the hand-written CSS (wire-frame panels,
+  text plates, the drawer); `tailwind.config.ts` the palette (from
+  `src/lib/colors.ts`) and blog typography. The one layout breakpoint lives
+  in `src/lib/breakpoint.ts` and feeds Tailwind's `md`, the CSS media
+  queries and the JS layout switch alike.
 - `src/islands/` - the interactive Preact bits (three.js title, cube, back
   button, copy buttons, the markdown post-processor). `{{ SpinningCube }}`
   inside a post drops that island into the rendered markdown.

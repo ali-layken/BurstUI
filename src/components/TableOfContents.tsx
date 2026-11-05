@@ -11,23 +11,17 @@ export default function TableOfContents({ headings }: TableOfContentsProps): JSX
     <ul class="text-plate space-y-1 md:space-y-2 px-1 md:px-2">
       {headings.map(({ id, text, level }) => (
         <li key={id} class="relative" style={{ paddingLeft: `${level * 1.2}rem` }}>
-          {/* Vertical Line for Tree */}
-          <span
-            class={`absolute top-0 h-full border-l border-subtitles2`}
-            style={{
-              left: `${(level - 1) * 1.2}rem`, // Bring the line closer to the text
-            }}
-          ></span>
-
-          {/* Link */}
+          {/* tree line down the left of each nesting level */}
+          <span class="absolute top-0 h-full border-l border-subtitles2" style={{ left: `${(level - 1) * 1.2}rem` }} />
+          {/* smaller and lighter the deeper the heading; the whole list shrinks a step on long posts */}
           <a
             href={`#${id}`}
             data-action="close"
             dangerouslySetInnerHTML={{ __html: text }}
-            class={`block text-accGreen font-source4 hover:text-accRed transition-colors duration-300`}
+            class="block text-accGreen font-source4 hover:text-accRed transition-colors duration-300"
             style={{
-              fontSize: isLong ? `${1.35 - level * 0.14}rem` : `${1.63 - level * 0.16}rem`, // Dynamically adjust font size
-              fontWeight: isLong ? `${800 - level * 100}` : `${800 - level * 100}`, // Make text weight lighter for deeper levels
+              fontSize: isLong ? `${1.35 - level * 0.14}rem` : `${1.63 - level * 0.16}rem`,
+              fontWeight: `${800 - level * 100}`,
             }}
           />
         </li>
