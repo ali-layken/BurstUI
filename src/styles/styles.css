@@ -127,6 +127,15 @@ html {
 .drawer-toggle:hover {
   background-color: rgb(231, 29, 54); /* accRed2 */
 }
+/* The sidebar while it sits in the drawer: capped so the open drawer never grows taller than the screen minus room for
+   the circle above it (circle 2.75rem + its ~1.25rem lift + ~1.5rem clearance at the top), scrolling inside instead.
+   dvh follows iOS Safari's collapsing address bar; the vh line is the fallback. */
+.drawer-scroll {
+  max-height: calc(100vh - 6rem);
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 /* One glyph flipped for "open", since "⌄" renders lower and smaller than "⌃"; it sits ~2.5px above centre in its line
    box, so nudge it back (after the flip for the open state). */
 .drawer-toggle-arrow {

@@ -106,7 +106,7 @@ export default function ResizeDetector(): JSX.Element {
         if (siteNavDiv) {
           bottomNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.classList.remove("hidden");
-          siteNavDiv.classList.add("px-6", "py-8");
+          siteNavDiv.classList.add("px-6", "py-8", "drawer-scroll");
         }
       }
     } else {
