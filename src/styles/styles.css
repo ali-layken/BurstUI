@@ -2,104 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fresh's client-nav smooth-scrolled to #hash targets (ToC links). Astro's
-   ClientRouter lets the browser handle same-page anchors natively, which
-   jumps unless the page opts in to smooth scrolling. */
-/* Fallback under the ocean canvas (and before WebGL starts). */
-html {
-  /* Sky -> fog at the horizon -> water, same colors as the shader, so the
-     waves fade in over something that already looks like the ocean. */
-  background: linear-gradient(
-      to bottom,
-      rgb(128, 82, 196) 0%,
-      rgb(45, 6, 102) 35%
-    )
-    fixed rgb(45, 6, 102);
-  /* Wind Waker palette: rgb(92, 189, 237) / rgb(127, 212, 221) / rgb(11, 101, 167) */
+/* Layout switch: one column with a bottom drawer below Tailwind's md, sidebar + content panel above it. The width lives
+   in src/lib/breakpoint.ts (via tailwind.config.ts): `screen(md)` is wide, and `not all and (min-width: md)` is its
+   exact complement, narrow. */
+
+@layer base {
+  @font-face {
+    font-family: "Fixel";
+    src: url(/FixelAll/FixelVariable/FixelVariable.ttf);
+  }
+  @font-face {
+    font-family: "Fixel";
+    src: url(/FixelAll/FixelVariable/FixelVariableItalic.ttf);
+    font-style: italic;
+  }
+  @font-face {
+    font-family: "Source4";
+    src: url(/Source_Serif_4/SourceSerif4-VariableFont_opsz\,wght.ttf);
+  }
+  @font-face {
+    font-family: "Source4";
+    src: url(/Source_Serif_4/SourceSerif4-Italic-VariableFont_opsz,wght.ttf);
+    font-style: italic;
+  }
 }
 
+/* Under the ocean canvas, and before WebGL starts: sky -> fog -> water in the shader's own "burst" palette
+   (OceanBackground.tsx), so the waves fade in over something that already looks like the ocean. */
+html {
+  background: linear-gradient(to bottom, rgb(128, 82, 196) 0%, rgb(45, 6, 102) 35%) fixed rgb(45, 6, 102);
+}
+/* Inline logo "emoji" outside blog posts (BlogRendererSS's .marked-emoji-img; the prose variants style their own). */
+.marked-emoji-img:not(.prose-lg img):not(.prose-xl img) {
+  display: inline-block;
+  font-size: inherit;
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.2em;
+}
+/* Same-page anchors (ToC links) glide instead of jumping. */
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
   }
 }
 
-.marked-emoji-img:not(.prose-lg img):not(.prose-xl img) {
-  display: inline-block;
-  font-size: inherit; /* Match text size */
-  width: 1.1em; /* Scale with inherited font size */
-  height: 1.1em;
-  vertical-align: -0.2em;
-}
-
-
-@layer base {
-  @font-face {
-    font-family: 'Teko';
-    src: url(/Teko/Teko-VariableFont_wght.ttf);
-  }
-  @font-face {
-    font-family: 'Fixel';
-    src: url(/FixelAll/FixelVariable/FixelVariable.ttf);
-  }
-  @font-face {
-    font-family: 'Fixel';
-    src: url(/FixelAll/FixelVariable/FixelVariableItalic.ttf);
-    font-style: italic;
-  }
-  @font-face {
-    font-family: 'Source4';
-    src: url(/Source_Serif_4/SourceSerif4-VariableFont_opsz\,wght.ttf);
-  }
-  @font-face {
-    font-family: 'Source4';
-    src: url(/Source_Serif_4/SourceSerif4-Italic-VariableFont_opsz,wght.ttf);
-    font-style: italic;
-  }
-}
-/* Wireframe panels (every sidebar, and every content panel except blog posts', which stay solid for reading): no fill, so
-   the ocean shows through, just a frame like a Gen 1 Pokemon text box - a double line round the edge - with a small
-   flower at each corner to match the flower-edged .text-plate shapes. The frame is public/wire-frame.svg used as a
-   9-slice border-image (16px corners; the edges stretch), so the inside stays transparent and it needs no extra markup.
-   Colours, picked against the ocean (OceanBackground.tsx "burst" palette): the sea's own foam/blue would vanish wherever
-   the wire crosses a foam line or open water, so the outer line and petals are the sky's lilac - lighter than the water,
-   more saturated than the foam, so it reads over both - and the inner line and flower centres are the heading orange,
-   a warm complement to the purples. */
 :root {
-  --plate-bg: rgba(11, 54, 91, 0.96); /* bgAqua: same opacity the old filled panels used */
-  --wire-image: url("/wire-frame.svg?v=3");
+  --plate-bg: theme("colors.bgAqua");
+  --plate-grow: 8px;
 }
-.wire-frame {
+
+/* Panels: a double-line frame with a flower at each corner (public/wire-frame*.svg as a 9-slice border-image, 16px
+   corners, edges stretched). Lilac outer line and petals, orange inner line and flower centres, picked to read over
+   both the foam and the open water. .wide-nav is the sidebar column (only exists above md); -narrow / -wide are the
+   content panel at the width where it is the panel (the whole screen below md, a card beside the sidebar above it). */
+.wide-nav,
+.wire-frame-narrow,
+.wire-frame-wide {
   background-color: transparent;
   border: 3px solid transparent;
-  border-image: var(--wire-image) 16 / 16px stretch;
   box-shadow: none;
 }
-/* Only below / above Tailwind's md breakpoint (1463px in tailwind.config.ts, same as ResizeDetector's narrow switch),
-   matching which element is the panel at each width. */
-@media (max-width: 1462.98px) {
-  /* On narrow screens this panel is the whole screen; keep the frame (whose corner flowers reach to within ~0.3px of
-     the box edge) 2px clear of the screen edges, without adding scroll. */
+@media screen(md) {
+  /* Filled with the panel colour inside the orange inner line (border-image `fill`), so neither line sits on the fill. */
+  .wide-nav,
+  .wire-frame-wide {
+    border-image: url("/wire-frame-filled.svg?v=3") 16 fill / 16px stretch;
+  }
+}
+@media not all and (min-width: theme("screens.md")) {
+  /* See-through, so the ocean shows round the text; filling it would cover the whole screen. The corner flowers reach
+     to within ~0.3px of the box edge, so keep 2px clear of the screen without adding scroll. */
   .wire-frame-narrow {
+    border-image: url("/wire-frame.svg?v=3") 16 / 16px stretch;
     margin: 2px;
     width: calc(100% - 4px);
     min-height: calc(100vh - 4px);
-    background-color: transparent;
-    border: 3px solid transparent;
-    border-image: var(--wire-image) 16 / 16px stretch;
-    box-shadow: none;
   }
 }
-@media (min-width: 1463px) {
-  .wire-frame-wide {
-    background-color: transparent;
-    border: 3px solid transparent;
-    border-image: var(--wire-image) 16 / 16px stretch;
-    box-shadow: none;
+
+/* Text plates: the rounded background behind each block of sidebar/home text. In the components layer so per-element
+   Tailwind padding (px-1, py-3...) overrides the default. */
+@layer components {
+  .text-plate {
+    border-radius: 6px;
+    padding: 0.125rem 0.375rem; /* just clears the letters */
   }
 }
-/* Narrow-layout sidebar toggle (ResizeDetector.tsx): a floating circle that rides ~20px above the bottom drawer's top
-   edge, 24px in from the right, so with the drawer closed it sits inside the wire frame's double line. */
+@media not all and (min-width: theme("screens.md")) {
+  /* Above md the filled panel behind the plates is their background. Below it the plate draws its own, by a ::before
+     --plate-grow bigger than the box on every side: one layer (no seam) and no padding change,
+     so text, bullets and alignment stay exactly where they are. */
+  .text-plate {
+    position: relative;
+    isolation: isolate;
+  }
+  .text-plate::before {
+    content: "";
+    position: absolute;
+    inset: calc(var(--plate-grow) * -1);
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--plate-bg);
+    border-radius: calc(0.625rem + var(--plate-grow));
+  }
+}
+
+/* Narrow layout sidebar drawer (ResizeDetector.tsx builds it): slides up from the bottom edge; closed, only its top
+   2.5rem shows. */
+.drawer {
+  position: fixed;
+  top: calc(100% + 2.5rem);
+  z-index: 50;
+  width: 100%;
+  max-width: 56rem; /* max-w-4xl, same as the content panel */
+  border: 2px solid theme("colors.accRed3");
+  border-top-width: 4px;
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background-color: var(--plate-bg);
+  box-shadow: theme("boxShadow.lg");
+  transform: translateY(-2.5rem);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.drawer.open {
+  transform: translateY(calc(-100% - 2.5rem));
+}
+/* Its toggle: a floating circle ~20px above the drawer's top edge, 24px in from the right, so with the drawer closed
+   it sits inside the wire frame's double line. */
 .drawer-toggle-row {
   position: absolute;
   top: -4.5rem;
@@ -120,29 +150,27 @@ html {
   font-size: 1.25rem;
   line-height: 1;
   color: white;
-  background-color: rgba(231, 29, 54, 0.4); /* accRed3 */
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+  background-color: theme("colors.accRed3");
+  box-shadow: theme("boxShadow.lg");
   transition: background-color 0.15s;
 }
 .drawer-toggle:hover {
-  background-color: rgb(231, 29, 54); /* accRed2 */
+  background-color: theme("colors.accRed");
 }
-/* The sidebar while it sits in the drawer: capped so the open drawer never grows taller than the screen minus room for
-   the circle above it (circle 2.75rem + its ~1.25rem lift + ~1.5rem clearance at the top), scrolling inside instead.
-   dvh follows iOS Safari's collapsing address bar; the vh line is the fallback. */
-.drawer-scroll {
-  max-height: calc(100vh - 6rem);
-  max-height: calc(100dvh - 6rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none; /* still scrolls by touch / wheel, just no bar */
+/* One glyph, flipped for "open" ("⌄" renders lower and smaller than "⌃"); it sits ~2.5px above centre in its line box,
+   so nudge it back (after the flip for the open state). */
+.drawer-toggle-arrow {
+  display: inline-block;
+  pointer-events: none;
+  transform: translateY(2.5px);
 }
-.drawer-scroll::-webkit-scrollbar {
-  display: none; /* Safari / older Chromium */
+.drawer-toggle-arrow.open {
+  transform: translateY(-2.5px) rotate(180deg);
 }
-/* Soft fades at the drawer sidebar's top/bottom while there's more to scroll that way (ResizeDetector toggles
-   .more-above / .more-below). A mask on the scroll box, so the content fades into the drawer behind it; the fade
-   lengths are registered properties so they ease in and out. */
+/* The sidebar inside the drawer: capped so the open drawer never grows taller than the screen minus room for the
+   circle above it, scrolling inside instead (dvh follows iOS Safari's collapsing address bar; vh is the fallback).
+   The scrollbar is hidden; soft fades at the top/bottom (.more-above / .more-below, toggled by ResizeDetector) are the
+   hint that the list continues. The fade lengths are registered properties so they ease in and out. */
 @property --fade-top {
   syntax: "<length>";
   inherits: false;
@@ -154,11 +182,19 @@ html {
   initial-value: 0px;
 }
 .drawer-scroll {
+  max-height: calc(100vh - 6rem);
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   --fade-top: 0px;
   --fade-bottom: 0px;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
   transition: --fade-top 0.25s ease-out, --fade-bottom 0.25s ease-out;
+}
+.drawer-scroll::-webkit-scrollbar {
+  display: none;
 }
 .drawer-scroll.more-above {
   --fade-top: 2.5rem;
@@ -166,33 +202,23 @@ html {
 .drawer-scroll.more-below {
   --fade-bottom: 4rem;
 }
-/* One glyph flipped for "open", since "⌄" renders lower and smaller than "⌃"; it sits ~2.5px above centre in its line
-   box, so nudge it back (after the flip for the open state). */
-.drawer-toggle-arrow {
-  display: inline-block;
-  pointer-events: none;
-  transform: translateY(2.5px);
-}
-.drawer-toggle-arrow.open {
-  transform: translateY(-2.5px) rotate(180deg);
-}
-/* Home page contact block on narrow screens: instead of being absolutely pinned to the bottom (which covered the
-   welcome text on short screens), the panel becomes a column and the block is pushed to the bottom with margin-top:
-   auto - at the bottom whenever there's room, and simply following the welcome text (page scrolls) when there isn't,
-   with no jump at any height. Wide screens keep the absolute bottom-left placement. */
-@media (max-width: 1462.98px) {
+
+/* Home page contact block on narrow screens: the panel becomes a column and the block is pushed to the bottom with
+   margin-top: auto, so it sits at the bottom when there's room and simply follows the welcome text when there isn't
+   (no jump at any height). Wide screens keep the absolute bottom-left placement from index.astro. */
+@media not all and (min-width: theme("screens.md")) {
   #main-container:has(.contact-block) {
     display: flex;
     flex-direction: column;
-    padding-bottom: 0; /* the contact block's own pb-7 sets the bottom gap, as when it was pinned */
-  }
-  .welcome {
-    margin-bottom: 1.5rem; /* mb-24 only made room for the pinned block; now it's just the minimum gap */
+    padding-bottom: 0; /* the block's own pb-7 is the bottom gap */
   }
   #main-container:has(.contact-block) > #component-container {
     flex: 1 0 auto;
     display: flex;
     flex-direction: column;
+  }
+  .welcome {
+    margin-bottom: 1.5rem;
   }
   .contact-block {
     position: static;
@@ -200,63 +226,14 @@ html {
     padding-bottom: calc(1.75rem - 5px); /* pb-7 minus the frame's 2px margin + 3px border: 28px from the screen edge */
   }
 }
-/* Filled panels (FILLED_PANELS in Base.astro puts .filled-panels on <body>).
-   Wide layout (>= Tailwind md, 1463px): every wire panel gets the old 96% panel fill, drawn by the frame itself
-   (public/wire-frame-filled.svg, border-image `fill`) inside the orange inner line, so neither line sits on the fill;
-   the text plates lose their backgrounds since the panel behind them is already filled.
-   Narrow layout: a filled panel would cover the whole ocean, so the panel stays see-through and each text plate keeps
-   a plain rounded 96% background instead (no flower shaping: Base.astro skips it while FILLED_PANELS is on).
-   Blog content panels keep their 100% fill at every width. */
-:root {
-  --plate-grow: 8px;
-}
-@media (min-width: 1463px) {
-  .filled-panels .wire-frame,
-  .filled-panels .wire-frame-wide {
-    border-image: url("/wire-frame-filled.svg?v=3") 16 fill / 16px stretch;
-  }
-  .filled-panels .text-plate {
-    background: none;
-  }
-}
-@media (max-width: 1462.98px) {
-  /* The plate's background is drawn once, by its ::before, --plate-grow bigger than the box on every side - one layer
-     (no seam), and no padding change, so text, bullets and alignment stay exactly where they are. */
-  .filled-panels .text-plate {
-    background: none;
-    position: relative;
-    isolation: isolate;
-  }
-  .filled-panels .text-plate::before {
-    content: "";
-    position: absolute;
-    inset: calc(var(--plate-grow) * -1);
-    z-index: -1;
-    pointer-events: none;
-    background-color: var(--plate-bg);
-    border-radius: calc(0.625rem + var(--plate-grow));
-  }
-}
-/* In the components layer so per-element Tailwind padding (px-1, py-3...) overrides the default. */
-@layer components {
-  .text-plate {
-    background-color: var(--plate-bg);
-    border-radius: 6px;
-    padding: 0.125rem 0.375rem; /* just clears the letters; the flower petals add a little more outside the box */
-  }
-  /* Once src/lib/plateShapes.ts has drawn its flower outline, paint that instead of the plain rectangle. The ::before
-     reaches --plate-margin past the box so the petals grow outward, and sits behind the plate's own text. */
-  .text-plate.plate-shaped {
-    position: relative;
-    isolation: isolate;
-    background-color: transparent;
-  }
-  .text-plate.plate-shaped::before {
-    content: "";
-    position: absolute;
-    inset: calc(var(--plate-margin) * -1);
-    z-index: -1;
-    pointer-events: none;
-    background: var(--plate-shape) center / 100% 100% no-repeat;
-  }
+
+/* Wide layout sidebar column (Base.astro #wide-nav-container; ResizeDetector re-applies it after a layout swap). */
+.wide-nav {
+  flex-direction: column;
+  align-self: flex-start;
+  position: sticky;
+  top: 6rem;
+  width: 31rem;
+  padding: 1.25rem 1rem;
+  border-radius: 0.375rem;
 }

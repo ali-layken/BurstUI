@@ -41,20 +41,16 @@ const { src, title, bg } = Astro.props;
     will-change: clip-path;
     transition: clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* The button sits under the frame and flies to the bottom centre of the screen on expand. */
-  .xf-bar {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    padding-top: 12px;
-  }
-  /* The button sits XF_GAP below the frame and the panel ends XF_GAP below the button: equal, tight margins instead of
-     the panel's normal bottom padding. */
   :root {
     --xf-gap: 12px;
     --xf-wire-room: 14px; /* frame line + the text plate's widest edge (narrow screens grow plates by 8px) */
   }
+  /* The expand button sits --xf-gap below the frame and the panel ends --xf-gap below the button: equal, tight margins
+     instead of the panel's normal bottom padding. On expand it flies to the bottom centre of the screen. */
   .xf-bar {
+    position: relative;
+    display: flex;
+    justify-content: center;
     padding-top: var(--xf-gap) !important;
   }
   #component-container:has(#xf-bar),
@@ -84,8 +80,8 @@ const { src, title, bg } = Astro.props;
     align-items: flex-end;
     line-height: 1;
   }
-  @media (min-width: 1463px) {
-    /* Tailwind's md (tailwind.config.ts), where the component panel's md:px-8 kicks in. */
+  @media screen(md) {
+    /* where the component panel's md:px-8 kicks in */
     .xf-bar-left {
       left: calc(var(--xf-gap) + var(--xf-wire-room) - 32px);
     }
@@ -93,7 +89,7 @@ const { src, title, bg } = Astro.props;
   /* Narrow screens: pin the bar-left content to the screen's bottom-left, level with the floating sidebar toggle and
      matching the home page contact block (pb-7, and the same left edge), instead of under the frame. Dropping the
      bar's position makes the page itself the positioning box. */
-  @media (max-width: 1462.98px) {
+  @media not all and (min-width: theme("screens.md")) {
     .xf-bar {
       position: static;
     }
