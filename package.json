@@ -13,7 +13,8 @@
     "check": "astro check",
     "deploy": "npm run build && wrangler deploy",
     "update-emojis": "node scripts/generate_emojis.mjs",
-    "timestamps": "node scripts/generate_timestamps.mjs"
+    "timestamps": "node scripts/generate_timestamps.mjs",
+    "shot": "node scripts/shot.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.0",
@@ -33,6 +34,7 @@
     "@tailwindcss/typography": "^0.5.20",
     "@types/three": "^0.172.0",
     "autoprefixer": "^10.4.21",
+    "playwright": "^1.64.1",
     "postcss": "^8.5.30",
     "tailwind-highlightjs": "^2.0.1",
     "tailwindcss": "^3.4.19",

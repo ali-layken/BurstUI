@@ -15,3 +15,6 @@ node_modules/
 
 # generated from the vendor/movement-map submodule by scripts/build-movement-map.mjs
 public/movement-map/
+
+# screenshots from scripts/shot.mjs
+.shots/
