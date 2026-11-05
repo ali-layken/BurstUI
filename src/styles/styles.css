@@ -176,14 +176,28 @@ html {
 .drawer-toggle-arrow.open {
   transform: translateY(-2.5px) rotate(180deg);
 }
-/* Home page contact block on short narrow screens (e.g. iPhone SE, 667px tall): pinned to the bottom it would cover
-   the welcome text, so let it follow the welcome text instead (the page scrolls a little), with room below it for the
-   floating sidebar toggle. */
-@media (max-width: 1462.98px) and (max-height: 760px) {
+/* Home page contact block on narrow screens: instead of being absolutely pinned to the bottom (which covered the
+   welcome text on short screens), the panel becomes a column and the block is pushed to the bottom with margin-top:
+   auto - at the bottom whenever there's room, and simply following the welcome text (page scrolls) when there isn't,
+   with no jump at any height. Wide screens keep the absolute bottom-left placement. */
+@media (max-width: 1462.98px) {
+  #main-container:has(.contact-block) {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0; /* the contact block's own pb-7 sets the bottom gap, as when it was pinned */
+  }
+  .welcome {
+    margin-bottom: 1.5rem; /* mb-24 only made room for the pinned block; now it's just the minimum gap */
+  }
+  #main-container:has(.contact-block) > #component-container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
   .contact-block {
     position: static;
-    margin-top: -3rem;
-    padding-bottom: 5.5rem;
+    margin-top: auto;
+    padding-bottom: calc(1.75rem - 5px); /* pb-7 minus the frame's 2px margin + 3px border: 28px from the screen edge */
   }
 }
 /* Filled panels (FILLED_PANELS in Base.astro puts .filled-panels on <body>).
