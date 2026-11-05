@@ -13,9 +13,6 @@
     </g>
   </defs>
   <g opacity="0.96" fill="none">
-    <!-- band between the two lines: a ring (the inside stays see-through) from the outer line's centre to 0.5px under
-         the inner line, so no hairline of ocean shows at either edge. Inside the 96% group so it merges with the lines. -->
-    <path id="band" fill-rule="evenodd" fill="rgb(255,144,84)" d="M6 6H42V42H6Z M12.5 12.5H35.5V35.5H12.5Z"/>
     <!-- lilac: outer line + corner petals -->
     <g>
       <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
@@ -24,8 +21,8 @@
       <use href="#petals" x="42" y="42"/>
       <use href="#petals" x="6" y="42"/>
     </g>
-    <!-- orange: inner line + flower centres -->
-    <rect x="12" y="12" width="24" height="24" rx="2" stroke="rgb(255,144,84)" stroke-width="2"/>
+    <!-- orange: inner line (7.5-9.5) butted right against the lilac line (4.5-7.5), no gap + flower centres -->
+    <rect x="8.5" y="8.5" width="31" height="31" rx="1.5" stroke="rgb(255,144,84)" stroke-width="2"/>
     <g fill="rgb(255,144,84)">
       <circle cx="6" cy="6" r="1.6"/>
       <circle cx="42" cy="6" r="1.6"/>
