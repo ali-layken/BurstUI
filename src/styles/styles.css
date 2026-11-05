@@ -164,7 +164,7 @@ html {
   --fade-top: 2.5rem;
 }
 .drawer-scroll.more-below {
-  --fade-bottom: 3rem;
+  --fade-bottom: 4rem;
 }
 /* One glyph flipped for "open", since "⌄" renders lower and smaller than "⌃"; it sits ~2.5px above centre in its line
    box, so nudge it back (after the flip for the open state). */
