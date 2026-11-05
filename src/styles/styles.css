@@ -148,20 +148,19 @@ html {
   }
 }
 /* Filled panels (FILLED_PANELS in Base.astro puts .filled-panels on <body>).
-   Wide layout (>= Tailwind md, 1463px): every wire panel gets the old 96% panel fill inside the frame's outer line
-   (6px in from the edge, so no fill shows outside the frame), and the text plates lose their backgrounds since the
-   panel behind them is already filled.
+   Wide layout (>= Tailwind md, 1463px): every wire panel gets the old 96% panel fill, drawn by the frame itself
+   (public/wire-frame-filled.svg, border-image `fill`) inside the orange inner line, so neither line sits on the fill;
+   the text plates lose their backgrounds since the panel behind them is already filled.
    Narrow layout: a filled panel would cover the whole ocean, so the panel stays see-through and each text plate keeps
    a plain rounded 96% background instead (no flower shaping: Base.astro skips it while FILLED_PANELS is on).
    Blog content panels keep their 100% fill at every width. */
 :root {
-  --panel-fill: rgba(11, 54, 91, 0.96); /* bgAqua2 */
   --plate-grow: 8px;
 }
 @media (min-width: 1463px) {
   .filled-panels .wire-frame,
   .filled-panels .wire-frame-wide {
-    background: linear-gradient(var(--panel-fill), var(--panel-fill)) center / calc(100% - 6px) calc(100% - 6px) no-repeat;
+    border-image: url("/wire-frame-filled.svg") 16 fill / 16px stretch;
   }
   .filled-panels .text-plate {
     background: none;

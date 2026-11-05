@@ -1,5 +1,6 @@
 <!-- Wireframe panel border (styles.css .wire-frame*): a 9-slice border-image, 48x48 with 16px corners; the middle of
-     each edge stretches. Gen 1 Pokemon text box style double line, with a flower in each corner instead of its knobs.
+     each edge stretches. wire-frame-filled.svg is the same frame with the panel fill inside the inner line - keep the
+     two in sync. Gen 1 Pokemon text box style double line, with a flower in each corner instead of its knobs.
      Lilac = the ocean's sky colour, orange = the heading colour. One group at 60% so overlaps don't darken. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
   <defs>
@@ -17,7 +18,7 @@
     <!-- outer line -->
     <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
     <!-- inner line -->
-    <rect x="12" y="12" width="24" height="24" rx="2" stroke="rgb(255,144,84)" stroke-width="2.25"/>
+    <rect x="12" y="12" width="24" height="24" rx="2" stroke="rgb(255,144,84)" stroke-width="2"/>
     <use href="#flower" x="6" y="6"/>
     <use href="#flower" x="42" y="6"/>
     <use href="#flower" x="42" y="42"/>
