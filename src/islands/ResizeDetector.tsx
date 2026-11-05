@@ -2,16 +2,35 @@ import { useEffect, useState } from "preact/hooks";
 import type { JSX } from "preact/jsx-runtime";
 import { isNarrowSignal } from "../lib/signals";
 
+/** Narrow below Tailwind's md (tailwind.config.ts: min-width 1463px), so this and the CSS switch at the same width. */
+const isNarrowWidth = () => globalThis.innerWidth < 1463;
 
+// Module-level (shared by every ResizeDetector instance, including ones left over from earlier client-side
+// navigations) so a breakpoint crossing animates once.
+let lastNarrow: boolean | undefined;
+
+/**
+ * The CSS layout swaps instantly at the breakpoint (media queries), so fade the page content back in when the window
+ * crosses it: the new layout dissolves in over the ocean instead of snapping. Opacity only - a transform or filter on
+ * this ancestor would re-anchor its fixed/absolute children (drawer, contact block) mid-animation. Called from the
+ * resize event, which runs before the frame is painted, so the swapped layout is never shown at full opacity first.
+ */
+function animateBreakpointSwap(narrow: boolean) {
+  const changed = lastNarrow !== undefined && lastNarrow !== narrow;
+  lastNarrow = narrow;
+  if (!changed || globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  document.getElementById("background-container")?.animate([{ opacity: 0 }, { opacity: 1 }], {
+    duration: 350,
+    easing: "ease-out",
+  });
+}
 
 export default function ResizeDetector(): JSX.Element {
   if (typeof globalThis === "undefined") {
     return <></>;
   }
 
-  const [isNarrow, setIsNarrow] = useState<boolean>(
-    globalThis.innerWidth <= 1463,
-  );
+  const [isNarrow, setIsNarrow] = useState<boolean>(isNarrowWidth());
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -21,8 +40,10 @@ export default function ResizeDetector(): JSX.Element {
     });
 
   useEffect(() => {
+    lastNarrow ??= isNarrowWidth();
     const updateScreenSize = () => {
-      const narrow = globalThis.innerWidth <= 1463;
+      const narrow = isNarrowWidth();
+      animateBreakpointSwap(narrow);
       setIsNarrow(narrow);
       isNarrowSignal.value = narrow;
     };
