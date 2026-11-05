@@ -62,8 +62,12 @@ html {
    negative-offset outline, so it needs no extra markup or positioning and follows the border radius. Text sits on
    .text-plate rectangles instead. */
 :root {
-  --wire-outer: rgb(157, 209, 241); /* skyBlue */
-  --wire-inner: rgba(231, 29, 54, 0.85); /* accRed, same red as the Burst! wireframe */
+  /* Picked against the ocean (OceanBackground.tsx "burst" palette): the sea's own foam/blue would vanish wherever the
+     wire crosses a foam line or open water, so the outer line is the sky's lilac - same family, but lighter than the
+     water and more saturated than the foam, so it reads over both - and the inner line is the heading orange, a warm
+     complement to the cool purples. Both slightly see-through so they sit in the scene rather than on top of it. */
+  --wire-outer: rgba(197, 138, 249, 0.8); /* ocean sky / accLitePurple */
+  --wire-inner: rgba(255, 144, 84, 0.6); /* subtitles orange */
   --plate-bg: rgba(11, 54, 91, 0.96); /* bgAqua: same opacity the old filled panels used */ /* bgAqua, but see-through */
 }
 .wire-frame {
