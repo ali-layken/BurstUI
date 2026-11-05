@@ -67,12 +67,17 @@ export default function ResizeDetector(): JSX.Element {
         bottomNavDiv.onclick = handleSiteNavigation;
         // Add toggle button
         const toggleButton = document.createElement("div");
+        // A floating circle that rides on top of the drawer: ~20px above its top edge and 24px in from the right, so while
+        // the drawer is closed it sits inside the wire frame's double line in the bottom-right corner.
         toggleButton.className =
-          "absolute -top-10 w-full flex justify-end px-6 pointer-events-none";
+          "absolute -top-[4.5rem] w-full flex justify-end px-6 pointer-events-none";
         const button = document.createElement("button");
         button.className =
-          "pointer-events-auto hover:bg-accRed2 bg-accRed3 text-white px-4 py-2 rounded-t-lg";
-        button.innerText = isOpen ? "⌄" : "⌃";
+          "pointer-events-auto hover:bg-accRed2 bg-accRed3 text-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-xl leading-none";
+        button.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+        // Same up/down swap as before, but drawn as one glyph flipped, since "⌄" sits lower and smaller than "⌃". The glyph
+        // sits ~2.5px above centre in its line box, so nudge it back (after the flip, for the open state).
+        button.innerHTML = `<span class="${isOpen ? "rotate-180 -translate-y-[2.5px]" : "translate-y-[2.5px]"} inline-block pointer-events-none">⌃</span>`;
         button.setAttribute("data-action", "toggle");
         toggleButton.appendChild(button);
         bottomNavDiv.appendChild(toggleButton);
