@@ -12,10 +12,10 @@
       <circle cx="0" cy="-3" r="2.7"/>
     </g>
   </defs>
-  <!-- band between the two lines, panel blue (96% bgAqua); a ring, so the inside stays see-through. It runs from the
-       outer line's centre to 0.5px under the inner line, so no hairline of ocean shows at either edge. -->
-  <path fill-rule="evenodd" fill="rgba(11,54,91,0.96)" d="M6 6H42V42H6Z M12.5 12.5H35.5V35.5H12.5Z"/>
   <g opacity="0.96" fill="none">
+    <!-- band between the two lines: a ring (the inside stays see-through) from the outer line's centre to 0.5px under
+         the inner line, so no hairline of ocean shows at either edge. Inside the 96% group so it merges with the lines. -->
+    <path id="band" fill-rule="evenodd" fill="rgb(197,138,249)" d="M6 6H42V42H6Z M12.5 12.5H35.5V35.5H12.5Z"/>
     <!-- lilac: outer line + corner petals -->
     <g>
       <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
