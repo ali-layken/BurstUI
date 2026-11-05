@@ -52,9 +52,9 @@ html {
   --plate-grow: 8px;
 }
 
-/* Panels: a double-line frame with a flower at each corner (public/wire-frame*.svg as a 9-slice border-image, 16px
-   corners, edges stretched). Lilac outer line and petals, orange inner line and flower centres, picked to read over
-   both the foam and the open water. .wide-nav is the sidebar column (only exists above md); -narrow / -wide are the
+/* Panels: a single lilac line with a flower at each corner (public/wire-frame*.svg as a 9-slice border-image, 24px
+   corners, edges stretched). A lilac line (77% opaque) with solid lilac petals and orange centres, picked to
+   read over both the foam and the open water. .wide-nav is the sidebar column (only exists above md); -narrow / -wide are the
    content panel at the width where it is the panel (the whole screen below md, a card beside the sidebar above it). */
 .wide-nav,
 .wire-frame-narrow,
@@ -64,17 +64,17 @@ html {
   box-shadow: none;
 }
 @media screen(md) {
-  /* Filled with the panel colour inside the orange inner line (border-image `fill`), so neither line sits on the fill. */
+  /* Filled with the panel colour from the line's centre inwards (border-image `fill`). */
   .wide-nav,
   .wire-frame-wide {
-    border-image: url("/wire-frame-filled.svg?v=3") 16 fill / 16px stretch;
+    border-image: url("/wire-frame-filled.svg?v=20") 24 fill / 24px stretch;
   }
 }
 @media not all and (min-width: theme("screens.md")) {
   /* See-through, so the ocean shows round the text; filling it would cover the whole screen. The corner flowers reach
      to within ~0.3px of the box edge, so keep 2px clear of the screen without adding scroll. */
   .wire-frame-narrow {
-    border-image: url("/wire-frame.svg?v=3") 16 / 16px stretch;
+    border-image: url("/wire-frame.svg?v=20") 24 / 24px stretch;
     margin: 2px;
     width: calc(100% - 4px);
     min-height: calc(100vh - 4px);
@@ -129,7 +129,7 @@ html {
   transform: translateY(calc(-100% - 2.5rem));
 }
 /* Its toggle: a floating circle ~20px above the drawer's top edge, 24px in from the right, so with the drawer closed
-   it sits inside the wire frame's double line. */
+   it sits inside the wire frame's line. */
 .drawer-toggle-row {
   position: absolute;
   top: -4.5rem;

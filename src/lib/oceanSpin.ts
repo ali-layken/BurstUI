@@ -60,7 +60,10 @@ export function isBackground(el: Element | null): boolean {
   const narrow = window.innerWidth < MD_PX;
   if (id === "main-container") return !narrow || el.classList.contains("wire-frame-narrow");
   if (id === "component-container") return narrow && !!el.closest("#main-container.wire-frame-narrow");
-  return narrow && !!el.closest("[data-ocean]") && !!el.closest("#main-container.wire-frame-narrow");
+  if (!narrow || !el.closest("#main-container.wire-frame-narrow")) return false;
+  // The strip round the demo pages' expand button (ExpandFrame.astro) is bare ocean below md; the button itself and
+  // the Source link in the bar are not, so match the bar element only, not its children.
+  return el.classList.contains("xf-bar") || !!el.closest("[data-ocean]");
 }
 
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
