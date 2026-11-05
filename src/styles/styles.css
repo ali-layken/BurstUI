@@ -140,6 +140,32 @@ html {
 .drawer-scroll::-webkit-scrollbar {
   display: none; /* Safari / older Chromium */
 }
+/* Soft fades at the drawer sidebar's top/bottom while there's more to scroll that way (ResizeDetector toggles
+   .more-above / .more-below). A mask on the scroll box, so the content fades into the drawer behind it; the fade
+   lengths are registered properties so they ease in and out. */
+@property --fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+.drawer-scroll {
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
+  transition: --fade-top 0.25s ease-out, --fade-bottom 0.25s ease-out;
+}
+.drawer-scroll.more-above {
+  --fade-top: 2.5rem;
+}
+.drawer-scroll.more-below {
+  --fade-bottom: 3rem;
+}
 /* One glyph flipped for "open", since "⌄" renders lower and smaller than "⌃"; it sits ~2.5px above centre in its line
    box, so nudge it back (after the flip for the open state). */
 .drawer-toggle-arrow {

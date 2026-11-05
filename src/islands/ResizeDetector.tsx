@@ -25,6 +25,27 @@ function animateBreakpointSwap(narrow: boolean) {
   });
 }
 
+/**
+ * Soft-fade the drawer sidebar's edges where there's more to scroll (styles.css .drawer-scroll.more-above/-below):
+ * the scrollbar is hidden, so this is the hint that the list continues.
+ */
+function updateScrollFades(el: HTMLElement) {
+  const more = el.scrollHeight - el.clientHeight;
+  el.classList.toggle("more-above", more > 1 && el.scrollTop > 1);
+  el.classList.toggle("more-below", more > 1 && el.scrollTop < more - 1);
+}
+const fadeObservers = new WeakMap<HTMLElement, ResizeObserver>();
+function watchScrollFades(el: HTMLElement, on: boolean) {
+  fadeObservers.get(el)?.disconnect();
+  fadeObservers.delete(el);
+  el.onscroll = null;
+  if (!on) return;
+  el.onscroll = () => updateScrollFades(el);
+  const ro = new ResizeObserver(() => updateScrollFades(el)); // first callback runs right away
+  ro.observe(el);
+  fadeObservers.set(el, ro);
+}
+
 export default function ResizeDetector(): JSX.Element {
   if (typeof globalThis === "undefined") {
     return <></>;
@@ -107,6 +128,7 @@ export default function ResizeDetector(): JSX.Element {
           bottomNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.classList.remove("hidden");
           siteNavDiv.classList.add("px-6", "py-8", "drawer-scroll");
+          watchScrollFades(siteNavDiv, true);
         }
       }
     } else {
@@ -116,6 +138,7 @@ export default function ResizeDetector(): JSX.Element {
         if (siteNavDiv) {
           wideNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.className = "";
+          watchScrollFades(siteNavDiv, false);
         }
       }
       if (bottomNavDiv) {
