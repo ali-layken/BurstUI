@@ -57,45 +57,38 @@ html {
     font-style: italic;
   }
 }
-/* Wireframe panels (every sidebar, and every content panel except blog posts', which stay solid for reading): no fill, so the ocean shows through,
-   just a two-line border like an RPG text box - outer line, transparent gap, thinner inner line. The inner line is a
-   negative-offset outline, so it needs no extra markup or positioning and follows the border radius. Text sits on
-   .text-plate rectangles instead. */
+/* Wireframe panels (every sidebar, and every content panel except blog posts', which stay solid for reading): no fill, so
+   the ocean shows through, just a frame like a Gen 1 Pokemon text box - a double line round the edge - with a small
+   flower at each corner to match the flower-edged .text-plate shapes. The frame is public/wire-frame.svg used as a
+   9-slice border-image (16px corners; the edges stretch), so the inside stays transparent and it needs no extra markup.
+   Colours, picked against the ocean (OceanBackground.tsx "burst" palette): the sea's own foam/blue would vanish wherever
+   the wire crosses a foam line or open water, so the outer line and petals are the sky's lilac - lighter than the water,
+   more saturated than the foam, so it reads over both - and the inner line and flower centres are the heading orange,
+   a warm complement to the purples. */
 :root {
-  /* Picked against the ocean (OceanBackground.tsx "burst" palette): the sea's own foam/blue would vanish wherever the
-     wire crosses a foam line or open water, so the outer line is the sky's lilac - same family, but lighter than the
-     water and more saturated than the foam, so it reads over both - and the inner line is the heading orange, a warm
-     complement to the cool purples. Both slightly see-through so they sit in the scene rather than on top of it. */
-  --wire-outer: rgba(197, 138, 249, 0.8); /* ocean sky / accLitePurple */
-  --wire-inner: rgba(255, 144, 84, 0.6); /* subtitles orange */
-  --plate-bg: rgba(11, 54, 91, 0.96); /* bgAqua: same opacity the old filled panels used */ /* bgAqua, but see-through */
+  --plate-bg: rgba(11, 54, 91, 0.96); /* bgAqua: same opacity the old filled panels used */
+  --wire-image: url("/wire-frame.svg");
 }
 .wire-frame {
   background-color: transparent;
-  border: 3px solid var(--wire-outer);
-  border-radius: 12px;
-  outline: 2px solid var(--wire-inner);
-  outline-offset: -8px;
+  border: 3px solid transparent;
+  border-image: var(--wire-image) 16 / 16px stretch;
   box-shadow: none;
 }
 /* Only below / above Tailwind's md breakpoint, matching which element is the panel at each width. */
 @media (max-width: 767px) {
   .wire-frame-narrow {
     background-color: transparent;
-    border: 3px solid var(--wire-outer);
-    border-radius: 12px;
-    outline: 2px solid var(--wire-inner);
-    outline-offset: -8px;
+    border: 3px solid transparent;
+    border-image: var(--wire-image) 16 / 16px stretch;
     box-shadow: none;
   }
 }
 @media (min-width: 768px) {
   .wire-frame-wide {
     background-color: transparent;
-    border: 3px solid var(--wire-outer);
-    border-radius: 12px;
-    outline: 2px solid var(--wire-inner);
-    outline-offset: -8px;
+    border: 3px solid transparent;
+    border-image: var(--wire-image) 16 / 16px stretch;
     box-shadow: none;
   }
 }
