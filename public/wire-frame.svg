@@ -12,9 +12,9 @@
       <circle cx="0" cy="-3" r="2.7"/>
     </g>
   </defs>
-  <g opacity="0.6" fill="none">
+  <g fill="none">
     <!-- lilac: outer line + corner petals -->
-    <g opacity="0.75">
+    <g>
       <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
       <use href="#petals" x="6" y="6"/>
       <use href="#petals" x="42" y="6"/>
