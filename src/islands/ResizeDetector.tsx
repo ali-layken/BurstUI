@@ -69,15 +69,15 @@ export default function ResizeDetector(): JSX.Element {
         const toggleButton = document.createElement("div");
         // A floating circle that rides on top of the drawer: ~20px above its top edge and 24px in from the right, so while
         // the drawer is closed it sits inside the wire frame's double line in the bottom-right corner.
-        toggleButton.className =
-          "absolute -top-[4.5rem] w-full flex justify-end px-6 pointer-events-none";
+        // Styled by .drawer-toggle* in styles.css rather than Tailwind classes built here: in `astro dev`, classes that only
+        // appear in this file can be missing from the CSS that client-side navigation swaps in, which hid the button.
+        toggleButton.className = "drawer-toggle-row";
         const button = document.createElement("button");
-        button.className =
-          "pointer-events-auto hover:bg-accRed2 bg-accRed3 text-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-xl leading-none";
+        button.className = "drawer-toggle";
         button.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
         // Same up/down swap as before, but drawn as one glyph flipped, since "⌄" sits lower and smaller than "⌃". The glyph
         // sits ~2.5px above centre in its line box, so nudge it back (after the flip, for the open state).
-        button.innerHTML = `<span class="${isOpen ? "rotate-180 -translate-y-[2.5px]" : "translate-y-[2.5px]"} inline-block pointer-events-none">⌃</span>`;
+        button.innerHTML = `<span class="drawer-toggle-arrow${isOpen ? " open" : ""}">⌃</span>`;
         button.setAttribute("data-action", "toggle");
         toggleButton.appendChild(button);
         bottomNavDiv.appendChild(toggleButton);

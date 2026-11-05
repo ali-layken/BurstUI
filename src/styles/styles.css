@@ -93,6 +93,45 @@ html {
     box-shadow: none;
   }
 }
+/* Narrow-layout sidebar toggle (ResizeDetector.tsx): a floating circle that rides ~20px above the bottom drawer's top
+   edge, 24px in from the right, so with the drawer closed it sits inside the wire frame's double line. */
+.drawer-toggle-row {
+  position: absolute;
+  top: -4.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.5rem;
+  pointer-events: none;
+}
+.drawer-toggle {
+  pointer-events: auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: white;
+  background-color: rgba(231, 29, 54, 0.4); /* accRed3 */
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+  transition: background-color 0.15s;
+}
+.drawer-toggle:hover {
+  background-color: rgb(231, 29, 54); /* accRed2 */
+}
+/* One glyph flipped for "open", since "⌄" renders lower and smaller than "⌃"; it sits ~2.5px above centre in its line
+   box, so nudge it back (after the flip for the open state). */
+.drawer-toggle-arrow {
+  display: inline-block;
+  pointer-events: none;
+  transform: translateY(2.5px);
+}
+.drawer-toggle-arrow.open {
+  transform: translateY(-2.5px) rotate(180deg);
+}
 /* Filled panels (FILLED_PANELS in Base.astro puts .filled-panels on <body>): the wire panels get the old 96% panel
    fill inside the frame's outer line (6px in from the edge, so no fill shows outside the frame), and the text plates
    lose their backgrounds since the panel behind them is already filled. Blog content panels keep their 100% fill. */
