@@ -93,6 +93,31 @@ html {
     box-shadow: none;
   }
 }
+/* Filled panels (FILLED_PANELS in Base.astro puts .filled-panels on <body>): the wire panels get the old 96% panel
+   fill inside the frame's outer line (6px in from the edge, so no fill shows outside the frame), and the text plates
+   lose their backgrounds since the panel behind them is already filled. Blog content panels keep their 100% fill. */
+:root {
+  --panel-fill: rgba(11, 54, 91, 0.96); /* bgAqua2 */
+}
+.filled-panels .wire-frame {
+  background: linear-gradient(var(--panel-fill), var(--panel-fill)) center / calc(100% - 6px) calc(100% - 6px) no-repeat;
+}
+@media (max-width: 1462.98px) {
+  .filled-panels .wire-frame-narrow {
+    background: linear-gradient(var(--panel-fill), var(--panel-fill)) center / calc(100% - 6px) calc(100% - 6px) no-repeat;
+  }
+}
+@media (min-width: 1463px) {
+  .filled-panels .wire-frame-wide {
+    background: linear-gradient(var(--panel-fill), var(--panel-fill)) center / calc(100% - 6px) calc(100% - 6px) no-repeat;
+  }
+}
+.filled-panels .text-plate {
+  background: none;
+}
+.filled-panels .text-plate::before {
+  content: none;
+}
 /* In the components layer so per-element Tailwind padding (px-1, py-3...) overrides the default. */
 @layer components {
   .text-plate {

@@ -32,6 +32,10 @@ const {
 
 // Solid pages (blog posts) get a filled content panel for reading; everything else gets a wireframe panel over the
 // ocean (styles.css). The sidebar is a wireframe on every page.
+// TEMP switch: true fills every wire panel with the old 96% panel colour and drops the text plate backgrounds (blog
+// content stays 100%). false = the transparent wire panels over the ocean with flower-edged plates (tag wire-complete-gas).
+const FILLED_PANELS = true;
+
 const panelBg = solid ? "bg-bgAquaSolid shadow-lg" : "wire-frame-narrow";
 const panelBgMd = solid ? "md:bg-bgAquaSolid md:shadow-lg" : "wire-frame-wide";
 
@@ -57,7 +61,7 @@ const absolute = new URL(path, Astro.site).toString();
 
     <ClientRouter />
   </head>
-  <body>
+  <body class:list={[FILLED_PANELS && "filled-panels"]}>
     <ResizeDetector client:load />
     <OceanBackground client:load transition:persist />
     <div class="layout">
@@ -92,7 +96,9 @@ const absolute = new URL(path, Astro.site).toString();
     <script>
       import { initPlateShapes } from "../lib/plateShapes";
       // New random flower outlines for the text plates on every page load (and every client-side navigation).
-      document.addEventListener("astro:page-load", initPlateShapes);
+      document.addEventListener("astro:page-load", () => {
+        if (!document.body.classList.contains("filled-panels")) initPlateShapes();
+      });
     </script>
   </body>
 </html>
