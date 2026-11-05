@@ -86,10 +86,7 @@ export default function ResizeDetector(): JSX.Element {
     } else {
       if (wideNavDiv) {
         wideNavDiv.className =
-          `flex-2 w-[31rem] px-4 py-5 top-24 rounded-md self-start sticky flex flex-col ${
-            // Base.astro marks blog posts solid; every other page uses wireframe panels.
-            document.body.dataset.panels === "solid" ? "bg-bgAqua2 shadow-lg" : "wire-frame"
-          }`;
+          "flex-2 w-[31rem] px-4 py-5 top-24 rounded-md self-start sticky flex flex-col wire-frame";
         if (siteNavDiv) {
           wideNavDiv.appendChild(siteNavDiv); // Move the element
           siteNavDiv.className = "";

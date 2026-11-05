@@ -65,8 +65,12 @@ if (!opts.base) {
 
 await mkdir(opts.out, { recursive: true });
 
-// SwiftShader is software WebGL - slow but deterministic, and it's what keeps the three.js islands rendering headless.
-const browser = await chromium.launch({ args: ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+// Render on the real GPU (ANGLE/Vulkan), like a normal browser: SwiftShader's software compositor leaves stale holes
+// in the ocean canvas under the /snake iframe and drops the Burst! text at 2560 wide. Without a usable GPU Chrome
+// falls back to SwiftShader on its own (--enable-unsafe-swiftshader keeps WebGL working there).
+const browser = await chromium.launch({
+  args: ["--use-angle=vulkan", "--enable-features=Vulkan", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader"],
+});
 let failures = 0;
 
 for (const vp of viewports) {

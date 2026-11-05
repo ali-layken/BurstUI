@@ -57,14 +57,14 @@ html {
     font-style: italic;
   }
 }
-/* Wireframe panels (every page except blog posts, which stay solid for reading): no fill, so the ocean shows through,
+/* Wireframe panels (every sidebar, and every content panel except blog posts', which stay solid for reading): no fill, so the ocean shows through,
    just a two-line border like an RPG text box - outer line, transparent gap, thinner inner line. The inner line is a
    negative-offset outline, so it needs no extra markup or positioning and follows the border radius. Text sits on
    .text-plate rectangles instead. */
 :root {
   --wire-outer: rgb(157, 209, 241); /* skyBlue */
   --wire-inner: rgba(231, 29, 54, 0.85); /* accRed, same red as the Burst! wireframe */
-  --plate-bg: rgba(11, 54, 91, 0.86); /* bgAqua, but see-through */
+  --plate-bg: rgba(11, 54, 91, 0.96); /* bgAqua: same opacity the old filled panels used */ /* bgAqua, but see-through */
 }
 .wire-frame {
   background-color: transparent;

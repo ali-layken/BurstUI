@@ -30,10 +30,10 @@ const {
   solid = false,
 } = Astro.props;
 
-// Solid pages (blog posts) get filled panels; everything else gets wireframe panels over the ocean (styles.css).
+// Solid pages (blog posts) get a filled content panel for reading; everything else gets a wireframe panel over the
+// ocean (styles.css). The sidebar is a wireframe on every page.
 const panelBg = solid ? "bg-bgAquaSolid shadow-lg" : "wire-frame-narrow";
 const panelBgMd = solid ? "md:bg-bgAquaSolid md:shadow-lg" : "wire-frame-wide";
-const navPanel = solid ? "bg-bgAqua2 shadow-lg" : "wire-frame";
 
 const absolute = new URL(path, Astro.site).toString();
 ---
@@ -57,7 +57,7 @@ const absolute = new URL(path, Astro.site).toString();
 
     <ClientRouter />
   </head>
-  <body data-panels={solid ? "solid" : "wire"}>
+  <body>
     <ResizeDetector client:load />
     <OceanBackground client:load transition:persist />
     <div class="layout">
@@ -71,7 +71,7 @@ const absolute = new URL(path, Astro.site).toString();
         >
           <div
             id="wide-nav-container"
-            class:list={["hidden md:flex flex-2 w-[31rem] px-4 py-5 top-24 rounded-md self-start sticky flex-col", navPanel]}
+            class="hidden md:flex flex-2 w-[31rem] px-4 py-5 top-24 rounded-md self-start sticky flex-col wire-frame"
           >
             <slot name="nav">
               <div id="site-nav-container">
