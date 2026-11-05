@@ -32,8 +32,9 @@ const {
 
 // Solid pages (blog posts) get a filled content panel for reading; everything else gets a wireframe panel over the
 // ocean (styles.css). The sidebar is a wireframe on every page.
-// TEMP switch: true fills every wire panel with the old 96% panel colour and drops the text plate backgrounds (blog
-// content stays 100%). false = the transparent wire panels over the ocean with flower-edged plates (tag wire-complete-gas).
+// TEMP switch: true = on wide screens the wire panels are filled with the old 96% panel colour (no text plate
+// backgrounds); on narrow screens the panels stay see-through and text sits on plain rounded 96% plates. Blog content
+// stays 100% either way. false = see-through wire panels with flower-edged plates everywhere (tag wire-complete-gas).
 const FILLED_PANELS = true;
 
 const panelBg = solid ? "bg-bgAquaSolid shadow-lg" : "wire-frame-narrow";
