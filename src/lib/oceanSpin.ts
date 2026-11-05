@@ -51,6 +51,7 @@ export interface CameraPose {
  */
 export function isBackground(el: Element | null): boolean {
   if (!el) return false;
+  if (document.querySelector(".drawer.open")) return false; // sidebar up on mobile: the ocean is out of play
   if (el === document.documentElement || el === document.body) return true;
   if (el.classList.contains("layout")) return true;
   const id = el.id;
@@ -132,9 +133,8 @@ export function createSpinController(): SpinController {
 
   const onDown = (e: PointerEvent) => {
     if (e.button !== 0) return;
-    // Touch only grabs the ocean from its bare areas, and styles.css (touch-action: pan-y) leaves vertical swipes
-    // there to the browser, so the page still scrolls and a sideways swipe spins the sea.
     if (!isBackground(e.target as Element)) return;
+    touchGrab = e.pointerType === "touch";
     e.preventDefault(); // no text selection while dragging
     dragging = true;
     pointerId = e.pointerId;
@@ -148,7 +148,15 @@ export function createSpinController(): SpinController {
     document.body.style.userSelect = "none";
   };
 
+  // A touch that started on bare ocean owns the whole drag, both axes: stop the browser turning it into a page scroll.
+  // Touches that start on text or panels never set touchGrab, so they scroll as usual.
+  let touchGrab = false;
+  const onTouchMove = (e: TouchEvent) => {
+    if (touchGrab && e.cancelable) e.preventDefault();
+  };
+
   const release = () => {
+    touchGrab = false;
     if (!dragging) return;
     dragging = false;
     pointerId = -1;
@@ -172,6 +180,7 @@ export function createSpinController(): SpinController {
 
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerdown", onDown);
+  window.addEventListener("touchmove", onTouchMove, { passive: false });
   window.addEventListener("pointerup", release);
   window.addEventListener("pointercancel", release);
   window.addEventListener("blur", release);
@@ -201,6 +210,7 @@ export function createSpinController(): SpinController {
     dispose() {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("pointerup", release);
       window.removeEventListener("pointercancel", release);
       window.removeEventListener("blur", release);
