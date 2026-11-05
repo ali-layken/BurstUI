@@ -78,7 +78,12 @@ html {
 /* Only below / above Tailwind's md breakpoint (1463px in tailwind.config.ts, same as ResizeDetector's narrow switch),
    matching which element is the panel at each width. */
 @media (max-width: 1462.98px) {
+  /* On narrow screens this panel is the whole screen; keep the frame (whose corner flowers reach to within ~0.3px of
+     the box edge) 2px clear of the screen edges, without adding scroll. */
   .wire-frame-narrow {
+    margin: 2px;
+    width: calc(100% - 4px);
+    min-height: calc(100vh - 4px);
     background-color: transparent;
     border: 3px solid transparent;
     border-image: var(--wire-image) 16 / 16px stretch;
