@@ -117,7 +117,7 @@ const AnimatedText3D = ({ text = "Hello, 3D!", narrowZoom = 320, wideZoom = 210 
     };
   }, []);
 
-  return <div ref={mountRef} class="relative w-full overflow-hidden" style={{ height: "17rem" }} />;
+  return <div ref={mountRef} data-ocean class="relative w-full overflow-hidden" style={{ height: "17rem" }} />;
 };
 
 export default AnimatedText3D;
