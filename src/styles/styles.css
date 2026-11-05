@@ -137,6 +137,16 @@ html {
 .drawer-toggle-arrow.open {
   transform: translateY(-2.5px) rotate(180deg);
 }
+/* Home page contact block on short narrow screens (e.g. iPhone SE, 667px tall): pinned to the bottom it would cover
+   the welcome text, so let it follow the welcome text instead (the page scrolls a little), with room below it for the
+   floating sidebar toggle. */
+@media (max-width: 1462.98px) and (max-height: 760px) {
+  .contact-block {
+    position: static;
+    margin-top: -3rem;
+    padding-bottom: 5.5rem;
+  }
+}
 /* Filled panels (FILLED_PANELS in Base.astro puts .filled-panels on <body>).
    Wide layout (>= Tailwind md, 1463px): every wire panel gets the old 96% panel fill inside the frame's outer line
    (6px in from the edge, so no fill shows outside the frame), and the text plates lose their backgrounds since the

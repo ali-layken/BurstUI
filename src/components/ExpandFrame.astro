@@ -90,6 +90,18 @@ const { src, title, bg } = Astro.props;
       left: calc(var(--xf-gap) + var(--xf-wire-room) - 32px);
     }
   }
+  /* Narrow screens: pin the bar-left content to the screen's bottom-left, level with the floating sidebar toggle and
+     matching the home page contact block (pb-7, and the same left edge), instead of under the frame. Dropping the
+     bar's position makes the page itself the positioning box. */
+  @media (max-width: 1462.98px) {
+    .xf-bar {
+      position: static;
+    }
+    .xf-bar-left {
+      left: 31px;
+      bottom: 28px;
+    }
+  }
   .expand-button-3d {
     display: block;
     padding: 0;
