@@ -52,7 +52,7 @@ const { src, title, bg } = Astro.props;
      the panel's normal bottom padding. */
   :root {
     --xf-gap: 12px;
-    --xf-wire-room: 10px;
+    --xf-wire-room: 14px; /* frame line + the text plate's widest edge (narrow screens grow plates by 8px) */
   }
   .xf-bar {
     padding-top: var(--xf-gap) !important;

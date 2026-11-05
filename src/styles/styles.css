@@ -141,6 +141,7 @@ html {
    Blog content panels keep their 100% fill at every width. */
 :root {
   --panel-fill: rgba(11, 54, 91, 0.96); /* bgAqua2 */
+  --plate-grow: 8px;
 }
 @media (min-width: 1463px) {
   .filled-panels .wire-frame,
@@ -152,8 +153,11 @@ html {
   }
 }
 @media (max-width: 1462.98px) {
+  /* Grow the plate outward with a same-colour spread shadow rather than padding, so text, bullets and alignment stay
+     exactly where they are. Plates closer together than twice the spread merge into one rounded block. */
   .filled-panels .text-plate {
     border-radius: 0.625rem;
+    box-shadow: 0 0 0 var(--plate-grow) var(--plate-bg);
   }
 }
 /* In the components layer so per-element Tailwind padding (px-1, py-3...) overrides the default. */
