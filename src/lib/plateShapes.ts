@@ -5,10 +5,10 @@
 // never cut into the text.
 
 /** How far the base outline sits outside the element's box (px). */
-const PAD = 2;
+const PAD = 0;
 /** Petal height range (px) and spacing range along the edge (px). */
-const AMP = [3, 8] as const;
-const SPACING = [24, 40] as const;
+const AMP = [2, 5] as const;
+const SPACING = [16, 28] as const;
 /** Extra room the SVG needs past the box on every side (handed to the ::before in styles.css as --plate-margin). */
 export const PLATE_MARGIN = PAD + AMP[1];
 
@@ -73,7 +73,7 @@ function smoothClosedPath(pts: Pt[]): string {
 
 function flowerPath(w: number, h: number, rand: () => number): string {
   const M = PLATE_MARGIN;
-  const r = Math.min(16, (h + 2 * PAD) / 2, (w + 2 * PAD) / 2);
+  const r = Math.min(10, (h + 2 * PAD) / 2, (w + 2 * PAD) / 2);
   const walk = roundedRectWalker(M - PAD, M - PAD, M + w + PAD, M + h + PAD, r);
   const spacing = SPACING[0] + rand() * (SPACING[1] - SPACING[0]);
   const petals = Math.max(6, Math.round(walk.total / spacing));

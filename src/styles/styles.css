@@ -100,7 +100,7 @@ html {
   .text-plate {
     background-color: var(--plate-bg);
     border-radius: 6px;
-    padding: 0.25rem 0.75rem;
+    padding: 0.125rem 0.375rem; /* just clears the letters; the flower petals add a little more outside the box */
   }
   /* Once src/lib/plateShapes.ts has drawn its flower outline, paint that instead of the plain rectangle. The ::before
      reaches --plate-margin past the box so the petals grow outward, and sits behind the plate's own text. */
