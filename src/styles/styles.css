@@ -135,6 +135,10 @@ html {
   max-height: calc(100dvh - 6rem);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: none; /* still scrolls by touch / wheel, just no bar */
+}
+.drawer-scroll::-webkit-scrollbar {
+  display: none; /* Safari / older Chromium */
 }
 /* One glyph flipped for "open", since "⌄" renders lower and smaller than "⌃"; it sits ~2.5px above centre in its line
    box, so nudge it back (after the flip for the open state). */
