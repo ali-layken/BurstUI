@@ -1,14 +1,19 @@
 // Flower-edged .text-plate backgrounds: every plate gets its own random outline on each page load. The outline is a
-// rounded rectangle whose edge is broken into petals (bumps of random width and height) and drawn as one smooth closed
-// curve, so there are no straight runs and no sharp corners. The plate keeps its box; the shape is painted by its
+// rounded rectangle whose edge rises and falls in a few long, even waves (petals): one wave length and height per plate,
+// varied only slightly petal to petal - random from plate to plate and load to load, uniform within a plate. It is
+// drawn as one smooth closed curve, so there are no straight runs and no sharp corners. The plate keeps its box; the shape is painted by its
 // ::before (styles.css) from an SVG in --plate-shape, sized slightly larger than the box so the petals grow outward and
 // never cut into the text.
 
 /** How far the base outline sits outside the element's box (px). */
 const PAD = 0;
-/** Petal height range (px) and spacing range along the edge (px). */
-const AMP = [2, 5] as const;
-const SPACING = [16, 28] as const;
+/** Per-plate petal height range (px) and petal length range along the edge (px). */
+const AMP = [3, 6] as const;
+const SPACING = [60, 100] as const;
+/** How much each petal's height may differ from its plate's (fraction): small, so a plate's petals look alike. */
+const AMP_JITTER = 0.2;
+/** Sample spacing along the edge (px) when tracing the wave; dense enough to follow the rounded corners. */
+const SAMPLE = 6;
 /** Extra room the SVG needs past the box on every side (handed to the ::before in styles.css as --plate-margin). */
 export const PLATE_MARGIN = PAD + AMP[1];
 
@@ -75,19 +80,25 @@ function flowerPath(w: number, h: number, rand: () => number): string {
   const M = PLATE_MARGIN;
   const r = Math.min(10, (h + 2 * PAD) / 2, (w + 2 * PAD) / 2);
   const walk = roundedRectWalker(M - PAD, M - PAD, M + w + PAD, M + h + PAD, r);
+  // A whole number of equal petals round the outline, so the wave closes on itself.
   const spacing = SPACING[0] + rand() * (SPACING[1] - SPACING[0]);
-  const petals = Math.max(6, Math.round(walk.total / spacing));
+  const petals = Math.max(4, Math.round(walk.total / spacing));
   const step = walk.total / petals;
-  const start = rand() * step; // so the petals don't always line up with the top-left corner
+  const amp = AMP[0] + rand() * (AMP[1] - AMP[0]);
+  const amps = Array.from({ length: petals }, () => amp * (1 + (rand() * 2 - 1) * AMP_JITTER));
+  const phase = rand() * step; // so the petals don't always line up with the corners
+  // Trace the outline densely, pushing each point outward by a raised-cosine bump per petal (0 at the valleys, the
+  // petal's height mid-petal). Zero height and slope at every valley keeps the curve smooth where petals meet, and
+  // following the base outline round the corners means the shape never cuts inside the box.
+  const n = Math.max(petals * 6, Math.ceil(walk.total / SAMPLE));
   const pts: Pt[] = [];
-  for (let i = 0; i < petals; i++) {
-    // Valley on the base outline, then a petal tip pushed outward by a random height, both slightly jittered along the edge.
-    const sv = start + i * step + (rand() - 0.5) * step * 0.2;
-    const st = start + (i + 0.5) * step + (rand() - 0.5) * step * 0.3;
-    const v = walk.at(sv);
-    const t = walk.at(st);
-    const amp = AMP[0] + rand() * (AMP[1] - AMP[0]);
-    pts.push({ x: v.x, y: v.y }, { x: t.x + t.nx * amp, y: t.y + t.ny * amp });
+  for (let i = 0; i < n; i++) {
+    const s = (i / n) * walk.total;
+    const u = (((s - phase) % walk.total) + walk.total) % walk.total / step;
+    const k = Math.floor(u) % petals;
+    const off = amps[k] * (0.5 - 0.5 * Math.cos(2 * Math.PI * (u - Math.floor(u))));
+    const p = walk.at(s);
+    pts.push({ x: p.x + p.nx * off, y: p.y + p.ny * off });
   }
   return smoothClosedPath(pts);
 }
