@@ -1,27 +1,33 @@
 <!-- Wireframe panel border (styles.css .wire-frame*): a 9-slice border-image, 48x48 with 16px corners; the middle of
      each edge stretches. wire-frame-filled.svg is the same frame with the panel fill inside the inner line - keep the
      two in sync. Gen 1 Pokemon text box style double line, with a flower in each corner instead of its knobs.
-     Lilac = the ocean's sky colour, orange = the heading colour. One group at 45% so overlaps don't darken. -->
+     Lilac = the ocean's sky colour, orange = the heading colour. Lines at 60%, with the lilac parts (outer line + petals) a
+     sub-group at 75% of that (45%); groups, so overlaps don't darken. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
   <defs>
-    <g id="flower">
-      <g fill="rgb(197,138,249)">
-        <circle cx="3" cy="0" r="2.7"/>
-        <circle cx="-3" cy="0" r="2.7"/>
-        <circle cx="0" cy="3" r="2.7"/>
-        <circle cx="0" cy="-3" r="2.7"/>
-      </g>
-      <circle r="1.6" fill="rgb(255,144,84)"/>
+    <g id="petals" fill="rgb(197,138,249)">
+      <circle cx="3" cy="0" r="2.7"/>
+      <circle cx="-3" cy="0" r="2.7"/>
+      <circle cx="0" cy="3" r="2.7"/>
+      <circle cx="0" cy="-3" r="2.7"/>
     </g>
   </defs>
-  <g opacity="0.45" fill="none">
-    <!-- outer line -->
-    <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
-    <!-- inner line -->
+  <g opacity="0.6" fill="none">
+    <!-- lilac: outer line + corner petals -->
+    <g opacity="0.75">
+      <rect x="6" y="6" width="36" height="36" stroke="rgb(197,138,249)" stroke-width="3"/>
+      <use href="#petals" x="6" y="6"/>
+      <use href="#petals" x="42" y="6"/>
+      <use href="#petals" x="42" y="42"/>
+      <use href="#petals" x="6" y="42"/>
+    </g>
+    <!-- orange: inner line + flower centres -->
     <rect x="12" y="12" width="24" height="24" rx="2" stroke="rgb(255,144,84)" stroke-width="2"/>
-    <use href="#flower" x="6" y="6"/>
-    <use href="#flower" x="42" y="6"/>
-    <use href="#flower" x="42" y="42"/>
-    <use href="#flower" x="6" y="42"/>
+    <g fill="rgb(255,144,84)">
+      <circle cx="6" cy="6" r="1.6"/>
+      <circle cx="42" cy="6" r="1.6"/>
+      <circle cx="42" cy="42" r="1.6"/>
+      <circle cx="6" cy="42" r="1.6"/>
+    </g>
   </g>
 </svg>
