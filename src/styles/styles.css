@@ -57,3 +57,49 @@ html {
     font-style: italic;
   }
 }
+/* Wireframe panels (every page except blog posts, which stay solid for reading): no fill, so the ocean shows through,
+   just a two-line border like an RPG text box - outer line, transparent gap, thinner inner line. The inner line is a
+   negative-offset outline, so it needs no extra markup or positioning and follows the border radius. Text sits on
+   .text-plate rectangles instead. */
+:root {
+  --wire-outer: rgb(157, 209, 241); /* skyBlue */
+  --wire-inner: rgba(231, 29, 54, 0.85); /* accRed, same red as the Burst! wireframe */
+  --plate-bg: rgba(11, 54, 91, 0.86); /* bgAqua, but see-through */
+}
+.wire-frame {
+  background-color: transparent;
+  border: 3px solid var(--wire-outer);
+  border-radius: 12px;
+  outline: 2px solid var(--wire-inner);
+  outline-offset: -8px;
+  box-shadow: none;
+}
+/* Only below / above Tailwind's md breakpoint, matching which element is the panel at each width. */
+@media (max-width: 767px) {
+  .wire-frame-narrow {
+    background-color: transparent;
+    border: 3px solid var(--wire-outer);
+    border-radius: 12px;
+    outline: 2px solid var(--wire-inner);
+    outline-offset: -8px;
+    box-shadow: none;
+  }
+}
+@media (min-width: 768px) {
+  .wire-frame-wide {
+    background-color: transparent;
+    border: 3px solid var(--wire-outer);
+    border-radius: 12px;
+    outline: 2px solid var(--wire-inner);
+    outline-offset: -8px;
+    box-shadow: none;
+  }
+}
+/* In the components layer so per-element Tailwind padding (px-1, py-3...) overrides the default. */
+@layer components {
+  .text-plate {
+    background-color: var(--plate-bg);
+    border-radius: 6px;
+    padding: 0.25rem 0.75rem;
+  }
+}
