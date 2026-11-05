@@ -122,8 +122,18 @@ import { burstColors } from "../lib/colors";
       const body = iframe.contentDocument?.body;
       if (body) body.style.backgroundColor = FRAME;
     };
-    iframe.addEventListener("load", paint);
+    // Hand the keyboard to the game: Godot's focusCanvas only focuses the canvas inside the iframe, so until the
+    // iframe itself has focus, keys go to this page and you have to click in to play.
+    const focusGame = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentDocument?.getElementById("canvas")?.focus();
+    };
+    iframe.addEventListener("load", () => {
+      paint();
+      focusGame();
+    });
     paint();
+    if (iframe.contentDocument?.readyState === "complete") focusGame(); // already loaded (e.g. back/forward cache)
     initExpandFrame({ lock: paint });
   }
   document.addEventListener("astro:page-load", init);
