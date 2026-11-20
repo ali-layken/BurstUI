@@ -119,9 +119,12 @@ CORS: `access-control-allow-origin: *` on this path and an `OPTIONS` answer allo
 `content-type` and `content-encoding`, because an Overwolf app's page is another origin.
 No cookies, no credentials.
 
-An app treats anything but 200 as "not sent", keeps the report on disk (an outbox of at
-most 5, oldest dropped) and tries again at its next start. It never retries in a loop and
-never blocks or slows the app: sending happens off the main path with a 5 s timeout.
+An app treats anything but 200 as "not sent". A 400 or a 413 is final (the same report
+can never be accepted): the app drops it and notes that in its own log. Anything else (a
+429, a 5xx, no answer) keeps the report on disk (an outbox of at most 5, oldest dropped)
+to be tried again at the app's next start. It never retries in a loop and never blocks or
+slows the app: sending happens off the main path with a 5 s timeout. (Changed 2026-11-20:
+400 and 413 were kept in the outbox before.)
 
 ## Limits (the worst case must cost nothing)
 
