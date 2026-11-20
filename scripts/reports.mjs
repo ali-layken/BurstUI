@@ -190,7 +190,12 @@ function show(id) {
     die(`report ${id}: payload does not unpack (${e.message})`);
   }
   if (opts.raw) {
-    console.log(JSON.stringify(report, null, 2)); // JSON.stringify escapes control characters itself
+    // JSON.stringify escapes U+0000 to U+001F only. DEL, the C1 controls and the bidi controls are allowed in a report's
+    // free text and would reach the terminal as they are (a C1 "CSI" or "OSC" drives VTE and xterm), so escape those
+    // too: \uXXXX keeps the output valid JSON.
+    const beyondJson = /[\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g; // not the newlines of the layout itself
+    const text = JSON.stringify(report, null, 2);
+    console.log(text.replace(beyondJson, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")));
     return;
   }
 
