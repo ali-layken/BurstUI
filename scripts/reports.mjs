@@ -2,12 +2,18 @@
 // The developer's reader for crash/problem reports (docs/reports.md). Goes through `wrangler d1 execute` under your own
 // wrangler login; there is no public page that lists or shows reports.
 //
-//   npm run reports -- list [app] [--build N] [--signature S] [--days D] [--limit N]
-//   npm run reports -- count [app] [--build N] [--days D]       how many of which signature on which build
+//   npm run reports -- list [app] [filters] [--limit N]
+//   npm run reports -- count [app] [filters] [--by signature|network|country|install|build] [--limit N]
 //   npm run reports -- show ID [--out DIR] [--raw]               context, the log as a table, files written to DIR
 //                                                                (named by the type found in their bytes: .png .jpg ...)
+//   npm run reports -- delete [app] [filters] [--yes]            without --yes only says what it would delete
 //
-//   app: surfworld | doopwatcher (default: both)   --days: default 7 (list, count)
+//   filters: --id ID  --install HEX  --network ASN  --country CC  --signature S  --build N  --addr HASH
+//            --days D | --since TIME [--until TIME]   (TIME: an ISO date/time or ms since 1970)
+//   app: surfworld | doopwatcher (default: both)   --days: default 7 for list and count; delete has no default
+//
+// Everything the sender chose (build, signature, install...) can be junk made to look real; --network (request.cf.asn)
+// and --country are what Cloudflare saw, the facts a sender cannot choose.
 //   --local reads the local dev database (wrangler dev) instead of the real one; --persist-to DIR implies --local.
 //   --out: where `show` writes the report's files (default .reports/<id>/, gitignored).
 //
@@ -28,10 +34,19 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const { values: opts, positionals } = parseArgs({
   allowPositionals: true,
   options: {
+    id: { type: "string" },
+    install: { type: "string" },
+    network: { type: "string" },
+    country: { type: "string" },
+    addr: { type: "string" },
     build: { type: "string" },
     signature: { type: "string" },
-    days: { type: "string", default: "7" },
-    limit: { type: "string", default: "100" },
+    days: { type: "string" },
+    since: { type: "string" },
+    until: { type: "string" },
+    by: { type: "string", default: "signature" },
+    limit: { type: "string" },
+    yes: { type: "boolean", default: false },
     out: { type: "string" },
     raw: { type: "boolean", default: false },
     local: { type: "boolean", default: false },
@@ -42,9 +57,12 @@ const { values: opts, positionals } = parseArgs({
 
 const usage = () => {
   console.log(
-    "usage: npm run reports -- list [app] [--build N] [--signature S] [--days D] [--limit N]\n" +
-      "       npm run reports -- count [app] [--build N] [--days D]\n" +
+    "usage: npm run reports -- list [app] [filters] [--limit N]\n" +
+      "       npm run reports -- count [app] [filters] [--by signature|network|country|install|build] [--limit N]\n" +
       "       npm run reports -- show ID [--out DIR] [--raw]\n" +
+      "       npm run reports -- delete [app] [filters] [--yes]\n" +
+      "       filters: --id --install --network ASN --country CC --signature --build N --addr HASH\n" +
+      "                --days D | --since TIME [--until TIME]\n" +
       "       add --local (or --persist-to DIR) to read the local dev database",
   );
 };
@@ -105,23 +123,56 @@ function pickApps(arg) {
   return [arg];
 }
 
-function filters({ withSignature }) {
-  const since = Date.now() - int(opts.days, "--days") * DAY_MS;
-  const where = [`received_at >= ${since}`];
+const time = (s, name) => {
+  const ms = /^\d{1,15}$/.test(s) ? Number(s) : Date.parse(s);
+  if (!Number.isFinite(ms)) die(`${name} must be an ISO date/time or ms since 1970`);
+  return ms;
+};
+
+/**
+ * The WHERE clause of the filters given. Every value is checked against a strict pattern or made a number; the one
+ * free-text filter (--signature) goes in as a hex literal, so nothing typed or copied from a report becomes SQL text.
+ */
+function filters({ defaultDays }) {
+  const where = [];
+  const days = opts.days ?? (opts.since === undefined && defaultDays ? String(defaultDays) : undefined);
+  if (days !== undefined) where.push(`received_at >= ${Date.now() - int(days, "--days") * DAY_MS}`);
+  if (opts.since !== undefined) where.push(`received_at >= ${time(opts.since, "--since")}`);
+  if (opts.until !== undefined) where.push(`received_at < ${time(opts.until, "--until")}`);
+  if (opts.id !== undefined) {
+    if (!/^r_[0-9a-z]{1,40}$/.test(opts.id)) die("--id must be a report id like r_7f3k2m");
+    where.push(`id = '${opts.id}'`);
+  }
+  if (opts.install !== undefined) {
+    if (!/^[0-9a-f]{32}$/i.test(opts.install)) die("--install must be 32 hex digits");
+    where.push(`install = '${opts.install.toLowerCase()}'`);
+  }
+  if (opts.addr !== undefined) {
+    if (!/^[0-9a-f]{32}$/i.test(opts.addr)) die("--addr must be an address hash (32 hex digits)");
+    where.push(`addr_hash = '${opts.addr.toLowerCase()}'`);
+  }
+  if (opts.network !== undefined) where.push(`asn = ${int(opts.network, "--network")}`);
+  if (opts.country !== undefined) {
+    if (!/^[A-Za-z0-9]{2}$/.test(opts.country)) die("--country must be two letters, like DE");
+    where.push(`country = '${opts.country.toUpperCase()}'`);
+  }
   if (opts.build !== undefined) where.push(`build_number = ${int(opts.build, "--build")}`);
-  if (withSignature && opts.signature !== undefined) where.push(`signature = ${textLiteral(opts.signature)}`);
-  return where.join(" AND ");
+  if (opts.signature !== undefined) where.push(`signature = ${textLiteral(opts.signature)}`);
+  return where;
 }
+const whereSql = (where) => (where.length ? where.join(" AND ") : "1");
+/** --limit, at most `max` (so no query's answer can outgrow the 64 MB the reader reads from wrangler). */
+const limitOf = (fallback, max) => Math.min(int(opts.limit ?? String(fallback), "--limit"), max);
 
 const iso = (ms) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, "Z");
 
 // ---- commands -----------------------------------------------------------------------------------------------------
 
 function list(appArg) {
-  const where = filters({ withSignature: true });
-  const limit = int(opts.limit, "--limit");
+  const where = whereSql(filters({ defaultDays: 7 }));
+  const limit = limitOf(100, 10_000);
   const sql = pickApps(appArg)
-    .map((a) => `SELECT '${a}' AS app, id, received_at, build, kind, signature, os, runtime, log_lines, file_count, bytes, note FROM ${APPS[a]} WHERE ${where}`)
+    .map((a) => `SELECT '${a}' AS app, id, received_at, build, kind, signature, os, runtime, log_lines, file_count, bytes, asn, country, note FROM ${APPS[a]} WHERE ${where}`)
     .join(" UNION ALL ");
   const rows = d1(`SELECT * FROM (${sql}) ORDER BY received_at DESC LIMIT ${limit}`);
   console.log(
@@ -137,33 +188,86 @@ function list(appArg) {
       { title: "lines", get: (r) => r.log_lines },
       { title: "files", get: (r) => r.file_count },
       { title: "bytes", get: (r) => r.bytes },
+      { title: "network", get: (r) => (r.asn === null ? "" : `AS${r.asn}`) },
+      { title: "cc", get: (r) => r.country ?? "" },
       { title: "note", get: (r) => r.note, max: 50 },
     ]),
   );
-  console.log(`\n${rows.length} report(s), last ${opts.days} day(s)${rows.length === limit ? ` (showing the newest ${limit}; --limit for more)` : ""}`);
+  console.log(`\n${rows.length} report(s)${rows.length === limit ? ` (showing the newest ${limit}; --limit for more)` : ""}`);
 }
 
+const COUNT_BY = {
+  signature: { group: "build_number, build, signature", key: ["build", "signature"], extra: ["installs", "networks"] },
+  network: { group: "asn", key: ["network"], extra: ["countries", "installs", "signatures"] },
+  country: { group: "country", key: ["country"], extra: ["networks", "installs", "signatures"] },
+  install: { group: "install", key: ["install"], extra: ["networks", "signatures"] },
+  build: { group: "build_number, build", key: ["build"], extra: ["signatures", "networks"] },
+};
+const COUNT_COLS = {
+  build: { title: "build", get: (r) => r.build },
+  signature: { title: "signature", get: (r) => r.signature, max: 70 },
+  network: { title: "network", get: (r) => (r.asn === null ? "?" : `AS${r.asn}`) },
+  country: { title: "country", get: (r) => r.country ?? "?" },
+  install: { title: "install", get: (r) => r.install },
+  installs: { title: "installs", get: (r) => r.installs },
+  networks: { title: "networks", get: (r) => r.networks },
+  countries: { title: "countries", get: (r) => r.countries },
+  signatures: { title: "signatures", get: (r) => r.signatures },
+};
+
 function count(appArg) {
-  const where = filters({ withSignature: false });
+  const by = Object.hasOwn(COUNT_BY, opts.by) ? COUNT_BY[opts.by] : null;
+  if (!by) die(`--by must be one of ${Object.keys(COUNT_BY).join(", ")}`);
+  const where = whereSql(filters({ defaultDays: 7 }));
+  const limit = limitOf(50, 1000);
   const sql = pickApps(appArg)
     .map(
-      (a) => `SELECT '${a}' AS app, build_number, build, signature, COUNT(*) AS n, COUNT(DISTINCT install) AS installs,
+      (a) => `SELECT '${a}' AS app, ${by.group}, COUNT(*) AS n, COUNT(DISTINCT install) AS installs,
+                COUNT(DISTINCT asn) AS networks, COUNT(DISTINCT country) AS countries, COUNT(DISTINCT signature) AS signatures,
                 MIN(received_at) AS first, MAX(received_at) AS last FROM ${APPS[a]} WHERE ${where}
-                GROUP BY build_number, build, signature`,
+                GROUP BY ${by.group}`,
     )
     .join(" UNION ALL ");
-  const rows = d1(`SELECT * FROM (${sql}) ORDER BY app, build_number DESC, n DESC`);
+  // Sorted by how many, never by a sender's build number; at most --limit rows come back.
+  const rows = d1(`SELECT * FROM (${sql}) ORDER BY n DESC, last DESC LIMIT ${limit}`);
   console.log(
     table(rows, [
       { title: "app", get: (r) => r.app },
-      { title: "build", get: (r) => r.build },
-      { title: "signature", get: (r) => r.signature, max: 70 },
+      ...by.key.map((c) => COUNT_COLS[c]),
       { title: "reports", get: (r) => r.n },
-      { title: "installs", get: (r) => r.installs },
+      ...by.extra.map((c) => COUNT_COLS[c]),
       { title: "first", get: (r) => iso(r.first) },
       { title: "last", get: (r) => iso(r.last) },
     ]),
   );
+  if (rows.length === limit) console.log(`\n(the ${limit} largest groups; --limit for more)`);
+}
+
+function del(appArg) {
+  const where = filters({ defaultDays: 0 });
+  if (where.length === 0) die("delete needs at least one filter (--id, --install, --network, --signature, --build, --since...)");
+  const w = whereSql(where);
+  const apps = pickApps(appArg);
+  const found = d1(
+    apps
+      .map((a) => `SELECT '${a}' AS app, COUNT(*) AS n, COALESCE(SUM(file_count), 0) AS files, COALESCE(SUM(stored_bytes), 0) AS bytes FROM ${APPS[a]} WHERE ${w}`)
+      .join(" UNION ALL "),
+  );
+  for (const r of found) console.log(`${r.app}: ${r.n} report(s), ${r.files} file(s), ${r.bytes} counted bytes match`);
+  if (!opts.yes) {
+    console.log("\n(nothing deleted: add --yes to delete them)");
+    return;
+  }
+  // Files, then reports, then each app's total recomputed from what is left (the same thing the daily job does), so
+  // the counters are right afterwards even if a statement in between were to fail.
+  const statements = apps.flatMap((a) => [
+    `DELETE FROM files_${a} WHERE report_id IN (SELECT id FROM ${APPS[a]} WHERE ${w})`,
+    `DELETE FROM ${APPS[a]} WHERE ${w}`,
+    `INSERT INTO report_limits (app, day, key, n, bytes) SELECT '${a}', 0, 'total', COUNT(*), COALESCE(SUM(stored_bytes), 0)
+       FROM ${APPS[a]} WHERE true ON CONFLICT (app, day, key) DO UPDATE SET n = excluded.n, bytes = excluded.bytes`,
+  ]);
+  d1(statements.join(";\n"));
+  console.log(`deleted ${found.reduce((n, r) => n + r.n, 0)} report(s); totals recomputed`);
 }
 
 function fmtT(ms) {
@@ -305,6 +409,7 @@ if (opts.help || !command) {
 if (command === "list") list(arg);
 else if (command === "count") count(arg);
 else if (command === "show") show(arg);
+else if (command === "delete") del(arg);
 else {
   usage();
   process.exit(2);
