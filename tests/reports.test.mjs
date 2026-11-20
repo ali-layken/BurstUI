@@ -4,7 +4,7 @@
 //   npm test          (needs dist/ from `npm run build` for the asset binding; an empty dist/ is made if missing)
 //
 // Each test uses its own install id and address (cf-connecting-ip, which local dev passes through), so the daily
-// limits of one test do not bleed into another. The daily-cap test seeds 2,000 rows straight into D1 and runs last.
+// limits of one test do not bleed into another. The daily-cap test seeds the day's crash count in D1 and runs last.
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
@@ -161,7 +161,7 @@ test("CORS preflight and headers", async () => {
     headers: { origin: "overwolf-extension://abc", "access-control-request-method": "POST", "access-control-request-headers": "content-type, content-encoding" },
   });
   assert.equal(res.status, 204);
-  assert.equal(res.headers.get("access-control-allow-origin"), "*");
+  assert.equal(res.headers.get("access-control-allow-origin"), "overwolf-extension://abc", "the allowed origin is echoed");
   assert.match(res.headers.get("access-control-allow-methods"), /POST/);
   assert.match(res.headers.get("access-control-allow-headers"), /content-type/);
   assert.match(res.headers.get("access-control-allow-headers"), /content-encoding/);
@@ -173,7 +173,7 @@ test("CORS preflight and headers", async () => {
 });
 
 test("a valid report of each app is stored and comes back through the reader", async () => {
-  const replay = randomBytes(20_000);
+  const replay = Buffer.concat([Buffer.from("SWR1"), randomBytes(19_996)]); // a replay starts with its magic
   const surf = makeReport("surfworld", {
     signature: "unclean-exit",
     note: "",
@@ -382,14 +382,15 @@ test("per-address limit: 30 a day, then 429", async () => {
   assert.equal((await post("surfworld", makeReport("surfworld"), { ip: "2001:db8:1:3::1" })).status, 200);
 });
 
-test("the scheduled job deletes after 90 days and drops yesterday's address hashes", async () => {
+test("the scheduled job deletes after 90 days and drops yesterday's address salt", async () => {
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
   const row = (id, at) =>
     `('${id}', ${at}, '2026-01-01T00:00:00Z', 'surfworld-1+dev', 1, 'crash', 'old', NULL, NULL, '${"0".repeat(32)}', '${"0".repeat(16)}', '', 0, 1, 'feedfacefeedfacefeedfacefeedface', X'00')`;
   await sql(
     `INSERT INTO reports_surfworld (id, received_at, happened_at, build, build_number, kind, signature, os, runtime, install,
-       session, note, log_lines, bytes, addr_hash, payload) VALUES ${row("r_old", now - 91 * day)}, ${row("r_yesterday", now - day - 60_000)}`,
+       session, note, log_lines, bytes, addr_hash, payload) VALUES ${row("r_old", now - 91 * day)}, ${row("r_yesterday", now - day - 60_000)};
+     INSERT INTO report_salts (day, salt) VALUES (${Math.floor(now / day) - 1}, 'yesterday')`,
   );
   const res = await fetch(`${base}/cdn-cgi/local/explorer/api/local/scheduled?worker=burstui`, {
     method: "POST",
@@ -398,21 +399,17 @@ test("the scheduled job deletes after 90 days and drops yesterday's address hash
   });
   assert.equal(res.status, 200, await res.text());
   const rows = await sql(`SELECT id, addr_hash FROM reports_surfworld WHERE id IN ('r_old', 'r_yesterday')`);
-  assert.deepEqual(rows, [{ id: "r_yesterday", addr_hash: null }]);
-  const today = await sql(`SELECT COUNT(*) AS n FROM reports_surfworld WHERE addr_hash IS NOT NULL`);
-  assert.ok(today[0].n > 0, "today's hashes are kept");
+  assert.deepEqual(rows, [{ id: "r_yesterday", addr_hash: "feedfacefeedfacefeedfacefeedface" }]);
+  // Without yesterday's salt its hashes can no longer be linked to an address; today's salt stays.
+  assert.deepEqual(await sql(`SELECT day FROM report_salts WHERE day < ${Math.floor(now / day)}`), []);
+  const today = await sql(`SELECT COUNT(*) AS n FROM report_salts WHERE day = ${Math.floor(now / day)}`);
+  assert.equal(today[0].n, 1, "today's salt is kept");
 });
 
-test("daily cap: 2,000 stored per app, then 503 until midnight UTC", async () => {
-  const [{ n }] = await sql("SELECT COUNT(*) AS n FROM reports_doopwatcher");
-  const missing = 2000 - n;
-  assert.ok(missing > 0);
+test("daily cap: 1,500 crashes stored per app, then 503 until midnight UTC", async () => {
   await sql(
-    `WITH RECURSIVE seq(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM seq WHERE i < ${missing})
-     INSERT INTO reports_doopwatcher (id, received_at, happened_at, build, build_number, kind, signature, os, runtime, install,
-       session, note, log_lines, bytes, addr_hash, payload)
-     SELECT 'r_seed' || i, ${Date.now()}, '2026-11-20T00:00:00Z', 'doopwatcher-1+dev', 1, 'crash', 'seed', NULL, NULL,
-       printf('%032d', i), '${"0".repeat(16)}', '', 0, 1, NULL, X'00' FROM seq`,
+    `INSERT INTO report_limits (app, day, key, n, bytes) VALUES ('doopwatcher', ${Math.floor(Date.now() / 86_400_000)}, 'kind:crash', 1500, 0)
+     ON CONFLICT (app, day, key) DO UPDATE SET n = 1500`,
   );
   const res = await post("doopwatcher", makeReport("doopwatcher"));
   assert.equal(res.status, 503);
