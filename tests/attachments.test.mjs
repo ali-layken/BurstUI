@@ -121,13 +121,10 @@ test("a problem report refuses files of any other kind", async () => {
     assert.equal(res.status, 400);
     assert.match(res.json.error, /^files\[0\]: must be a PNG, JPEG, WebP or GIF image, a Surf World replay or UTF-8 text/);
   }
-  // A crash report keeps version 1: an app's file of another kind is kept, typed "bin".
+  // A crash report is held to the same types (hardening): the apps send SWR1 replays and UTF-8 logs.
   const crash = await dev.post("surfworld", makeReport("surfworld", { files: [{ name: "session.swr", b64: b64(randomBytes(1000)) }] }));
-  assert.equal(crash.status, 200);
-  const [row] = await dev.sql(`SELECT type FROM files_surfworld WHERE report_id = '${crash.json.id}'`);
-  assert.equal(row.type, "bin");
-  const { files } = await showInto(crash.json.id);
-  assert.deepEqual(Object.keys(files), ["session.swr"]);
+  assert.equal(crash.status, 400);
+  assert.match(crash.json.error, /^files\[0\]: must be a PNG/);
 });
 
 test("problem limits: 3 files of 200 KB, 512 KB as sent, 1 MB unpacked", async () => {
@@ -187,53 +184,51 @@ test("crash limits are unchanged: 2 files of 48 KB, 64 KB as sent, 512 KB unpack
   assert.match(asProblem.json.error, /unknown key "pad"/);
 });
 
+const today = () => Math.floor(Date.now() / 86_400_000);
+const limitRow = async (app, day, key) =>
+  (await dev.sql(`SELECT n, bytes FROM report_limits WHERE app = '${app}' AND day = ${day} AND key = '${key}'`))[0] ?? { n: 0, bytes: 0 };
+
 test("the counters follow what is stored", async () => {
-  const [before] = await dev.sql("SELECT day, day_bytes, total_bytes FROM report_counters WHERE app = 'surfworld'");
+  const kindBefore = await limitRow("surfworld", today(), "kind:problem");
+  const totalBefore = await limitRow("surfworld", 0, "total");
   const res = await dev.post("surfworld", problem("surfworld", { files: [{ name: "a.png", b64: b64(fakeFile("png", 5000)) }] }), { gzip: true });
   assert.equal(res.status, 200);
-  const [row] = await dev.sql(`SELECT stored_bytes, file_count FROM reports_surfworld WHERE id = '${res.json.id}'`);
+  const [row] = await dev.sql(`SELECT stored_bytes, file_count, file_bytes, length(payload) AS p FROM reports_surfworld WHERE id = '${res.json.id}'`);
   assert.equal(row.file_count, 1);
-  assert.ok(row.stored_bytes > 5000);
-  const [after] = await dev.sql("SELECT day, day_bytes, total_bytes FROM report_counters WHERE app = 'surfworld'");
-  assert.equal(after.day, Math.floor(Date.now() / 86_400_000));
-  assert.equal(after.total_bytes, before.total_bytes + row.stored_bytes);
-  assert.equal(after.day_bytes, (before.day === after.day ? before.day_bytes : 0) + row.stored_bytes);
+  assert.ok(row.file_bytes > 5000 && row.stored_bytes > row.file_bytes + row.p);
+  const kindAfter = await limitRow("surfworld", today(), "kind:problem");
+  const totalAfter = await limitRow("surfworld", 0, "total");
+  assert.deepEqual(kindAfter, { n: kindBefore.n + 1, bytes: kindBefore.bytes + row.stored_bytes });
+  assert.deepEqual(totalAfter, { n: totalBefore.n + 1, bytes: totalBefore.bytes + row.stored_bytes });
 });
 
-test("byte budget: 40 MB a day and 200 MB in all per app, then 503", async () => {
-  const today = Math.floor(Date.now() / 86_400_000);
-  const [saved] = await dev.sql("SELECT day, day_bytes, total_bytes FROM report_counters WHERE app = 'doopwatcher'");
-
-  await dev.sql(`UPDATE report_counters SET day = ${today}, day_bytes = ${40 * MB - 100} WHERE app = 'doopwatcher'`);
-  const day = await dev.post("doopwatcher", problem("doopwatcher"));
-  assert.equal(day.status, 503);
-  assert.match(day.json.error, /day's storage is used up/);
-  // Yesterday's bytes do not count today.
-  await dev.sql(`UPDATE report_counters SET day = ${today - 1} WHERE app = 'doopwatcher'`);
-  assert.equal((await dev.post("doopwatcher", problem("doopwatcher"))).status, 200);
-
-  await dev.sql(`UPDATE report_counters SET day = ${today}, day_bytes = 0, total_bytes = ${200 * MB - 100} WHERE app = 'doopwatcher'`);
-  const total = await dev.post("doopwatcher", problem("doopwatcher"));
-  assert.equal(total.status, 503);
-  assert.match(total.json.error, /storage for this app is full/);
-  // The other app has its own budget.
-  assert.equal((await dev.post("surfworld", problem("surfworld"))).status, 200);
-
-  await dev.sql(`UPDATE report_counters SET day = ${saved.day}, day_bytes = ${saved.day_bytes}, total_bytes = ${saved.total_bytes} WHERE app = 'doopwatcher'`);
+test("problem reports have their own day: with it used up, a crash is still stored", async () => {
+  const saved = await limitRow("doopwatcher", today(), "kind:problem");
+  await dev.sql(
+    `INSERT INTO report_limits (app, day, key, n, bytes) VALUES ('doopwatcher', ${today()}, 'kind:problem', 0, ${40 * MB - 100})
+     ON CONFLICT (app, day, key) DO UPDATE SET bytes = excluded.bytes`,
+  );
+  const junk = await dev.post("doopwatcher", problem("doopwatcher"));
+  assert.equal(junk.status, 503);
+  assert.match(junk.json.error, /used up/);
+  assert.equal((await dev.post("doopwatcher", makeReport("doopwatcher"))).status, 200, "a crash is still stored");
+  await dev.sql(`UPDATE report_limits SET n = 500, bytes = 0 WHERE app = 'doopwatcher' AND day = ${today()} AND key = 'kind:problem'`);
+  assert.equal((await dev.post("doopwatcher", problem("doopwatcher"))).status, 503, "500 problems a day");
+  assert.equal((await dev.post("doopwatcher", makeReport("doopwatcher"))).status, 200, "a crash is still stored");
+  await dev.sql(`UPDATE report_limits SET n = ${saved.n}, bytes = ${saved.bytes} WHERE app = 'doopwatcher' AND day = ${today()} AND key = 'kind:problem'`);
 });
 
-test("the scheduled job deletes old reports' files and takes them off the total", async () => {
+test("the scheduled job deletes old reports with their files and recomputes the total", async () => {
   const now = Date.now();
   const id = `r_old${hex(4)}`;
   await dev.sql(
     `INSERT INTO reports_surfworld (id, received_at, happened_at, build, build_number, kind, signature, os, runtime, install,
-       session, note, log_lines, bytes, addr_hash, payload, file_count, stored_bytes)
+       session, note, log_lines, bytes, addr_hash, payload, file_count, stored_bytes, file_bytes)
      VALUES ('${id}', ${now - 91 * 86_400_000}, '2026-01-01T00:00:00Z', 'surfworld-1+dev', 1, 'problem', 'old', NULL, NULL,
-       '${"0".repeat(32)}', '${"0".repeat(16)}', '', 0, 1, NULL, X'00', 1, 1000);
+       '${"0".repeat(32)}', '${"0".repeat(16)}', '', 0, 1, NULL, X'00', 1, 1000, 900);
      INSERT INTO files_surfworld (report_id, n, name, type, bytes, data) VALUES ('${id}', 0, 'a.png', 'png', 999, X'00');
-     UPDATE report_counters SET total_bytes = total_bytes + 1000 WHERE app = 'surfworld';`,
+     UPDATE report_limits SET bytes = 123456789 WHERE app = 'surfworld' AND day = 0 AND key = 'total';`,
   );
-  const [before] = await dev.sql("SELECT total_bytes FROM report_counters WHERE app = 'surfworld'");
   const res = await fetch(`${dev.base}/cdn-cgi/local/explorer/api/local/scheduled?worker=burstui`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -242,6 +237,6 @@ test("the scheduled job deletes old reports' files and takes them off the total"
   assert.equal(res.status, 200, await res.text());
   assert.deepEqual(await dev.sql(`SELECT id FROM reports_surfworld WHERE id = '${id}'`), []);
   assert.deepEqual(await dev.sql(`SELECT report_id FROM files_surfworld WHERE report_id = '${id}'`), []);
-  const [after] = await dev.sql("SELECT total_bytes FROM report_counters WHERE app = 'surfworld'");
-  assert.equal(after.total_bytes, before.total_bytes - 1000);
+  const [sum] = await dev.sql("SELECT COUNT(*) AS n, SUM(stored_bytes) AS bytes FROM reports_surfworld");
+  assert.deepEqual(await limitRow("surfworld", 0, "total"), sum, "the made-up total is replaced by what the table holds");
 });
