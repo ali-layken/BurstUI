@@ -5,6 +5,7 @@
 //   npm run reports -- list [app] [--build N] [--signature S] [--days D] [--limit N]
 //   npm run reports -- count [app] [--build N] [--days D]       how many of which signature on which build
 //   npm run reports -- show ID [--out DIR] [--raw]               context, the log as a table, files written to DIR
+//                                                                (named by the type found in their bytes: .png .jpg ...)
 //
 //   app: surfworld | doopwatcher (default: both)   --days: default 7 (list, count)
 //   --local reads the local dev database (wrangler dev) instead of the real one; --persist-to DIR implies --local.
@@ -120,7 +121,7 @@ function list(appArg) {
   const where = filters({ withSignature: true });
   const limit = int(opts.limit, "--limit");
   const sql = pickApps(appArg)
-    .map((a) => `SELECT '${a}' AS app, id, received_at, build, kind, signature, os, runtime, log_lines, bytes, note FROM ${APPS[a]} WHERE ${where}`)
+    .map((a) => `SELECT '${a}' AS app, id, received_at, build, kind, signature, os, runtime, log_lines, file_count, bytes, note FROM ${APPS[a]} WHERE ${where}`)
     .join(" UNION ALL ");
   const rows = d1(`SELECT * FROM (${sql}) ORDER BY received_at DESC LIMIT ${limit}`);
   console.log(
@@ -134,6 +135,7 @@ function list(appArg) {
       { title: "os", get: (r) => r.os, max: 24 },
       { title: "runtime", get: (r) => r.runtime, max: 20 },
       { title: "lines", get: (r) => r.log_lines },
+      { title: "files", get: (r) => r.file_count },
       { title: "bytes", get: (r) => r.bytes },
       { title: "note", get: (r) => r.note, max: 50 },
     ]),
@@ -178,6 +180,7 @@ function show(id) {
     .join(" UNION ALL ");
   const [row] = d1(sql);
   if (!row) die(`no report ${id}`);
+  if (!(row.app in APPS)) die(`report ${id}: unknown app`);
 
   let report;
   try {
@@ -219,23 +222,72 @@ function show(id) {
     ]),
   );
 
-  const files = Array.isArray(report.files) ? report.files : [];
+  // Files: rows of files_<app> (raw bytes); reports stored before migration 0002 carry theirs inside the payload.
+  const stored = d1(
+    `SELECT n, name, type, bytes, hex(data) AS data_hex FROM files_${row.app} WHERE report_id = '${id}' ORDER BY n`,
+  ).map((f) => ({ name: f.name, type: f.type, data: Buffer.from(f.data_hex, "hex") }));
+  const legacy = (Array.isArray(report.files) ? report.files : [])
+    .filter((f) => typeof f?.b64 === "string")
+    .map((f) => {
+      const data = Buffer.from(f.b64, "base64");
+      return { name: f.name, type: detectType(data), data };
+    });
+  const files = stored.length ? stored : legacy;
   if (files.length) {
     const dir = path.resolve(opts.out ?? path.join(ROOT, ".reports", id));
     mkdirSync(dir, { recursive: true });
     console.log(`\nfiles -> ${dir}`);
+    const used = new Set();
     for (const f of files) {
-      const name = String(f?.name ?? "");
-      // The server allowed only these names; check again before touching the disk.
-      if (!/^[A-Za-z0-9._-]{1,64}$/.test(name) || /^\.+$/.test(name) || path.basename(name) !== name) {
-        console.log(`  skipped a file with an unusable name: ${safe(clip(name, 80))}`);
-        continue;
-      }
-      const bytes = Buffer.from(String(f.b64 ?? ""), "base64");
-      writeFileSync(path.join(dir, name), bytes, { mode: 0o644 });
-      console.log(`  ${name}  ${bytes.length} bytes`);
+      const name = outputName(f.name, f.type, used);
+      writeFileSync(path.join(dir, name), f.data, { mode: 0o644 });
+      console.log(`  ${name.padEnd(30)} ${String(f.type).padEnd(5)} ${f.data.length} bytes`);
     }
   }
+}
+
+// ---- files --------------------------------------------------------------------------------------------------------
+
+// The type the server found in the bytes -> the extension the file is written with. Never from the name.
+const TYPE_EXT = { png: "png", jpeg: "jpg", webp: "webp", gif: "gif", swr: "swr", text: "txt" };
+// A text file may keep one of these extensions from its name; a file of unknown type ("bin", only in an app's crash
+// report) one of these, else it gets ".bin". Nothing that a desktop would open as a program or a link.
+const TEXT_EXTS = new Set(["txt", "log", "json", "md", "cfg", "csv"]);
+const BIN_EXTS = new Set([...TEXT_EXTS, "swr", "bin", "dat"]);
+
+/** Same rules as worker/reports/files.ts, for reports stored before the server recorded the type. */
+function detectType(b) {
+  const at = (magic, i = 0) => [...magic].every((c, k) => b[i + k] === (typeof c === "string" ? c.charCodeAt(0) : c));
+  if (at([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "png";
+  if (at([0xff, 0xd8, 0xff])) return "jpeg";
+  if (at("RIFF") && at("WEBP", 8)) return "webp";
+  if (at("GIF87a") || at("GIF89a")) return "gif";
+  if (at("SWR1")) return "swr";
+  if (!b.includes(0)) {
+    try {
+      new TextDecoder("utf-8", { fatal: true }).decode(b);
+      return "text";
+    } catch {}
+  }
+  return "bin";
+}
+
+/** A file name that is safe to write: the stored name cleaned again, the extension from the detected type. */
+function outputName(stored, type, used) {
+  const clean = String(stored ?? "").replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[.]+/, "").slice(0, 64) || "file";
+  const dot = clean.lastIndexOf(".");
+  const base = (dot > 0 ? clean.slice(0, dot) : clean) || "file";
+  const ext = dot > 0 ? clean.slice(dot + 1).toLowerCase() : "";
+  let out;
+  if (type in TYPE_EXT && type !== "text") out = `${base}.${TYPE_EXT[type]}`;
+  else if (type === "text") out = TEXT_EXTS.has(ext) ? clean : `${base}.txt`;
+  else out = BIN_EXTS.has(ext) ? clean : `${clean}.bin`;
+  for (let i = 2; used.has(out.toLowerCase()); i++) {
+    const d = out.lastIndexOf(".");
+    out = `${out.slice(0, d).replace(/-\d+$/, "")}-${i}${out.slice(d)}`;
+  }
+  used.add(out.toLowerCase());
+  return out;
 }
 
 // ---- main ---------------------------------------------------------------------------------------------------------
