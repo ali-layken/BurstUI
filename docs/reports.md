@@ -16,6 +16,16 @@ and carry up to 3 files (screenshots, text), every file is typed by its bytes, a
 has a byte budget. A `crash` report keeps exactly the numbers below, so the apps need no
 change. See "Limits by kind", "Files" and "Budget".
 
+**Changed 2026-11-20 (hardening, migration 0003):** the source is public, so the limits
+are built for someone who has read it. They are checked inside the insert (a burst cannot
+slip past them), counted per kind, per address, per IPv6 /48 and per network operator; a
+full total evicts the oldest reports instead of refusing new ones; counted bytes are what
+a row really takes; only this site's pages, non-web schemes and non-browsers may send;
+the network and country a report came from are kept with it; and the reader can find and
+delete junk. The wire format and the answers the apps rely on (200 with the first id for a
+repeated crash, 400/413 final, 429/503 retried) are unchanged. See "Limits", "Budget",
+"Who may send", "Cleaning up" and "What is left".
+
 ## What the owner asked for (2026-11-20)
 
 - Crashes only, not a stream of user data: "i dont want all the replays all the time i only
@@ -135,13 +145,30 @@ slows the app: sending happens off the main path with a 5 s timeout. (Changed 20
 
 ## Limits (the worst case must cost nothing)
 
-- Size: refused while reading, before anything is parsed.
-- Per install: 10 reports a day. Per address: 30 a day (count rows in the database; the
-  address is stored only as a salted hash that is thrown away after a day, never raw).
-- Per app: 2,000 stored a day; after that 503 until midnight UTC.
+The goal: junk can cost at most the rest of the UTC day it is sent on, never longer than
+the attack lasts, never money, and the developer can find and delete it.
+
+- Size: refused while reading, before anything is parsed ("Limits by kind").
+- Per UTC day and per app, each kept as a counter row (`report_limits`):
+
+  | key                                   | reports | counted bytes | answer when over |
+  | ------------------------------------- | ------- | ------------- | ---------------- |
+  | one IPv4 address, or one IPv6 /64     | 30      | 2 MB          | 429              |
+  | one IPv6 /48                          | 100     |               | 429              |
+  | one network operator (`cf.asn`)       | 300     | 10 MB         | 429              |
+  | one install id                        | 10      |               | 429              |
+  | `crash` reports                       | 1,200   | 10 MB         | 503              |
+  | `problem` reports                     | 500     | 40 MB         | 503              |
+
+  The kinds have separate days, so picture junk cannot use up the room for crashes, nor
+  crash junk the room for a person's report. (1,200 rather than 1,500 crashes keeps the
+  worst day's rows written under D1's 100,000, see "Budget".)
+- In all, per app: 200 MB counted. When a new report would not fit, the oldest reports'
+  files are deleted to make room, then the oldest reports ("Budget"): a full total
+  shortens how long old reports are kept, it never refuses for longer than one try.
+- The address is only ever stored as a hash that is unlinkable after its day ("Server
+  details").
 - Kept 90 days, then deleted by a scheduled job in the Worker.
-- Bytes stored per app: 40 MB a day and 200 MB in all (both apps together stay well under
-  the free plan's 500 MB database); over either, 503. See "Budget".
 - The same install sending the same signature again within a day: answer 200 with the
   first report's id and store nothing (a crash loop must not fill the table).
   **Changed 2026-11-20: crashes only.** A `problem` report is always stored (within the
@@ -153,16 +180,20 @@ slows the app: sending happens off the main path with a 5 s timeout. (Changed 20
     id TEXT PRIMARY KEY, received_at INTEGER, happened_at TEXT, build TEXT, build_number
     INTEGER, kind TEXT, signature TEXT, os TEXT, runtime TEXT, install TEXT, session TEXT,
     note TEXT, log_lines INTEGER, bytes INTEGER, addr_hash TEXT, payload BLOB (the whole
-    report, gzip), file_count INTEGER, stored_bytes INTEGER
+    report, gzip), file_count INTEGER, stored_bytes INTEGER, asn INTEGER, country TEXT,
+    file_bytes INTEGER
 
-(Changed with migration 0002: the payload no longer holds the files' bytes; each file is a
-row of `files_<app>` (report_id, n, name, type, bytes, data BLOB: the raw bytes).
-`report_counters` holds one row per app for the byte budget.)
+(Migration 0002: the payload no longer holds the files' bytes; each file is a row of
+`files_<app>` (report_id, n, name, type, bytes, data BLOB: the raw bytes). Migration 0003:
+`asn` and `country` are what Cloudflare saw (`request.cf`), never the address; `note`
+keeps the first 200 characters, the payload all of it; `stored_bytes` and `file_bytes`
+are counted bytes ("Budget"); `report_limits` holds the day's counters and each app's
+total; `report_salts` the day's random salt.)
 
-Indexed on (received_at), (signature, received_at), (build_number). So the context is
-readable without opening a blob: how many of which fault on which build and system.
-(Also on (install, received_at) and (addr_hash, received_at), so the daily limits read a
-handful of rows. Schema: `migrations/0001_reports.sql`.)
+Indexed on (received_at), (signature, received_at), (build_number), (install,
+received_at), and (received_at, id) for the reports that still have files. So the context
+is readable without opening a blob: how many of which fault on which build, system and
+network. Schema: `migrations/0001_reports.sql` to `0003_hardening.sql`.
 
 ## What each app does
 
@@ -222,10 +253,13 @@ Fields
 - Ids are `r_` and 16 characters of lower-case Crockford base32 (80 random bits), e.g.
   `r_p0z4eatwgg1z8b19`.
 
-Answers (all JSON `{"ok": false, "error": "…"}` except the 200, all with the CORS headers)
+Answers (all JSON `{"ok": false, "error": "…"}` except the 200; all but the 403 with the CORS
+headers, `access-control-allow-origin` being the request's own origin, or `*` when it has
+none)
 
 - 400 also for a `content-type` other than `application/json` (a `; charset` is fine), a
   `content-encoding` other than `gzip` or none, bad gzip, a body that is not UTF-8 JSON.
+- 403 for a browser on another web origin ("Who may send"); no CORS headers on it.
 - 404 for an unknown `<app>` in the address, 405 for methods other than POST / OPTIONS.
 - 503 `"reports are not set up yet"` while the database or the salt secret is missing.
 - `content-encoding: gzip` on a body that is not gzip is read as plain JSON (if anything on
@@ -233,14 +267,35 @@ Answers (all JSON `{"ok": false, "error": "…"}` except the 200, all with the C
 
 Limits
 
-- "A day" for the per-install, per-address and per-app limits is the UTC day. The
-  same-signature window is the last 24 hours.
-- The address is `CF-Connecting-IP`; IPv6 addresses count per /64. `addr_hash` is the
-  first 128 bits of SHA-256 over (the `REPORT_SALT` secret, the UTC day, the address).
-- The order of checks: size (by kind), validity (files typed), same signature (crash only,
-  answers 200), address, install, app total, byte budget.
-- The scheduled job runs at 00:05 UTC: it deletes rows older than 90 days and sets
-  `addr_hash` to NULL on every row from before that UTC day.
+- "A day" is the UTC day. The same-signature window is the last 24 hours.
+- The address is `CF-Connecting-IP`; IPv6 counts per /64 and per /48. The keys in
+  `report_limits` are the first 128 bits of SHA-256 over (the `REPORT_SALT` secret, the
+  day's random salt from `report_salts`, the /64 or /48); `addr_hash` on a report is the
+  /64's. The daily job deletes past days' salts, so a past day's hashes cannot be linked to
+  an address even by someone holding the secret, and no row needs rewriting.
+- The network is `request.cf.asn` (stored, not hashed: it names an operator, not a person).
+- The order of checks: origin; the address, its /48 and its network (counter rows, before
+  the body is read: a source over its count costs those reads and nothing else); size by
+  kind; validity; then one read of every limit to choose the answer (same signature for a
+  crash answers 200); eviction if the total is full; then the insert, which checks every
+  limit again inside its own transaction. If the insert stores nothing (another request of
+  the same burst got there first), the limits are read again to say which one.
+- Rows read by one request: a source over its count, or a body refused: at most 4
+  (salt, address, /48, network and total are primary-key reads; the salt once per Worker
+  isolate a day). Refused by a later limit: about 30 more (the same-signature and install
+  checks read at most 10 index entries each). Stored: about 30 more again for the insert's
+  own checks; with an eviction, at most about 200 more (two scans of at most 25 reports and
+  three statements over that set).
+- Rows written by one stored report (D1 counts index entries): the row, its key and 4
+  indexes (5 with files), 1 per file (`files_<app>` is `WITHOUT ROWID`), and 1 per counter:
+  kind, address, network, total, and the /48 for IPv6. So 10 for a crash from IPv4 without
+  files, at most 15 for a problem report with 3 files from IPv6. A refused request writes
+  nothing.
+- The scheduled job runs at 00:05 UTC: it deletes reports older than 90 days with their
+  files, deletes past days' counters and salts, and recomputes each app's total from its
+  table (so a hand delete or any drift corrects itself daily). That recompute reads every
+  row of both tables once: at most about 1,700 × 90 = 153,000 an app, about 6% of D1's
+  5,000,000 rows read a day.
 
 The pages
 
@@ -261,6 +316,7 @@ The pages
   they are, at most 48 KB each, after the page has checked they are what the server will
   accept. A list under the field shows each file's name and size as sent, with Remove; a
   picture pasted into the note is added as a sample.
+- The pages are `noindex` and not in the sitemap.
 
 ## Limits by kind
 
@@ -289,42 +345,92 @@ client says (`worker/reports/files.ts`):
 | `gif`  | `GIF87a` or `GIF89a`                    | `.gif`                   |
 | `swr`  | `SWR1` (Surf World's replay)            | `.swr`                   |
 | `text` | valid UTF-8 with no NUL byte            | its own .txt .log .json .md .cfg .csv, else `.txt` |
-| `bin`  | anything else (only in a `crash`)       | its own .swr .bin .dat or a text one, else `+.bin` |
 
-Nothing from a file is ever rendered, executed or parsed beyond those magic bytes and the
-UTF-8 check, on the server or in the reader; the reader writes the bytes to
-`.reports/<id>/` and nothing else. (A crash file of another type is allowed because the
-apps' own files are what version 1 promised them: Surf World sends `SWR1` replays and a
-UTF-8 log, DoopWatcher sends none, so this could be tightened to "refused" too.)
+Anything else is refused (400) in both kinds. (Until the hardening a crash kept a file of
+another type as `bin`; the apps never needed it: Surf World sends `SWR1` replays and a UTF-8
+log, DoopWatcher sends no files.) Nothing from a file is ever rendered, executed or parsed
+beyond those magic bytes and the UTF-8 check, on the server or in the reader; the reader
+writes the bytes to `.reports/<id>/` and nothing else.
 
 ## Budget
 
-`report_counters` keeps, per app, the bytes stored on the current UTC day and in all
-(`stored_bytes` = payload + files). The check is one row read in the same query as the
-other limits; the report, its files and the counter update are one D1 batch (one
-transaction). Over 40 MB today or 200 MB in all for that app: 503 (`"the day's storage is
-used up…"` / `"storage for this app is full"`), which the apps treat as "try again later".
-The scheduled job takes the reports it deletes off the total.
+Counted bytes are what a report really takes in the database: the payload, every column as
+stored (the text columns that are index keys twice), a fixed 256 bytes of row and index
+overhead, and per file its data, name, type and a 64-byte row (`store.ts countedBytes`).
+The `note` column keeps 200 characters; the payload keeps all 2,000.
 
-The worst case a day, per app, if every limit is hit:
+Each app's total lives in `report_limits` (day 0, key `total`). When a new report would
+take it over 200 MB, the Worker first deletes the files of the oldest reports that still
+have files (their rows and payloads stay, `file_count` and `file_bytes` become 0), then, if
+that is not enough, the oldest reports themselves; each step looks at no more than the 25
+oldest. Only if that still does not make room is the report refused (503, and the next try
+frees more). The daily caps stay refusals: they end at midnight UTC.
 
-- Bytes: 40 MB a day; at most 200 MB per app in all, 400 MB for both (D1 free: 500 MB per
-  database). Someone filling one app's 200 MB (5 days at the daily maximum, from at least
-  ~3 addresses a day) stops that app's reports until the scheduled job frees space, up to
-  90 days later: the cost is lost reports, never money.
-- Rows written (D1 counts each index entry as a row): a report is 7 (the row, its primary
-  key and 5 indexes), each file 1 (`files_<app>` is `WITHOUT ROWID`), the counter 1: at
-  most 2,000 × (7 + 3 + 1) = 22,000 a day per app. The daily job deletes as many rows
-  again for the reports that turn 90 days old (about 20,000) and clears a day's address
-  hashes (about 4,000). Worst case for both apps together: about 92,000 of the free plan's
-  100,000 a day. It needs 2,000 reports with 3 files each from at least 67 addresses and
-  200 installs in one day; past the limit D1 refuses writes until midnight UTC (503),
-  nothing is billed.
+The daily job recomputes each total from the table rather than subtracting, so the
+counter cannot drift.
+
+The worst day, if every limit is hit:
+
+- Bytes: per app 10 MB of crashes and 40 MB of problem reports a day, 200 MB in all; both
+  apps 400 MB counted against D1's 500 MB. A sustained attack at the maximum turns over the
+  total in about 4 days: under it, reports are kept about 4 days instead of 90, and the
+  oldest screenshots go first.
+- Rows written: per app 1,200 crashes × at most 14 + 500 problem reports × at most 15 =
+  24,300; both apps 48,600. On a day when the daily job also deletes a maximal day from 90
+  days earlier (about 31,600 rows written for both apps) and that day's counters (about
+  10,200): about 90,400 of D1's 100,000. Past it D1 refuses writes until midnight UTC
+  (503 everywhere for the rest of that day); nothing is billed.
+  On days when the total is full, the evictions delete what the daily job would otherwise
+  delete later, so they replace its writes rather than add to them.
+- Rows read: about 30 for each request that gets as far as the limits, so the free plan's
+  100,000 Worker requests a day cost at most about 3,000,000, plus at most about 200 more
+  for each of the 3,400 reports a day that may need an eviction (680,000) and the daily
+  recompute (about 306,000): under D1's 5,000,000.
 - CPU: the largest accepted report (3 incompressible pictures, 518 KB as sent, 690 KB
   unpacked) measured 4.1 ms on this machine (unpack 2.2, parse 0.5, base64 1.3, payload
   gzip 0.03); gzipping the files with the payload, as version 1 did, cost 13.8 ms on its
   own, which is why files are stored apart and raw. The free plan allows 10 ms.
-- The pages are `noindex` and not in the sitemap.
+
+## Who may send
+
+A request with an `Origin` header that is an http or https origin other than this site's
+own, or `Origin: null` (a sandboxed frame, a `file:` page), gets 403, and so does its
+preflight. A request with no `Origin` (the game, curl) and one from another scheme (an
+Overwolf app's page is `overwolf-extension://<its id>`; we do not know the id, which is why
+the rule is by scheme) is allowed, and the answer echoes its origin instead of `*`. This
+removes one thing only: a web page making each of its visitors' browsers send reports.
+Anything that is not a browser can leave `Origin` out, and is held by the limits above.
+
+## Cleaning up
+
+Every field the reader groups on by default (build, signature, install, os) is the
+sender's choice; the network (`asn`) and `country` are not. To find junk:
+`npm run reports -- count --by network`, `--by install`, `--by country`, then look with
+`list --network N` (or `--install`, `--country`, `--since/--until`), and delete it with
+the same filters: `npm run reports -- delete <app> --network N --since 2026-11-20` says how
+many reports, files and bytes match; add `--yes` to delete them. The deletion is files,
+then reports, then each app's total recomputed from what is left, sent as one
+`wrangler d1 execute` command. It does not give back the day's counts (deleting today's
+junk does not let more junk in today).
+
+## What is left
+
+- Junk that copies real builds and signatures, sent from many residential addresses on
+  many networks, looks like real reports. Telling it apart needs something the apps hold
+  and an attacker cannot read: a secret, which a public client cannot keep. The limits
+  bound how much of it a day can hold; `delete` removes it once found.
+- The free plan's 100,000 Worker requests a day are per account: one person can use them
+  up for every Worker path (including `/api/joke` and the large file) until midnight UTC.
+  That was true before this service existed and needs a paid plan or Cloudflare's own
+  rate limiting in front to change.
+- Not answered from Cloudflare's documentation: whether a Worker on another account's
+  `*.workers.dev` counts as the same zone, which would let it set `CF-Connecting-IP` on
+  its requests to this one. The per-network cap bounds it either way (such requests come
+  from Cloudflare's own network), a custom domain removes the question, and the zone
+  setting "Pseudo IPv4: overwrite headers" must stay off (it would replace real IPv6
+  addresses with made-up IPv4 ones).
+- The network cap is shared by every genuine user of that network: a busy ISP's users
+  could meet it on a day someone attacks from the same ISP.
 
 ## Setting it up
 
@@ -372,22 +478,35 @@ not have, so until it is applied every report would get a 503 ("storage failed")
 $ npx wrangler d1 migrations apply burst-reports --remote        # applies 0002_files_and_budget.sql
 ```
 
+The same holds for **migration 0003 (hardening)**: apply it before the hardening code is
+deployed (the same command applies `0003_hardening.sql`). It adds the `asn`, `country` and
+`file_bytes` columns, the `report_limits` and `report_salts` tables, a partial index, and
+drops `report_counters` and the `addr_hash` index; on an empty database it writes a handful
+of rows.
+
 ## Reading reports
 
 `scripts/reports.mjs` (`npm run reports -- …`) reads through `wrangler d1 execute` under
 your own login:
 
 ```shellsession
-$ npm run reports -- list [surfworld|doopwatcher] [--build N] [--signature S] [--days D] [--limit N]
-$ npm run reports -- count [app] [--build N] [--days D]     # how many of which signature on which build
+$ npm run reports -- list [surfworld|doopwatcher] [filters] [--limit N]
+$ npm run reports -- count [app] [filters] [--by signature|network|country|install|build] [--limit N]
 $ npm run reports -- show r_p0z4eatwgg1z8b19                 # context, platform, the log as a table, files to .reports/<id>/
                                                              # (each named by the type found in its bytes: .png .jpg .webp .gif .swr .txt)
 $ npm run reports -- show r_p0z4eatwgg1z8b19 --raw           # the whole report as JSON
+$ npm run reports -- delete [app] [filters] [--yes]          # says what matches; deletes only with --yes
 ```
 
-`--days` defaults to 7. Add `--local` to read the local dev database. Report text is
-printed with control and bidi characters escaped, so a report cannot drive the terminal;
-file names are checked again before anything is written.
+Filters: `--id`, `--install HEX`, `--network ASN`, `--country CC`, `--addr HASH`,
+`--signature S`, `--build N`, `--days D` or `--since TIME [--until TIME]` (an ISO time or
+ms since 1970). `list` and `count` default to the last 7 days; `delete` has no default and
+needs at least one filter. `count` sorts by how many and returns at most `--limit` groups
+(default 50, at most 1,000; `list` at most 10,000 rows), so no answer can outgrow the
+reader's buffer. Add `--local` to read the local dev database. Report text is printed with
+control and bidi characters escaped, so a report cannot drive the terminal; file names are
+checked again before anything is written; the one free-text filter (`--signature`) goes
+into the SQL as a hex literal.
 
 ## Developing locally
 
