@@ -246,8 +246,15 @@ test("too large as sent is refused while reading", async () => {
     body: stream,
     duplex: "half",
   }).catch((e) => ({ status: `fetch failed: ${e.cause?.code ?? e.message}` }));
-  assert.equal(res.status, 413);
+  // The Worker answers 413 and stops reading while the client is still sending. Whether
+  // the client then reads that answer or sees its connection closed first is a race in
+  // the local dev proxy (seen both ways on one machine, by load). Either is a refusal.
+  const refused = res.status === 413 || /ECONNRESET|EPIPE|UND_ERR_SOCKET/.test(String(res.status));
+  assert.ok(refused, `a streamed oversize body was not refused: ${res.status}`);
   await settle();
+  // And nothing of it was stored.
+  const rows = await sql("SELECT COUNT(*) AS n FROM reports_surfworld WHERE bytes > 65536");
+  assert.equal(rows[0].n, 0);
 });
 
 test("too large unpacked (gzip bomb) is refused", async () => {
