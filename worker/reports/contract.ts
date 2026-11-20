@@ -23,16 +23,12 @@ export const KIND_LIMITS = {
     files: 2,
     /** Each file, decoded (before base64). */
     fileBytes: 48 * 1024,
-    /** Files whose bytes are none of FILE_TYPES are kept as "bin" (the apps' own files: replays, logs). */
-    unknownFiles: true,
   },
   problem: {
     sentBytes: 512 * 1024,
     unpackedBytes: 1024 * 1024,
     files: 3,
     fileBytes: 200 * 1024,
-    /** Every file must be one of FILE_TYPES. */
-    unknownFiles: false,
   },
 } as const;
 export const READ_CAPS = { sentBytes: 512 * 1024, unpackedBytes: 1024 * 1024 } as const;
@@ -51,13 +47,39 @@ export const FILE_TYPES = {
   /** Valid UTF-8 without NUL. */
   text: "txt",
 } as const;
-export type FileType = keyof typeof FILE_TYPES | "bin";
+/** Every file must be one of these; anything else is refused (docs/reports.md, "Files"). */
+export type FileType = keyof typeof FILE_TYPES;
 
-/** Bytes stored per app (payload + files), so the free plan's 500 MB database (both apps together) cannot fill up. */
-export const BUDGET = {
-  perAppPerDayBytes: 40 * 1024 * 1024,
-  perAppTotalBytes: 200 * 1024 * 1024,
+const MB = 1024 * 1024;
+/**
+ * The daily limits, per app and per UTC day, kept as counter rows (store.ts, report_limits) so that a check is a
+ * handful of primary-key reads and the insert itself re-checks them in the same transaction. Counts are reports
+ * stored; bytes are counted bytes (store.ts countedBytes: what a row really takes).
+ */
+export const DAILY = {
+  /** Each kind has its own count and bytes, so neither can spend the other's. */
+  kind: {
+    crash: { reports: 1500, bytes: 10 * MB },
+    problem: { reports: 500, bytes: 40 * MB },
+  },
+  /** One IPv4 address, or one IPv6 /64. */
+  address: { reports: 30, bytes: 2 * MB },
+  /** One IPv6 /48 (a home's /56, a tunnel provider's /48...). */
+  net48: { reports: 100 },
+  /** One network operator (request.cf.asn): one ISP, VPN or cloud provider. */
+  network: { reports: 300, bytes: 10 * MB },
+  /** One install id (the client's own choice, so only a courtesy limit). */
+  install: { reports: 10 },
 } as const;
+
+/**
+ * Bytes stored per app in all. When a new report would not fit, the files of the oldest reports are deleted to make
+ * room, then (if that is not enough) the oldest reports themselves: a full budget shortens how long old reports are
+ * kept, it never refuses new ones for longer than a day (docs/reports.md, "Budget").
+ */
+export const TOTAL_BYTES = 200 * MB;
+/** How many of the oldest reports one eviction looks at (bounds its rows read). */
+export const EVICT_SCAN = 100;
 
 export const LIMITS = {
   buildChars: 48,
@@ -73,10 +95,10 @@ export const LIMITS = {
   logMsgChars: 300,
   logSrcChars: 32,
   fileNameChars: 64,
-  /** Per UTC day. */
-  perInstallPerDay: 10,
-  perAddressPerDay: 30,
-  perAppPerDay: 2000,
+  /** Builds are numbered 1, 2, 3...: a number this large is junk (and would sort first). */
+  buildNumberBelow: 1_000_000,
+  /** The note column keeps this much; the payload keeps all of it. */
+  noteColumnChars: 200,
   /** The same install sending the same signature again within this window gets the first report's id back. */
   sameSignatureMs: 24 * 60 * 60 * 1000,
   keepDays: 90,

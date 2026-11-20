@@ -135,7 +135,7 @@ export function validateReport(input: unknown, app: AppSlug): Report {
   const build = text(r.build, "build", LIMITS.buildChars, { min: 1, noControl: true });
   if (!isBuildFor(app, build)) fail(`build: must look like ${app}-<number>+<commit>`);
   const buildNumber = Number(build.slice(app.length + 1, build.indexOf("+")));
-  if (!Number.isSafeInteger(buildNumber)) fail("build: the number is too large");
+  if (!(buildNumber < LIMITS.buildNumberBelow)) fail(`build: the number must be below ${LIMITS.buildNumberBelow}`);
 
   if (!KINDS.includes(r.kind as never)) fail(`kind: must be one of ${KINDS.join(", ")}`);
   const signature = text(r.signature, "signature", LIMITS.signatureChars, { min: 1, noControl: true });
@@ -206,8 +206,8 @@ export function validateReport(input: unknown, app: AppSlug): Report {
       }
       const data = decodeBase64(o.b64 as string);
       const type = detectType(data);
-      if (type === "bin" && !limits.unknownFiles) fail(`${f}: must be a PNG, JPEG, WebP or GIF image, a Surf World replay or UTF-8 text`);
-      files.push({ name, type, data });
+      if (type === null) fail(`${f}: must be a PNG, JPEG, WebP or GIF image, a Surf World replay or UTF-8 text`);
+      files.push({ name, type: type as FileType, data });
     });
   }
 
