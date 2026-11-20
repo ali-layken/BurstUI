@@ -3,6 +3,8 @@
 -- files_<app>:     one row per file of a report, the raw bytes as sent (decoded from base64). `type` is what the
 --                  server found in the bytes (png, jpeg, webp, gif, swr, text, or bin for an app's crash file of
 --                  another kind), never what the client said. Deleted with their report by the scheduled job.
+--                  WITHOUT ROWID: the primary key is the table, so a file is one row written, not two (D1 counts
+--                  index entries as rows written).
 -- file_count:      how many files the report has (rows from before this migration say 0; their files, if any, are
 --                  still inside their payload, which the reader understands).
 -- stored_bytes:    payload + files, what the report counts against the budget.
@@ -26,7 +28,7 @@ CREATE TABLE files_surfworld (
   bytes INTEGER NOT NULL,
   data BLOB NOT NULL,
   PRIMARY KEY (report_id, n)
-);
+) WITHOUT ROWID;
 
 CREATE TABLE files_doopwatcher (
   report_id TEXT NOT NULL,
@@ -36,7 +38,7 @@ CREATE TABLE files_doopwatcher (
   bytes INTEGER NOT NULL,
   data BLOB NOT NULL,
   PRIMARY KEY (report_id, n)
-);
+) WITHOUT ROWID;
 
 CREATE TABLE report_counters (
   app TEXT PRIMARY KEY,

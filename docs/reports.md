@@ -11,6 +11,11 @@ changed (the same-signature rule applies to `crash` reports only, see "Limits"),
 room. "Setting it up" is what the owner runs to make it live; "Reading reports" is the
 developer's script.
 
+**Changed 2026-11-20 (attachments, migration 0002):** a `problem` report may now be larger
+and carry up to 3 files (screenshots, text), every file is typed by its bytes, and each app
+has a byte budget. A `crash` report keeps exactly the numbers below, so the apps need no
+change. See "Limits by kind", "Files" and "Budget".
+
 ## What the owner asked for (2026-11-20)
 
 - Crashes only, not a stream of user data: "i dont want all the replays all the time i only
@@ -65,6 +70,8 @@ Pattern the server accepts: `^[a-z]+-[0-9]+\+[0-9a-z.]+$`, at most 48 characters
     content-encoding: gzip            (optional; apps should send gzip, the web form may not)
 
 Body: one JSON object, the report. At most 64 KB as sent, at most 512 KB after unpacking.
+(That is a `crash` report. A `problem` report may be 512 KB as sent, 1 MB unpacked, with 3
+files of 200 KB: "Limits by kind".)
 
     {
       "v": 1,
@@ -133,6 +140,8 @@ slows the app: sending happens off the main path with a 5 s timeout. (Changed 20
   address is stored only as a salted hash that is thrown away after a day, never raw).
 - Per app: 2,000 stored a day; after that 503 until midnight UTC.
 - Kept 90 days, then deleted by a scheduled job in the Worker.
+- Bytes stored per app: 40 MB a day and 200 MB in all (both apps together stay well under
+  the free plan's 500 MB database); over either, 503. See "Budget".
 - The same install sending the same signature again within a day: answer 200 with the
   first report's id and store nothing (a crash loop must not fill the table).
   **Changed 2026-11-20: crashes only.** A `problem` report is always stored (within the
@@ -144,7 +153,11 @@ slows the app: sending happens off the main path with a 5 s timeout. (Changed 20
     id TEXT PRIMARY KEY, received_at INTEGER, happened_at TEXT, build TEXT, build_number
     INTEGER, kind TEXT, signature TEXT, os TEXT, runtime TEXT, install TEXT, session TEXT,
     note TEXT, log_lines INTEGER, bytes INTEGER, addr_hash TEXT, payload BLOB (the whole
-    report, gzip)
+    report, gzip), file_count INTEGER, stored_bytes INTEGER
+
+(Changed with migration 0002: the payload no longer holds the files' bytes; each file is a
+row of `files_<app>` (report_id, n, name, type, bytes, data BLOB: the raw bytes).
+`report_counters` holds one row per app for the byte budget.)
 
 Indexed on (received_at), (signature, received_at), (build_number). So the context is
 readable without opening a blob: how many of which fault on which build and system.
@@ -167,7 +180,7 @@ handful of rows. Schema: `migrations/0001_reports.sql`.)
 ## The pages
 
 `/report/surfworld` and `/report/doopwatcher` on BurstUI: a short form in the site's own
-look (what happened, the build if known, an optional file the app exported), sending a
+look (what happened, and up to 3 "crash samples": screenshots or text files), sending a
 `problem` report to the same address. It says in one plain sentence what is sent and that
 it is kept 90 days.
 
@@ -198,12 +211,14 @@ Fields
   names; free text (`note`, `msg`, `context` / `data` strings) may contain them (the
   reader escapes them).
 - `files`: each exactly `name` and `b64`; names `[A-Za-z0-9._-]`, at most 64, not only
-  dots, no two alike; `b64` is standard base64 with padding, at most 49,152 bytes decoded.
-  Note: two files that do not compress cannot both fit in 64 KB as sent (each is ~64 KB
-  of base64); in practice one incompressible file of up to ~45 KB fits.
+  dots, no two alike; `b64` is standard base64 with padding. How many and how large
+  depends on the kind ("Limits by kind"). Note: in a `crash`, two files that do not
+  compress cannot both fit in 64 KB as sent (each is ~64 KB of base64); in practice one
+  incompressible file of up to ~45 KB fits.
 - The stored `payload` is the validated report re-written with only the known keys
-  (gzip), not the bytes as sent. `bytes` is the size as sent; `received_at` is
-  milliseconds since 1970 (UTC).
+  (gzip), not the bytes as sent, and with each file reduced to `{name, type, bytes}`; the
+  bytes are in `files_<app>`. `bytes` is the size as sent; `received_at` is milliseconds
+  since 1970 (UTC); `stored_bytes` is payload + files, what counts against the budget.
 - Ids are `r_` and 16 characters of lower-case Crockford base32 (80 random bits), e.g.
   `r_p0z4eatwgg1z8b19`.
 
@@ -222,22 +237,93 @@ Limits
   same-signature window is the last 24 hours.
 - The address is `CF-Connecting-IP`; IPv6 addresses count per /64. `addr_hash` is the
   first 128 bits of SHA-256 over (the `REPORT_SALT` secret, the UTC day, the address).
-- The order of checks: size, validity, same signature (crash only, answers 200), address,
-  install, app total.
+- The order of checks: size (by kind), validity (files typed), same signature (crash only,
+  answers 200), address, install, app total, byte budget.
 - The scheduled job runs at 00:05 UTC: it deletes rows older than 90 days and sets
   `addr_hash` to NULL on every row from before that UTC day.
 
 The pages
 
-- `/report/<app>?build=<build>` fills the build field when the value is a valid build of
-  that app. Encode `+` as `%2B`; a raw `+` (which arrives as a space) is accepted too.
-  Nothing else is read from the address.
+- `/report/<app>?build=<build>` gives the report its build when the value is a valid build
+  of that app (the person is never asked for it). Encode `+` as `%2B`; a raw `+` (which
+  arrives as a space) is accepted too. Nothing else is read from the address.
 - The page sends `kind: "problem"`, `signature: "report page"`, the build or
-  `<app>-0+unknown` when the person leaves it empty (builds start at 1),
+  `<app>-0+unknown` without one (builds start at 1),
   `platform: {os, runtime: "browser <name> <major>", source: "report page", locale}`,
-  `context: {via: "report page", file: true|false}`, an empty `log`, and gzip when the
+  `context: {via: "report page", files: <how many>}`, an empty `log`, and gzip when the
   browser has `CompressionStream`. The install id is kept in `localStorage`
   (`burstui.report.install`).
+- Crash samples, at most 3: pictures (PNG, JPEG, WebP, a GIF's first frame) are re-encoded
+  in the browser through a canvas: long side at most 1600 px (never enlarged), WebP (JPEG
+  where the browser cannot encode WebP), quality stepped down from 0.86 until the file is
+  at most 150 KB. The re-encode keeps only pixels, so photo metadata (place, time, camera)
+  is gone. Text files (.txt .log .json .md .cfg .csv) and a Surf World .swr replay go as
+  they are, at most 48 KB each, after the page has checked they are what the server will
+  accept. A list under the field shows each file's name and size as sent, with Remove; a
+  picture pasted into the note is added as a sample.
+
+## Limits by kind
+
+The body is read and unpacked against the larger numbers (512 KB as sent, 1 MB unpacked:
+refused while reading, as before), then a report that is not `kind: "problem"` is held to
+the `crash` numbers before anything else is checked.
+
+|                     | `crash` (the apps, version 1) | `problem` (a person's report) |
+| ------------------- | ----------------------------- | ----------------------------- |
+| as sent             | 64 KB                         | 512 KB                        |
+| unpacked            | 512 KB                        | 1 MB                          |
+| files               | 2                             | 3                             |
+| each file (decoded) | 48 KB                         | 200 KB                        |
+| file of another type| kept, typed `bin`             | refused (400)                 |
+
+## Files
+
+The server decides what a file is from its bytes, never from its name or anything the
+client says (`worker/reports/files.ts`):
+
+| type   | bytes                                   | written by the reader as |
+| ------ | --------------------------------------- | ------------------------ |
+| `png`  | `89 50 4E 47 0D 0A 1A 0A`               | `.png`                   |
+| `jpeg` | `FF D8 FF`                              | `.jpg`                   |
+| `webp` | `RIFF` …4 bytes… `WEBP`                 | `.webp`                  |
+| `gif`  | `GIF87a` or `GIF89a`                    | `.gif`                   |
+| `swr`  | `SWR1` (Surf World's replay)            | `.swr`                   |
+| `text` | valid UTF-8 with no NUL byte            | its own .txt .log .json .md .cfg .csv, else `.txt` |
+| `bin`  | anything else (only in a `crash`)       | its own .swr .bin .dat or a text one, else `+.bin` |
+
+Nothing from a file is ever rendered, executed or parsed beyond those magic bytes and the
+UTF-8 check, on the server or in the reader; the reader writes the bytes to
+`.reports/<id>/` and nothing else. (A crash file of another type is allowed because the
+apps' own files are what version 1 promised them: Surf World sends `SWR1` replays and a
+UTF-8 log, DoopWatcher sends none, so this could be tightened to "refused" too.)
+
+## Budget
+
+`report_counters` keeps, per app, the bytes stored on the current UTC day and in all
+(`stored_bytes` = payload + files). The check is one row read in the same query as the
+other limits; the report, its files and the counter update are one D1 batch (one
+transaction). Over 40 MB today or 200 MB in all for that app: 503 (`"the day's storage is
+used up…"` / `"storage for this app is full"`), which the apps treat as "try again later".
+The scheduled job takes the reports it deletes off the total.
+
+The worst case a day, per app, if every limit is hit:
+
+- Bytes: 40 MB a day; at most 200 MB per app in all, 400 MB for both (D1 free: 500 MB per
+  database). Someone filling one app's 200 MB (5 days at the daily maximum, from at least
+  ~3 addresses a day) stops that app's reports until the scheduled job frees space, up to
+  90 days later: the cost is lost reports, never money.
+- Rows written (D1 counts each index entry as a row): a report is 7 (the row, its primary
+  key and 5 indexes), each file 1 (`files_<app>` is `WITHOUT ROWID`), the counter 1: at
+  most 2,000 × (7 + 3 + 1) = 22,000 a day per app. The daily job deletes as many rows
+  again for the reports that turn 90 days old (about 20,000) and clears a day's address
+  hashes (about 4,000). Worst case for both apps together: about 92,000 of the free plan's
+  100,000 a day. It needs 2,000 reports with 3 files each from at least 67 addresses and
+  200 installs in one day; past the limit D1 refuses writes until midnight UTC (503),
+  nothing is billed.
+- CPU: the largest accepted report (3 incompressible pictures, 518 KB as sent, 690 KB
+  unpacked) measured 4.1 ms on this machine (unpack 2.2, parse 0.5, base64 1.3, payload
+  gzip 0.03); gzipping the files with the payload, as version 1 did, cost 13.8 ms on its
+  own, which is why files are stored apart and raw. The free plan allows 10 ms.
 - The pages are `noindex` and not in the sitemap.
 
 ## Setting it up
@@ -277,8 +363,14 @@ binding was not verified; if that deploy fails with an authorization error, add
 Account > D1 > Edit to the token and re-run the job. The cron trigger (00:05 UTC) is in
 `wrangler.jsonc` and is deployed with the Worker (the free plan allows 5).
 
-Later migrations: add `migrations/0002_….sql`, apply with the same `--remote` command
-before merging code that needs it.
+Later migrations: add `migrations/000N_….sql`, apply with the same `--remote` command
+before merging code that needs it. **Migration 0002 (attachments) must be applied before
+the attachments code is deployed**: the new code writes columns and tables that 0001 does
+not have, so until it is applied every report would get a 503 ("storage failed"):
+
+```shellsession
+$ npx wrangler d1 migrations apply burst-reports --remote        # applies 0002_files_and_budget.sql
+```
 
 ## Reading reports
 
@@ -289,6 +381,7 @@ your own login:
 $ npm run reports -- list [surfworld|doopwatcher] [--build N] [--signature S] [--days D] [--limit N]
 $ npm run reports -- count [app] [--build N] [--days D]     # how many of which signature on which build
 $ npm run reports -- show r_p0z4eatwgg1z8b19                 # context, platform, the log as a table, files to .reports/<id>/
+                                                             # (each named by the type found in its bytes: .png .jpg .webp .gif .swr .txt)
 $ npm run reports -- show r_p0z4eatwgg1z8b19 --raw           # the whole report as JSON
 ```
 
