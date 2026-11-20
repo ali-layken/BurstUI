@@ -2,6 +2,7 @@
 // The "report a problem" form for one app (docs/reports.md, "The pages"): /report/surfworld and /report/doopwatcher are
 // thin pages around this. It sends a `problem` report to /api/report/<app> on this same origin, so it needs no CORS.
 import { APPS, type AppSlug, LIMITS } from "../../worker/reports/contract";
+import SendButton3D from "../islands/SendButton3D";
 
 interface Props {
   app: AppSlug;
@@ -45,7 +46,7 @@ const title = APPS[app].title;
     </p>
 
     <div class="flex flex-wrap items-center gap-4">
-      <button id="rf-send" type="submit" class="rf-send">Send report</button>
+      <SendButton3D client:load id="rf-send" />
       <p id="rf-status" class="rf-status text-plate hidden" role="status" aria-live="polite"></p>
     </div>
   </form>
@@ -68,7 +69,7 @@ const title = APPS[app].title;
   }
   .rf-input:focus-visible,
   .rf-file:focus-visible,
-  .rf-send:focus-visible {
+  .send-button-3d:focus-visible {
     outline: 3px solid theme("colors.subtitles2");
     outline-offset: 2px;
   }
@@ -85,23 +86,44 @@ const title = APPS[app].title;
     font-family: Fixel;
     cursor: pointer;
   }
-  .rf-send {
-    padding: 0.6rem 1.6rem;
-    border-radius: 9999px;
-    background-color: theme("colors.accRed3");
-    border: 2px solid theme("colors.accRed");
+  /* The send button: SendButton3D's envelope and letter slot, framed like the form's own fields. */
+  .send-button-3d {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 1.3rem 0.2rem 0.4rem;
+    border-radius: 16px;
+    border: 2px solid theme("colors.accLitePurple");
+    background-color: theme("colors.termBack1");
     color: theme("textColor.white");
+    font-family: Fixel;
     font-size: 1.15rem;
     font-weight: 600;
     box-shadow: theme("boxShadow.lg");
-    transition: background-color 0.15s;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      transform 0.08s;
   }
-  .rf-send:hover:not(:disabled) {
-    background-color: theme("colors.accRed");
+  .send-button-3d:hover:not(:disabled),
+  .send-button-3d:focus-visible {
+    border-color: theme("colors.accOrange");
   }
-  .rf-send:disabled {
-    opacity: 0.6;
+  .send-button-3d:active:not(:disabled) {
+    transform: translateY(2px);
+  }
+  .send-button-3d:disabled {
     cursor: wait;
+  }
+  .send-button-3d[data-state="sent"] {
+    border-color: theme("colors.accLiteGreen");
+  }
+  .send-button-3d[data-state="failed"] {
+    border-color: theme("colors.accRed");
+  }
+  .send-button-3d-art {
+    display: block;
+    line-height: 0;
   }
   .rf-status {
     font-size: 1.05rem;
@@ -277,6 +299,8 @@ const title = APPS[app].title;
       }
 
       send.disabled = true;
+      send.dataset.state = "sending"; // the envelope drops into the slot
+      let stored = false;
       show("sending", "Sending…");
       try {
         const response = await fetch(`/api/report/${app}`, {
@@ -288,6 +312,7 @@ const title = APPS[app].title;
         });
         const answer = ((await response.json().catch(() => null)) ?? {}) as { ok?: unknown; id?: unknown; error?: unknown };
         if (response.ok && answer.ok && typeof answer.id === "string") {
+          stored = true;
           show("sent", "Sent, thank you. If you talk to me about it, this is its number:", answer.id);
           form.reset();
         } else if (response.status === 400) {
@@ -303,6 +328,10 @@ const title = APPS[app].title;
         show("failed", "The report could not be sent (no connection to the server). Please try again later.");
       } finally {
         send.disabled = false;
+        send.dataset.state = stored ? "sent" : "failed"; // green rim and a fresh envelope, or it pops back out with a red rim
+        setTimeout(() => {
+          if (!send.disabled) send.dataset.state = "idle";
+        }, 3200);
       }
     });
   }
