@@ -48,9 +48,11 @@ jobs:
       #
       # Skipped (not failed) while the CLOUDFLARE_API_TOKEN secret is unset,
       # so the repo can still be deployed by hand with `npm run deploy`.
+      # scripts/deploy.mjs is `wrangler deploy`, minus the reports D1 binding
+      # while its id in wrangler.jsonc is still the placeholder (docs/reports.md).
       - name: Deploy
         if: github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != ''
-        run: npx wrangler deploy
+        run: node scripts/deploy.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

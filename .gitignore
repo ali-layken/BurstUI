@@ -18,3 +18,9 @@ public/movement-map/
 
 # screenshots from scripts/shot.mjs
 .shots/
+
+# scripts/deploy.mjs writes this while the D1 id is still the placeholder
+wrangler.no-reports.jsonc
+# local secrets for wrangler dev (REPORT_SALT=...)
+.dev.vars
+.dev.vars.*

@@ -11,7 +11,7 @@
     "build": "astro build",
     "preview": "npm run build && wrangler dev",
     "check": "astro check",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && node scripts/deploy.mjs",
     "update-emojis": "node scripts/generate_emojis.mjs",
     "timestamps": "node scripts/generate_timestamps.mjs",
     "shot": "node scripts/shot.mjs"
