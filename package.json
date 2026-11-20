@@ -14,7 +14,8 @@
     "deploy": "npm run build && node scripts/deploy.mjs",
     "update-emojis": "node scripts/generate_emojis.mjs",
     "timestamps": "node scripts/generate_timestamps.mjs",
-    "shot": "node scripts/shot.mjs"
+    "shot": "node scripts/shot.mjs",
+    "reports": "node scripts/reports.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.0",
