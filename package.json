@@ -16,7 +16,7 @@
     "timestamps": "node scripts/generate_timestamps.mjs",
     "shot": "node scripts/shot.mjs",
     "reports": "node scripts/reports.mjs",
-    "test": "node --test --test-concurrency=1 tests/reports.test.mjs tests/attachments.test.mjs"
+    "test": "node --test --test-concurrency=1 tests/reports.test.mjs tests/attachments.test.mjs tests/hardening.test.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.0",
