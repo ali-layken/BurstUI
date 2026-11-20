@@ -43,6 +43,12 @@ jobs:
         env:
           SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
 
+      # The reports endpoint, /api/joke and scripts/reports.mjs against `wrangler dev --local` with a throwaway local
+      # D1 (tests/reports.test.mjs): no Cloudflare account or secrets needed. Pull requests only.
+      - name: Test
+        if: github.event_name == 'pull_request'
+        run: npm test
+
       # Pull requests only build (a broken build fails the check); the
       # deploy itself happens on push to main.
       #
