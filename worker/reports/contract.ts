@@ -9,11 +9,57 @@ export const APPS = {
 export type AppSlug = keyof typeof APPS;
 export const isApp = (s: string): s is AppSlug => Object.prototype.hasOwnProperty.call(APPS, s);
 
+/**
+ * What a report may weigh, by its kind. A `crash` is what the apps send by themselves and keeps the version-1 numbers;
+ * a `problem` is a person's report (the /report/<app> pages) and may carry screenshots. The body is read and unpacked
+ * against READ_CAPS (the larger of the two), then held to its own kind's numbers before anything else is checked.
+ */
+export const KIND_LIMITS = {
+  crash: {
+    /** Body as sent (gzip size if gzip). */
+    sentBytes: 64 * 1024,
+    /** Body after unpacking. */
+    unpackedBytes: 512 * 1024,
+    files: 2,
+    /** Each file, decoded (before base64). */
+    fileBytes: 48 * 1024,
+    /** Files whose bytes are none of FILE_TYPES are kept as "bin" (the apps' own files: replays, logs). */
+    unknownFiles: true,
+  },
+  problem: {
+    sentBytes: 512 * 1024,
+    unpackedBytes: 1024 * 1024,
+    files: 3,
+    fileBytes: 200 * 1024,
+    /** Every file must be one of FILE_TYPES. */
+    unknownFiles: false,
+  },
+} as const;
+export const READ_CAPS = { sentBytes: 512 * 1024, unpackedBytes: 1024 * 1024 } as const;
+
+/**
+ * What a file is, decided from its bytes only (worker/reports/files.ts), never from its name or anything the client
+ * says. The extension is what the reader gives the file when it writes it out.
+ */
+export const FILE_TYPES = {
+  png: "png",
+  jpeg: "jpg",
+  webp: "webp",
+  gif: "gif",
+  /** Surf World's replay: starts with "SWR1" (wallride-godot scripts/replay/replay_format.gd). */
+  swr: "swr",
+  /** Valid UTF-8 without NUL. */
+  text: "txt",
+} as const;
+export type FileType = keyof typeof FILE_TYPES | "bin";
+
+/** Bytes stored per app (payload + files), so the free plan's 500 MB database (both apps together) cannot fill up. */
+export const BUDGET = {
+  perAppPerDayBytes: 40 * 1024 * 1024,
+  perAppTotalBytes: 200 * 1024 * 1024,
+} as const;
+
 export const LIMITS = {
-  /** Body as sent (gzip size if gzip). */
-  sentBytes: 64 * 1024,
-  /** Body after unpacking. */
-  unpackedBytes: 512 * 1024,
   buildChars: 48,
   signatureChars: 120,
   platformKeys: 12,
@@ -26,9 +72,6 @@ export const LIMITS = {
   logLines: 400,
   logMsgChars: 300,
   logSrcChars: 32,
-  files: 2,
-  /** Each file, decoded (before base64). */
-  fileBytes: 48 * 1024,
   fileNameChars: 64,
   /** Per UTC day. */
   perInstallPerDay: 10,

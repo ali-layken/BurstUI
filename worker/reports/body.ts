@@ -55,6 +55,8 @@ export interface ReadBody {
   value: unknown;
   /** Size as sent. */
   sentBytes: number;
+  /** Size after unpacking (the same as sentBytes when it was not gzip). */
+  unpackedBytes: number;
 }
 
 /**
@@ -80,7 +82,7 @@ export async function readReportBody(request: Request, maxSent: number, maxUnpac
     throw new BadBody("body is not UTF-8");
   }
   try {
-    return { value: JSON.parse(text), sentBytes: sent.byteLength };
+    return { value: JSON.parse(text), sentBytes: sent.byteLength, unpackedBytes: raw.byteLength };
   } catch {
     throw new BadBody("body is not JSON");
   }

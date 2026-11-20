@@ -1,8 +1,8 @@
 // POST /api/report/<app> (and its OPTIONS): docs/reports.md, "The request" / "The answer" / "Limits".
 import { BadBody, gzip, readReportBody, TooLarge } from "./body";
-import { type AppSlug, isApp, LIMITS } from "./contract";
-import { DAY_MS, d1Store, utcDayStart } from "./store";
-import { buildNumber, Invalid, validateReport } from "./validate";
+import { type AppSlug, BUDGET, isApp, KIND_LIMITS, LIMITS, READ_CAPS } from "./contract";
+import { DAY_MS, d1Store, storedBytes, utcDayStart } from "./store";
+import { buildNumber, Invalid, payloadOf, validateReport } from "./validate";
 
 export interface ReportsEnv {
   /** D1 database burst-reports. Absent until the owner has created it (docs/reports.md, "Setting it up"). */
@@ -76,7 +76,12 @@ export async function handleReport(request: Request, env: ReportsEnv, appParam: 
   let report;
   let sentBytes;
   try {
-    const body = await readReportBody(request, LIMITS.sentBytes, LIMITS.unpackedBytes);
+    // Read and unpack against the largest kind's caps, then hold the report to its own kind's numbers before anything
+    // else is looked at: whatever is not a `problem` is held to the `crash` numbers.
+    const body = await readReportBody(request, READ_CAPS.sentBytes, READ_CAPS.unpackedBytes);
+    const value = body.value as { kind?: unknown } | null;
+    const caps = typeof value === "object" && value !== null && value.kind === "problem" ? KIND_LIMITS.problem : KIND_LIMITS.crash;
+    if (body.sentBytes > caps.sentBytes || body.unpackedBytes > caps.unpackedBytes) throw new TooLarge();
     sentBytes = body.sentBytes;
     report = validateReport(body.value, app);
   } catch (e) {
@@ -102,8 +107,13 @@ export async function handleReport(request: Request, env: ReportsEnv, appParam: 
     if (counts.installToday >= LIMITS.perInstallPerDay) return refuse(429, "too many reports from this install today");
     if (counts.appToday >= LIMITS.perAppPerDay) return refuse(503, "the day's reports are used up; try again after midnight UTC");
 
+    // The files' bytes are stored apart (raw), the rest gzip; the byte budget counts both.
+    const payload = await gzip(new TextEncoder().encode(JSON.stringify(payloadOf(report))));
+    const size = storedBytes({ payload, files: report.files });
+    if (counts.bytesToday + size > BUDGET.perAppPerDayBytes) return refuse(503, "the day's storage is used up; try again after midnight UTC");
+    if (counts.bytesTotal + size > BUDGET.perAppTotalBytes) return refuse(503, "storage for this app is full");
+
     const id = newReportId();
-    const payload = await gzip(new TextEncoder().encode(JSON.stringify(report)));
     await db.insert(app, {
       id,
       received_at: now,
@@ -121,6 +131,7 @@ export async function handleReport(request: Request, env: ReportsEnv, appParam: 
       bytes: sentBytes,
       addr_hash: addrHash,
       payload,
+      files: report.files,
     });
     return answer(200, { ok: true, id });
   } catch (e) {

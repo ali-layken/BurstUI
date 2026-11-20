@@ -6,8 +6,10 @@ import {
   type AppSlug,
   FILE_NAME_PATTERN,
   INSTALL_PATTERN,
+  type FileType,
   isBuildFor,
   KEY_PATTERN,
+  KIND_LIMITS,
   KINDS,
   LIMITS,
   LOG_LEVELS,
@@ -16,6 +18,7 @@ import {
   TOP_LEVEL_KEYS,
   WHEN_PATTERN,
 } from "./contract";
+import { decodeBase64, detectType } from "./files";
 
 export class Invalid extends Error {}
 
@@ -42,8 +45,21 @@ export interface Report {
   context: Flat;
   note: string;
   log: LogLine[];
-  files: { name: string; b64: string }[];
+  /** Decoded; typed by their bytes. Stored apart from the rest of the report (store.ts). */
+  files: ReportFile[];
 }
+
+export interface ReportFile {
+  name: string;
+  type: FileType;
+  data: Uint8Array<ArrayBuffer>;
+}
+
+/** The report as stored in the payload blob: everything but the files' bytes, which live in the files table. */
+export const payloadOf = (r: Report) => ({
+  ...r,
+  files: r.files.map((f) => ({ name: f.name, type: f.type, bytes: f.data.byteLength })),
+});
 
 const fail = (msg: string): never => {
   throw new Invalid(msg);
@@ -170,11 +186,12 @@ export function validateReport(input: unknown, app: AppSlug): Report {
     return out;
   });
 
+  const limits = KIND_LIMITS[r.kind as Report["kind"]];
   const files: Report["files"] = [];
   if (r.files !== undefined) {
     if (!Array.isArray(r.files)) fail("files: must be an array");
     const rawFiles = r.files as unknown[];
-    if (rawFiles.length > LIMITS.files) fail(`files: at most ${LIMITS.files}`);
+    if (rawFiles.length > limits.files) fail(`files: at most ${limits.files} in a ${r.kind} report`);
     rawFiles.forEach((file, i) => {
       const f = `files[${i}]`;
       if (!isPlainObject(file)) fail(`${f}: must be an object`);
@@ -184,8 +201,13 @@ export function validateReport(input: unknown, app: AppSlug): Report {
       if (!FILE_NAME_PATTERN.test(name) || /^\.+$/.test(name)) fail(`${f}.name: A-Z a-z 0-9 . _ - only, and not just dots`);
       if (files.some((x) => x.name === name)) fail(`${f}.name: two files are called "${name}"`);
       if (typeof o.b64 !== "string") fail(`${f}.b64: must be a string`);
-      if (base64Size(o.b64 as string, `${f}.b64`) > LIMITS.fileBytes) fail(`${f}: at most ${LIMITS.fileBytes} bytes before base64`);
-      files.push({ name, b64: o.b64 as string });
+      if (base64Size(o.b64 as string, `${f}.b64`) > limits.fileBytes) {
+        fail(`${f}: at most ${limits.fileBytes} bytes before base64 in a ${r.kind} report`);
+      }
+      const data = decodeBase64(o.b64 as string);
+      const type = detectType(data);
+      if (type === "bin" && !limits.unknownFiles) fail(`${f}: must be a PNG, JPEG, WebP or GIF image, a Surf World replay or UTF-8 text`);
+      files.push({ name, type, data });
     });
   }
 
