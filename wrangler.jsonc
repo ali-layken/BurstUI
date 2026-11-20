@@ -30,7 +30,7 @@
     {
       "binding": "REPORTS",
       "database_name": "burst-reports",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "c69530ad-5b98-4b48-841a-61677914ee37",
       "migrations_dir": "migrations"
     }
   ],
