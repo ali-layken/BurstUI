@@ -33,11 +33,19 @@ const title = APPS[app].title;
 
     <div class="space-y-2">
       <label for="rf-file" class="text-plate block w-fit text-subtitles text-lg md:text-xl font-medium">
-        Crash samples <span class="text-skyBlue text-base">(optional: a screenshot or a text file)</span>
+        Crash samples <span class="text-skyBlue text-base">(optional, up to 3 screenshots or text files)</span>
       </label>
       <div class="text-plate px-0">
-        <input id="rf-file" name="file" type="file" class="rf-file w-full text-transWhite" />
+        <input
+          id="rf-file"
+          name="file"
+          type="file"
+          multiple
+          accept="image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif,.txt,.log,.json,.md,.cfg,.csv,.swr"
+          class="rf-file w-full text-transWhite"
+        />
       </div>
+      <ul id="rf-files" class="rf-files text-plate hidden" aria-label="Crash samples to send"></ul>
     </div>
 
     <p class="text-plate text-creamTan2 text-base">
@@ -85,6 +93,61 @@ const title = APPS[app].title;
     color: theme("textColor.white");
     font-family: Fixel;
     cursor: pointer;
+  }
+  /* Only the button of the file input shows: the browser's own "No file chosen" / "2 files" would contradict the list
+     below, which is what gets sent. */
+  input.rf-file {
+    color: transparent;
+  }
+  input.rf-file:disabled::file-selector-button {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* The chosen crash samples: name, size as it will be sent, and a way to take one off. */
+  .rf-files {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .rf-files li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: theme("textColor.transWhite");
+    font-size: 1rem;
+  }
+  .rf-files .rf-file-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+  }
+  .rf-files .rf-file-size {
+    flex: none;
+    color: theme("textColor.skyBlue");
+    font-variant-numeric: tabular-nums;
+  }
+  .rf-files .rf-file-remove {
+    flex: none;
+    padding: 0.1rem 0.6rem;
+    border: 2px solid theme("colors.accLitePurple");
+    border-radius: 0.375rem;
+    background-color: theme("colors.termBack1");
+    color: theme("textColor.white");
+    font-family: Fixel;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .rf-files .rf-file-remove:hover,
+  .rf-files .rf-file-remove:focus-visible {
+    border-color: theme("colors.accRed");
+  }
+  .rf-files .rf-file-remove:focus-visible {
+    outline: 3px solid theme("colors.subtitles2");
+    outline-offset: 2px;
   }
   /* The send button: SendButton3D's envelope and letter slot, framed like the form's own fields. */
   .send-button-3d {
@@ -152,7 +215,107 @@ const title = APPS[app].title;
 </style>
 
 <script>
-  import { type AppSlug, isApp, isBuildFor, LIMITS } from "../../worker/reports/contract";
+  import { type AppSlug, isApp, isBuildFor, KIND_LIMITS, LIMITS } from "../../worker/reports/contract";
+
+  // Crash samples (docs/reports.md, "The pages"). Screenshots are re-encoded here before they are sent, which keeps them
+  // small and drops their metadata (where and when a photo was taken, the camera...): a canvas keeps only the pixels.
+  const ATTACH_MAX = KIND_LIMITS.problem.files;
+  const IMAGE_MAX_BYTES = 150 * 1024;
+  const IMAGE_LONG_SIDE = 1600;
+  const TEXT_MAX_BYTES = 48 * 1024;
+  const IMAGE_FILE = /\.(png|jpe?g|webp|gif)$/i;
+  const TEXT_FILE = /\.(txt|log|json|md|cfg|csv)$/i;
+  const REPLAY_FILE = /\.swr$/i;
+  const QUALITIES = [0.86, 0.76, 0.66, 0.56, 0.46, 0.36];
+
+  interface Attachment {
+    name: string;
+    bytes: Uint8Array;
+  }
+
+  class Unusable extends Error {}
+
+  const kb = (n: number) => (n < 1024 ? `${n} bytes` : `${Math.ceil(n / 1024)} KB`);
+
+  let webpOk: boolean | undefined;
+  /** Whether this browser can encode WebP (Safari before 17 cannot; it then gets JPEG). */
+  function canEncodeWebp(): boolean {
+    if (webpOk === undefined) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 1;
+      webpOk = c.toDataURL("image/webp").startsWith("data:image/webp");
+    }
+    return webpOk;
+  }
+
+  const toBlob = (canvas: HTMLCanvasElement, type: string, quality: number) =>
+    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+
+  /** A picture as WebP (or JPEG), long side at most IMAGE_LONG_SIDE, at most IMAGE_MAX_BYTES. A GIF gives its first frame. */
+  async function reencode(file: Blob): Promise<{ bytes: Uint8Array; ext: string }> {
+    let bitmap: ImageBitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      throw new Unusable("could not be read as a picture");
+    }
+    try {
+      const webp = canEncodeWebp();
+      const type = webp ? "image/webp" : "image/jpeg";
+      let scale = Math.min(1, IMAGE_LONG_SIDE / Math.max(bitmap.width, bitmap.height)); // never upscale
+      for (;;) {
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        const g = canvas.getContext("2d");
+        if (!g) throw new Unusable("could not be read as a picture");
+        if (!webp) {
+          g.fillStyle = "#fff"; // JPEG has no transparency
+          g.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        g.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        for (const q of QUALITIES) {
+          const blob = await toBlob(canvas, type, q);
+          if (blob && blob.size <= IMAGE_MAX_BYTES) return { bytes: new Uint8Array(await blob.arrayBuffer()), ext: webp ? "webp" : "jpg" };
+        }
+        if (Math.max(canvas.width, canvas.height) < 200) throw new Unusable("could not be made small enough");
+        scale *= 0.75;
+      }
+    } finally {
+      bitmap.close();
+    }
+  }
+
+  /** What the server accepts as text: UTF-8 without NUL. */
+  function isText(bytes: Uint8Array): boolean {
+    if (bytes.includes(0)) return false;
+    try {
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** One chosen or pasted file, made ready to send, or Unusable with the reason. */
+  async function prepare(file: File, pastedName: string | null): Promise<Attachment> {
+    const label = pastedName ?? fileName(file.name);
+    const base = label.replace(/\.[^.]*$/, "") || "file";
+    if (/^image\/(png|jpeg|webp|gif)$/.test(file.type) || IMAGE_FILE.test(file.name)) {
+      const { bytes, ext } = await reencode(file);
+      return { name: `${base}.${ext}`, bytes };
+    }
+    if (TEXT_FILE.test(file.name) || REPLAY_FILE.test(file.name)) {
+      if (file.size > TEXT_MAX_BYTES) throw new Unusable(`is ${kb(file.size)}; a text file can be at most ${TEXT_MAX_BYTES / 1024} KB`);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const replay = REPLAY_FILE.test(file.name);
+      if (replay ? !(bytes[0] === 0x53 && bytes[1] === 0x57 && bytes[2] === 0x52 && bytes[3] === 0x31) : !isText(bytes)) {
+        throw new Unusable(replay ? "is not a Surf World replay" : "is not plain UTF-8 text");
+      }
+      return { name: label, bytes };
+    }
+    throw new Unusable("is not a screenshot (PNG, JPEG, WebP, GIF) or a text file (.txt .log .json .md .cfg .csv)");
+  }
 
   const INSTALL_KEY = "burstui.report.install";
 
@@ -258,6 +421,84 @@ const title = APPS[app].title;
     };
     note.addEventListener("input", () => note.removeAttribute("aria-invalid"));
 
+    // Crash samples: the list under the field is the truth; the file input is only a way to add to it.
+    const list = form.querySelector<HTMLUListElement>("#rf-files")!;
+    const attachments: Attachment[] = [];
+    let preparing: Promise<void> = Promise.resolve();
+    let pasted = 0;
+
+    const render = () => {
+      list.replaceChildren();
+      attachments.forEach((a, i) => {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "rf-file-name";
+        name.textContent = a.name;
+        name.title = a.name;
+        const size = document.createElement("span");
+        size.className = "rf-file-size";
+        size.textContent = kb(a.bytes.byteLength);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "rf-file-remove";
+        remove.textContent = "Remove";
+        remove.setAttribute("aria-label", `Remove ${a.name}`);
+        remove.addEventListener("click", () => {
+          attachments.splice(i, 1);
+          render();
+          file.focus();
+        });
+        li.appendChild(name);
+        li.appendChild(size);
+        li.appendChild(remove);
+        list.appendChild(li);
+      });
+      list.classList.toggle("hidden", attachments.length === 0);
+      file.disabled = attachments.length >= ATTACH_MAX;
+    };
+
+    const unique = (name: string) => {
+      let out = name;
+      for (let i = 2; attachments.some((a) => a.name === out); i++) out = name.replace(/(\.[^.]*)?$/, `-${i}$1`);
+      return out;
+    };
+
+    const add = (picked: File[], fromPaste: boolean) => {
+      preparing = preparing.then(async () => {
+        for (const f of picked) {
+          if (attachments.length >= ATTACH_MAX) {
+            show("refused", `At most ${ATTACH_MAX} crash samples can go with one report.`);
+            break;
+          }
+          const shown = fromPaste ? "the pasted picture" : fileName(f.name);
+          try {
+            const ready = await prepare(f, fromPaste ? `pasted-${++pasted}.png` : null);
+            attachments.push({ ...ready, name: unique(ready.name) });
+            render();
+            if (status.dataset.state === "refused") status.classList.add("hidden"); // an earlier file's complaint is done
+          } catch (e) {
+            show("refused", `${shown} ${e instanceof Unusable ? e.message : "could not be read"}.`);
+          }
+        }
+      });
+      return preparing;
+    };
+
+    file.addEventListener("change", () => {
+      const picked = [...(file.files ?? [])];
+      file.value = ""; // so the same file can be chosen again after it is removed
+      if (picked.length) void add(picked, false);
+    });
+
+    // A screenshot pasted into the note becomes a crash sample (text pastes as text, as always).
+    note.addEventListener("paste", (event) => {
+      const data = event.clipboardData;
+      const images = [...(data?.files ?? [])].filter((f) => f.type.startsWith("image/"));
+      if (!images.length) return;
+      if (!data?.types.includes("text/plain")) event.preventDefault();
+      void add(images, true);
+    });
+
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (send.disabled) return;
@@ -266,14 +507,8 @@ const title = APPS[app].title;
       if (!noteText) return invalid(note, "Please say what happened.");
       if ([...noteText].length > LIMITS.noteChars) return invalid(note, `Please keep it under ${LIMITS.noteChars} characters.`);
 
-      const files: { name: string; b64: string }[] = [];
-      const picked = file.files?.[0];
-      if (picked) {
-        if (picked.size > LIMITS.fileBytes) {
-          return invalid(file, `That file is ${Math.ceil(picked.size / 1024)} KB; the most a report can carry is ${LIMITS.fileBytes / 1024} KB.`);
-        }
-        files.push({ name: fileName(picked.name), b64: base64(new Uint8Array(await picked.arrayBuffer())) });
-      }
+      await preparing; // a screenshot still being made smaller
+      const files = attachments.map((a) => ({ name: a.name, b64: base64(a.bytes) }));
 
       const report = {
         v: 1,
@@ -285,7 +520,7 @@ const title = APPS[app].title;
         install: installId(),
         session: hex(8),
         platform: platform(),
-        context: { via: "report page", file: files.length > 0 },
+        context: { via: "report page", files: files.length },
         note: noteText,
         log: [],
         ...(files.length ? { files } : {}),
@@ -294,8 +529,8 @@ const title = APPS[app].title;
       const json = new TextEncoder().encode(JSON.stringify(report));
       const packed = await gzip(json);
       const body = packed ?? json;
-      if (body.byteLength > LIMITS.sentBytes) {
-        return show("refused", "This report is too large to send. Try a smaller file, or send it without one.");
+      if (body.byteLength > KIND_LIMITS.problem.sentBytes) {
+        return show("refused", "This report is too large to send. Remove a crash sample and try again.");
       }
 
       send.disabled = true;
@@ -315,10 +550,12 @@ const title = APPS[app].title;
           stored = true;
           show("sent", "Sent, thank you. If you talk to me about it, this is its number:", answer.id);
           form.reset();
+          attachments.length = 0;
+          render();
         } else if (response.status === 400) {
           show("refused", `The server refused this report: ${typeof answer.error === "string" ? answer.error : "not a valid report"}.`);
         } else if (response.status === 413) {
-          show("refused", "The server refused this report as too large. Try a smaller file, or send it without one.");
+          show("refused", "The server refused this report as too large. Remove a crash sample and try again.");
         } else if (response.status === 429) {
           show("refused", "Too many reports have come from here today. Please try again tomorrow.");
         } else {
