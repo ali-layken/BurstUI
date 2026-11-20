@@ -1,0 +1,173 @@
+---
+// PROTOTYPE, not for shipping: three candidates for the report form's send button, side by side, for the owner to pick.
+// Click one to play "sending, then stored"; hold Shift while clicking to play "sending, then refused".
+import Base from "../../layouts/Base.astro";
+import SendButton3D from "../../islands/SendButton3D";
+---
+
+<Base title="Send buttons (prototype)" description="Candidates for the report form's send button." path="/report/buttons" robots="noindex">
+  <div class="mx-auto max-w-2xl font-fixel space-y-10">
+    <h1 class="text-plate w-fit text-subtitles2 text-3xl md:text-4xl font-semibold">Send buttons</h1>
+    <p class="text-plate w-fit text-creamTan2 text-base">Click: sent. Shift + click: refused.</p>
+
+    <section class="space-y-3">
+      <h2 class="text-plate w-fit text-accLiteGreen text-xl italic font-source4">A. Letter into a slot</h2>
+      <SendButton3D client:load id="proto-letter" variant="letter" />
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-plate w-fit text-accLiteGreen text-xl italic font-source4">B. The site's arrow</h2>
+      <SendButton3D client:load id="proto-arrow" variant="arrow" />
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-plate w-fit text-accLiteGreen text-xl italic font-source4">C. A plain button you can press</h2>
+      <button id="proto-push" type="button" class="push-button" data-state="idle">
+        <span class="push-shadow"></span>
+        <span class="push-edge"></span>
+        <span class="push-front">Send report</span>
+      </button>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-plate w-fit text-accLiteGreen text-xl italic font-source4">D. Today's</h2>
+      <button type="button" class="rf-send-old">Send report</button>
+    </section>
+  </div>
+</Base>
+
+<style is:global>
+  /* A and B: the frame around the 3D art, like the form's own fields. */
+  .send-button-3d {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 1.3rem 0.2rem 0.4rem;
+    border-radius: 16px;
+    border: 2px solid theme("colors.accLitePurple");
+    background-color: theme("colors.termBack1");
+    color: theme("textColor.white");
+    font-family: Fixel;
+    font-size: 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      transform 0.08s;
+  }
+  .send-button-3d:hover,
+  .send-button-3d:focus-visible {
+    border-color: theme("colors.accOrange");
+  }
+  .send-button-3d:active {
+    transform: translateY(2px);
+  }
+  .send-button-3d:focus-visible {
+    outline: 3px solid theme("colors.subtitles2");
+    outline-offset: 2px;
+  }
+  .send-button-3d[data-state="sending"] {
+    cursor: wait;
+  }
+  .send-button-3d[data-state="sent"] {
+    border-color: theme("colors.accLiteGreen");
+  }
+  .send-button-3d[data-state="failed"] {
+    border-color: theme("colors.accRed");
+  }
+  .send-button-3d-art {
+    display: block;
+    line-height: 0;
+  }
+
+  /* C: three stacked layers (a shadow, an edge, the face); pressing slides the face down onto the edge. */
+  .push-button {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-family: Fixel;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .push-shadow,
+  .push-edge {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+  }
+  .push-shadow {
+    background-color: theme("colors.transGray");
+    transform: translateY(3px);
+    filter: blur(4px);
+    transition: transform 0.25s;
+  }
+  .push-edge {
+    background-color: theme("colors.accRed");
+  }
+  .push-front {
+    display: block;
+    position: relative;
+    padding: 0.7rem 1.9rem;
+    border-radius: 14px;
+    background-color: theme("colors.accOrange");
+    color: theme("textColor.white");
+    transform: translateY(-6px);
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+  .push-button:hover .push-front {
+    transform: translateY(-8px);
+  }
+  .push-button:hover .push-shadow {
+    transform: translateY(5px);
+  }
+  .push-button:active .push-front,
+  .push-button[data-state="sending"] .push-front {
+    transform: translateY(-2px);
+    transition-duration: 0.04s;
+  }
+  .push-button[data-state="sent"] .push-front {
+    background-color: theme("colors.accGreen");
+  }
+  .push-button[data-state="sent"] .push-edge {
+    background-color: theme("colors.accLiteGreen");
+  }
+  .push-button[data-state="failed"] .push-front {
+    background-color: theme("colors.accRed");
+  }
+  .push-button:focus-visible {
+    outline: 3px solid theme("colors.subtitles2");
+    outline-offset: 6px;
+  }
+
+  .rf-send-old {
+    padding: 0.6rem 1.6rem;
+    border-radius: 9999px;
+    background-color: theme("colors.accRed3");
+    border: 2px solid theme("colors.accRed");
+    color: theme("textColor.white");
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  // Play the states the real form goes through, so each candidate can be judged in motion.
+  function init() {
+    for (const id of ["proto-letter", "proto-arrow", "proto-push"]) {
+      const button = document.getElementById(id);
+      if (!button || button.dataset.ready) continue;
+      button.dataset.ready = "1";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (button.dataset.state !== "idle") return;
+        const fail = (event as MouseEvent).shiftKey;
+        button.dataset.state = "sending";
+        setTimeout(() => (button.dataset.state = fail ? "failed" : "sent"), 1100);
+        setTimeout(() => (button.dataset.state = "idle"), 3600);
+      });
+    }
+  }
+  document.addEventListener("astro:page-load", init);
+</script>
