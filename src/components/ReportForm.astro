@@ -8,14 +8,13 @@ interface Props {
 }
 const { app } = Astro.props;
 const title = APPS[app].title;
-const kb = (n: number) => `${n / 1024} KB`;
 ---
 
 <div class="report-page mx-auto max-w-2xl font-fixel">
   <h1 class="text-plate w-fit text-subtitles2 text-3xl md:text-4xl font-semibold">
     Report a problem
   </h1>
-  <p class="text-plate w-fit mt-3 text-skyBlue text-xl md:text-2xl italic font-source4">with {title}</p>
+  <p class="text-plate w-fit mt-3 text-accLiteGreen text-xl md:text-2xl italic font-source4">with {title}</p>
 
   <form id="report-form" class="report-form mt-8 space-y-6" data-app={app} novalidate>
     <div class="space-y-2">
@@ -32,23 +31,8 @@ const kb = (n: number) => `${n / 1024} KB`;
     </div>
 
     <div class="space-y-2">
-      <label for="rf-build" class="text-plate block w-fit text-subtitles text-lg md:text-xl font-medium">
-        Build <span class="text-skyBlue text-base">(if you know it)</span>
-      </label>
-      <input
-        id="rf-build"
-        name="build"
-        class="rf-input w-full font-mono"
-        autocomplete="off"
-        spellcheck="false"
-        maxlength={LIMITS.buildChars}
-        placeholder={`${app}-3+6a41740`}
-      />
-    </div>
-
-    <div class="space-y-2">
       <label for="rf-file" class="text-plate block w-fit text-subtitles text-lg md:text-xl font-medium">
-        A file the app exported <span class="text-skyBlue text-base">(optional, at most {kb(LIMITS.fileBytes)})</span>
+        Crash samples <span class="text-skyBlue text-base">(optional: a screenshot or a text file)</span>
       </label>
       <div class="text-plate px-0">
         <input id="rf-file" name="file" type="file" class="rf-file w-full text-transWhite" />
@@ -56,8 +40,8 @@ const kb = (n: number) => `${n / 1024} KB`;
     </div>
 
     <p class="text-plate text-creamTan2 text-base">
-      Sending this stores what you write here, the build, the file if you add one, your browser and system, and a random
-      number this browser keeps so that its reports can be grouped, for 90 days.
+      Sending this stores what you write here, anything you attach, your browser and system, and a random number this
+      browser keeps so that its reports can be grouped, for 90 days.
     </p>
 
     <div class="flex flex-wrap items-center gap-4">
@@ -79,8 +63,8 @@ const kb = (n: number) => `${n / 1024} KB`;
     line-height: 1.5;
   }
   .rf-input::placeholder {
-    color: rgba(255, 255, 255, 0.45);
-    opacity: 1;
+    color: theme("colors.creamTan2");
+    opacity: 0.6;
   }
   .rf-input:focus-visible,
   .rf-file:focus-visible,
@@ -104,9 +88,9 @@ const kb = (n: number) => `${n / 1024} KB`;
   .rf-send {
     padding: 0.6rem 1.6rem;
     border-radius: 9999px;
-    background-color: rgb(120, 18, 40);
+    background-color: theme("colors.accRed3");
     border: 2px solid theme("colors.accRed");
-    color: white;
+    color: theme("textColor.white");
     font-size: 1.15rem;
     font-weight: 600;
     box-shadow: theme("boxShadow.lg");
@@ -223,15 +207,15 @@ const kb = (n: number) => `${n / 1024} KB`;
     const app: AppSlug = appName;
 
     const note = form.querySelector<HTMLTextAreaElement>("#rf-note")!;
-    const build = form.querySelector<HTMLInputElement>("#rf-build")!;
     const file = form.querySelector<HTMLInputElement>("#rf-file")!;
     const send = form.querySelector<HTMLButtonElement>("#rf-send")!;
     const status = form.querySelector<HTMLElement>("#rf-status")!;
 
     // ?build= from the app, only if it is a real build name of this app. Nothing else is read from the address.
     // An unencoded "+" arrives as a space (build names have none), so put it back.
+    // The person is never asked for it: an app's link carries it, a visit from anywhere else has none.
     const fromUrl = (new URLSearchParams(location.search).get("build") ?? "").replaceAll(" ", "+");
-    if (isBuildFor(app, fromUrl)) build.value = fromUrl;
+    const buildName = isBuildFor(app, fromUrl) ? fromUrl : `${app}-0+unknown`; // builds start at 1: 0 is "not known"
 
     const show = (state: "sending" | "sent" | "refused" | "failed", text: string, id?: string) => {
       status.dataset.state = state;
@@ -250,7 +234,7 @@ const kb = (n: number) => `${n / 1024} KB`;
       field.focus();
       show("refused", text);
     };
-    for (const f of [note, build]) f.addEventListener("input", () => f.removeAttribute("aria-invalid"));
+    note.addEventListener("input", () => note.removeAttribute("aria-invalid"));
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -259,10 +243,6 @@ const kb = (n: number) => `${n / 1024} KB`;
       const noteText = note.value.trim();
       if (!noteText) return invalid(note, "Please say what happened.");
       if ([...noteText].length > LIMITS.noteChars) return invalid(note, `Please keep it under ${LIMITS.noteChars} characters.`);
-      const buildText = build.value.trim();
-      if (buildText && !isBuildFor(app, buildText)) {
-        return invalid(build, `That is not a ${app} build name (it looks like ${app}-3+6a41740). Leave it empty if you don't know it.`);
-      }
 
       const files: { name: string; b64: string }[] = [];
       const picked = file.files?.[0];
@@ -276,8 +256,7 @@ const kb = (n: number) => `${n / 1024} KB`;
       const report = {
         v: 1,
         app,
-        // Builds start at 1, so 0 means "the person did not know which build".
-        build: buildText || `${app}-0+unknown`,
+        build: buildName,
         kind: "problem",
         signature: "report page",
         when: new Date().toISOString(),
@@ -311,7 +290,6 @@ const kb = (n: number) => `${n / 1024} KB`;
         if (response.ok && answer.ok && typeof answer.id === "string") {
           show("sent", "Sent, thank you. If you talk to me about it, this is its number:", answer.id);
           form.reset();
-          if (isBuildFor(app, fromUrl)) build.value = fromUrl;
         } else if (response.status === 400) {
           show("refused", `The server refused this report: ${typeof answer.error === "string" ? answer.error : "not a valid report"}.`);
         } else if (response.status === 413) {
