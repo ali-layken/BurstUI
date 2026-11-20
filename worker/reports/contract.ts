@@ -59,7 +59,7 @@ const MB = 1024 * 1024;
 export const DAILY = {
   /** Each kind has its own count and bytes, so neither can spend the other's. */
   kind: {
-    crash: { reports: 1500, bytes: 10 * MB },
+    crash: { reports: 1200, bytes: 10 * MB },
     problem: { reports: 500, bytes: 40 * MB },
   },
   /** One IPv4 address, or one IPv6 /64. */
@@ -79,7 +79,7 @@ export const DAILY = {
  */
 export const TOTAL_BYTES = 200 * MB;
 /** How many of the oldest reports one eviction looks at (bounds its rows read). */
-export const EVICT_SCAN = 100;
+export const EVICT_SCAN = 25;
 
 export const LIMITS = {
   buildChars: 48,

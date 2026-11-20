@@ -406,10 +406,10 @@ test("the scheduled job deletes after 90 days and drops yesterday's address salt
   assert.equal(today[0].n, 1, "today's salt is kept");
 });
 
-test("daily cap: 1,500 crashes stored per app, then 503 until midnight UTC", async () => {
+test("daily cap: 1,200 crashes stored per app, then 503 until midnight UTC", async () => {
   await sql(
-    `INSERT INTO report_limits (app, day, key, n, bytes) VALUES ('doopwatcher', ${Math.floor(Date.now() / 86_400_000)}, 'kind:crash', 1500, 0)
-     ON CONFLICT (app, day, key) DO UPDATE SET n = 1500`,
+    `INSERT INTO report_limits (app, day, key, n, bytes) VALUES ('doopwatcher', ${Math.floor(Date.now() / 86_400_000)}, 'kind:crash', 1200, 0)
+     ON CONFLICT (app, day, key) DO UPDATE SET n = 1200`,
   );
   const res = await post("doopwatcher", makeReport("doopwatcher"));
   assert.equal(res.status, 503);

@@ -198,8 +198,8 @@ export function d1Store(db: D1Database): ReportStore {
         )
         .bind(EVICT_SCAN, need)
         .all<{ id: string; file_bytes: number }>();
-      const fromFiles = withFiles.reduce((n, r) => n + r.file_bytes, 0);
-      if (fromFiles >= need) {
+      let freed = 0;
+      if (withFiles.length) {
         const ids = JSON.stringify(withFiles.map((r) => r.id));
         const set = `SELECT value FROM json_each(?1)`;
         // The counter takes off only what is still there when the batch runs, so two evictions racing for the same
@@ -216,7 +216,8 @@ export function d1Store(db: D1Database): ReportStore {
             .prepare(`UPDATE ${t} SET stored_bytes = stored_bytes - file_bytes, file_count = 0, file_bytes = 0 WHERE id IN (${set})`)
             .bind(ids),
         ]);
-        return fromFiles;
+        freed += withFiles.reduce((n, r) => n + r.file_bytes, 0);
+        if (freed >= need) return freed;
       }
       // 2. Not enough in files: the oldest reports themselves (rows, payloads and files).
       const { results: oldest } = await db
@@ -226,9 +227,9 @@ export function d1Store(db: D1Database): ReportStore {
              FROM (SELECT id, received_at, stored_bytes FROM ${t} ORDER BY received_at, id LIMIT ?1))
            WHERE cum - stored_bytes < ?2`,
         )
-        .bind(EVICT_SCAN, need)
+        .bind(EVICT_SCAN, need - freed)
         .all<{ id: string; stored_bytes: number }>();
-      if (oldest.length === 0) return 0;
+      if (oldest.length === 0) return freed;
       const ids = JSON.stringify(oldest.map((r) => r.id));
       const set = `SELECT value FROM json_each(?1)`;
       await db.batch([
@@ -243,7 +244,7 @@ export function d1Store(db: D1Database): ReportStore {
         db.prepare(`DELETE FROM ${ft} WHERE report_id IN (${set})`).bind(ids),
         db.prepare(`DELETE FROM ${t} WHERE id IN (${set})`).bind(ids),
       ]);
-      return oldest.reduce((n, r) => n + r.stored_bytes, 0);
+      return freed + oldest.reduce((n, r) => n + r.stored_bytes, 0);
     },
 
     async insert(app, r, q) {
