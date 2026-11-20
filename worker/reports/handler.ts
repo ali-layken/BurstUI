@@ -95,8 +95,9 @@ export async function handleReport(request: Request, env: ReportsEnv, appParam: 
     const addrHash = await addressHash(env.REPORT_SALT, dayStart / DAY_MS, ip);
     const counts = await db.counts(app, { install: report.install, signature: report.signature, addrHash, now, dayStart });
 
-    // A crash loop: answer as if stored, store nothing.
-    if (counts.duplicateOf) return answer(200, { ok: true, id: counts.duplicateOf });
+    // A crash loop: answer as if stored, store nothing. Only for crashes: two problems a person reports in one day
+    // are two reports even when the app gives them the same signature (docs/reports.md, "Server details").
+    if (report.kind === "crash" && counts.duplicateOf) return answer(200, { ok: true, id: counts.duplicateOf });
     if (counts.addressToday >= LIMITS.perAddressPerDay) return refuse(429, "too many reports from this address today");
     if (counts.installToday >= LIMITS.perInstallPerDay) return refuse(429, "too many reports from this install today");
     if (counts.appToday >= LIMITS.perAppPerDay) return refuse(503, "the day's reports are used up; try again after midnight UTC");

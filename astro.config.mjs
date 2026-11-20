@@ -34,7 +34,8 @@ export default defineConfig({
     sitemap({
       // Draft posts (filename starts with "_") are routable but unlisted,
       // same as the old Fresh index page - keep them out of the sitemap too.
-      filter: (page) => !page.includes("/blog/_"),
+      // The /report/<app> forms are for the apps to link to, not for search results.
+      filter: (page) => !page.includes("/blog/_") && !page.includes("/report/"),
     }),
   ],
   // `file` + `never` keeps the exact URLs the Fresh site had
