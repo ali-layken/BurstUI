@@ -20,6 +20,23 @@
     "run_worker_first": ["/api/*", "/snake/index.wasm"]
   },
   "observability": { "enabled": true },
+  // Crash/problem reports (docs/reports.md). The database_id is a PLACEHOLDER until the owner runs
+  // `wrangler d1 create burst-reports` and puts the real id here (docs/reports.md, "Setting it up").
+  // While it is the placeholder, scripts/deploy.mjs (what CI and `npm run deploy` run) deploys
+  // without the lines between the two markers, so the site deploys as before and /api/report/*
+  // answers 503. Local dev and the tests use a local D1 and need no real id.
+  // <reports-d1>
+  "d1_databases": [
+    {
+      "binding": "REPORTS",
+      "database_name": "burst-reports",
+      "database_id": "c69530ad-5b98-4b48-841a-61677914ee37",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // </reports-d1>
+  // 00:05 UTC every day: delete reports older than 90 days and drop the address hashes of the day that just ended.
+  "triggers": { "crons": ["5 0 * * *"] },
   // Serve on the account's *.workers.dev subdomain. Attach a custom domain
   // later with "routes": [{ "pattern": "example.com", "custom_domain": true }].
   "workers_dev": true

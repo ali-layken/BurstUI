@@ -32,11 +32,16 @@ It used to be a Deno Fresh app on Deno Deploy; that moved here in October
   `snake/` build, `twitch-callback.html` (DoopWatcher's Twitch OAuth landing
   page), `config.json` (FaustusConnect's remote kill switch), plus
   Cloudflare's `_headers`, `_redirects` and `.assetsignore`.
-- `worker/index.ts` - the only request-time code: `/api/joke`, and
+- `worker/index.ts` - the only request-time code (split into `worker/*.ts`): `/api/joke`, the reports below, and
   `/snake/index.wasm` streamed from this repo's own copy on
   raw.githubusercontent.com (pinned to a commit SHA) because it is over
   Cloudflare's 25 MiB per-asset cap. Bump the SHA in `worker/index.ts` if
   the game is re-exported.
+- `worker/reports/`, `migrations/`, `src/pages/report/` - crash and problem
+  reports from Surf World and DoopWatcher: `POST /api/report/<app>` into a D1
+  database, the `/report/<app>` forms, and `npm run reports` to read them.
+  Everything about them (the contract with the apps, setting the database up,
+  reading reports) is in [docs/reports.md](docs/reports.md).
 - `src/lib/site.mjs` - the public hostname, used for canonical/og URLs,
   robots.txt and the sitemap. Override with `SITE_ORIGIN=... npm run build`.
 
@@ -47,6 +52,7 @@ $ npm install
 $ npm run dev        # Astro dev server with HMR (no Worker: /api/joke and the wasm 404)
 $ npm run preview    # full build, then wrangler dev serving it like production
 $ npm run check      # astro check (types)
+$ npm test           # the reports endpoint against wrangler dev --local (docs/reports.md)
 ```
 
 ## Movement Map
@@ -66,7 +72,9 @@ Fix the map in the movement-map repo, push it, then bump the submodule here. The
 
 ## Deploying
 
-Pushes to `main` build and deploy through `.github/workflows/deploy.yml`.
+Pushes to `main` build and deploy through `.github/workflows/deploy.yml`
+(`scripts/deploy.mjs`, which is `wrangler deploy` minus the reports database
+binding until that database exists; see docs/reports.md, "Setting it up").
 It needs two repository secrets, `CLOUDFLARE_API_TOKEN` (Workers Scripts:
 Edit, Account Settings: Read) and `CLOUDFLARE_ACCOUNT_ID`, and optionally a `SITE_ORIGIN` repository variable
 if the site is on a custom domain.

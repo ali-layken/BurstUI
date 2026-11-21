@@ -43,14 +43,22 @@ jobs:
         env:
           SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
 
+      # The reports endpoint, /api/joke and scripts/reports.mjs against `wrangler dev --local` with a throwaway local
+      # D1 (tests/reports.test.mjs): no Cloudflare account or secrets needed. Pull requests only.
+      - name: Test
+        if: github.event_name == 'pull_request'
+        run: npm test
+
       # Pull requests only build (a broken build fails the check); the
       # deploy itself happens on push to main.
       #
       # Skipped (not failed) while the CLOUDFLARE_API_TOKEN secret is unset,
       # so the repo can still be deployed by hand with `npm run deploy`.
+      # scripts/deploy.mjs is `wrangler deploy`, minus the reports D1 binding
+      # while its id in wrangler.jsonc is still the placeholder (docs/reports.md).
       - name: Deploy
         if: github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != ''
-        run: npx wrangler deploy
+        run: node scripts/deploy.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

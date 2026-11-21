@@ -11,10 +11,12 @@
     "build": "astro build",
     "preview": "npm run build && wrangler dev",
     "check": "astro check",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && node scripts/deploy.mjs",
     "update-emojis": "node scripts/generate_emojis.mjs",
     "timestamps": "node scripts/generate_timestamps.mjs",
-    "shot": "node scripts/shot.mjs"
+    "shot": "node scripts/shot.mjs",
+    "reports": "node scripts/reports.mjs",
+    "test": "node --test --test-concurrency=1 tests/reports.test.mjs tests/attachments.test.mjs tests/hardening.test.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.0",

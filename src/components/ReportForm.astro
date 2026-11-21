@@ -1,0 +1,577 @@
+---
+// The "report a problem" form for one app (docs/reports.md, "The pages"): /report/surfworld and /report/doopwatcher are
+// thin pages around this. It sends a `problem` report to /api/report/<app> on this same origin, so it needs no CORS.
+import { APPS, type AppSlug, LIMITS } from "../../worker/reports/contract";
+import SendButton3D from "../islands/SendButton3D";
+
+interface Props {
+  app: AppSlug;
+}
+const { app } = Astro.props;
+const title = APPS[app].title;
+---
+
+<div class="report-page mx-auto max-w-2xl font-fixel">
+  <h1 class="text-plate w-fit text-subtitles2 text-3xl md:text-4xl font-semibold">
+    Report a problem
+  </h1>
+  <p class="text-plate w-fit mt-3 text-accLiteGreen text-xl md:text-2xl italic font-source4">with {title}</p>
+
+  <form id="report-form" class="report-form mt-8 space-y-6" data-app={app} novalidate>
+    <div class="space-y-2">
+      <label for="rf-note" class="text-plate block w-fit text-subtitles text-lg md:text-xl font-medium">
+        What happened? <span class="text-accRed">*</span>
+      </label>
+      <textarea
+        id="rf-note"
+        name="note"
+        class="rf-input w-full min-h-40"
+        required
+        maxlength={LIMITS.noteChars}
+        placeholder="What you were doing, what you expected, and what happened instead."></textarea>
+    </div>
+
+    <div class="space-y-2">
+      <label for="rf-file" class="text-plate block w-fit text-subtitles text-lg md:text-xl font-medium">
+        Crash samples <span class="text-skyBlue text-base">(optional, up to 3 screenshots or text files)</span>
+      </label>
+      <div class="text-plate px-0">
+        <input
+          id="rf-file"
+          name="file"
+          type="file"
+          multiple
+          accept="image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif,.txt,.log,.json,.md,.cfg,.csv,.swr"
+          class="rf-file w-full text-transWhite"
+        />
+      </div>
+      <ul id="rf-files" class="rf-files text-plate hidden" aria-label="Crash samples to send"></ul>
+    </div>
+
+    <p class="text-plate text-creamTan2 text-base">
+      Sending this stores what you write here, anything you attach, your browser and system, the network and country
+      it came from, and a random number this browser keeps so that its reports can be grouped, for 90 days.
+    </p>
+
+    <div class="flex flex-wrap items-center gap-4">
+      <SendButton3D client:load id="rf-send" />
+      <p id="rf-status" class="rf-status text-plate hidden" role="status" aria-live="polite"></p>
+    </div>
+  </form>
+</div>
+
+<style is:global>
+  .rf-input {
+    display: block;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.375rem;
+    border: 2px solid theme("colors.accLitePurple");
+    background-color: theme("colors.termBack1");
+    color: theme("textColor.white");
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+  .rf-input::placeholder {
+    color: theme("colors.creamTan2");
+    opacity: 0.6;
+  }
+  .rf-input:focus-visible,
+  .rf-file:focus-visible,
+  .send-button-3d:focus-visible {
+    outline: 3px solid theme("colors.subtitles2");
+    outline-offset: 2px;
+  }
+  .rf-input[aria-invalid="true"] {
+    border-color: theme("colors.accRed");
+  }
+  .rf-file::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border: 2px solid theme("colors.accLitePurple");
+    border-radius: 0.375rem;
+    background-color: theme("colors.termBack1");
+    color: theme("textColor.white");
+    font-family: Fixel;
+    cursor: pointer;
+  }
+  /* Only the button of the file input shows: the browser's own "No file chosen" / "2 files" would contradict the list
+     below, which is what gets sent. */
+  input.rf-file {
+    color: transparent;
+  }
+  input.rf-file:disabled::file-selector-button {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* The chosen crash samples: name, size as it will be sent, and a way to take one off. */
+  .rf-files {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .rf-files li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: theme("textColor.transWhite");
+    font-size: 1rem;
+  }
+  .rf-files .rf-file-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+  }
+  .rf-files .rf-file-size {
+    flex: none;
+    color: theme("textColor.skyBlue");
+    font-variant-numeric: tabular-nums;
+  }
+  .rf-files .rf-file-remove {
+    flex: none;
+    padding: 0.1rem 0.6rem;
+    border: 2px solid theme("colors.accLitePurple");
+    border-radius: 0.375rem;
+    background-color: theme("colors.termBack1");
+    color: theme("textColor.white");
+    font-family: Fixel;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .rf-files .rf-file-remove:hover,
+  .rf-files .rf-file-remove:focus-visible {
+    border-color: theme("colors.accRed");
+  }
+  .rf-files .rf-file-remove:focus-visible {
+    outline: 3px solid theme("colors.subtitles2");
+    outline-offset: 2px;
+  }
+  /* The send button: SendButton3D's envelope and letter slot, framed like the form's own fields. */
+  .send-button-3d {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 1.3rem 0.2rem 0.4rem;
+    border-radius: 16px;
+    border: 2px solid theme("colors.accLitePurple");
+    background-color: theme("colors.termBack1");
+    color: theme("textColor.white");
+    font-family: Fixel;
+    font-size: 1.15rem;
+    font-weight: 600;
+    box-shadow: theme("boxShadow.lg");
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      transform 0.08s;
+  }
+  .send-button-3d:hover:not(:disabled),
+  .send-button-3d:focus-visible {
+    border-color: theme("colors.accOrange");
+  }
+  .send-button-3d:active:not(:disabled) {
+    transform: translateY(2px);
+  }
+  .send-button-3d:disabled {
+    cursor: wait;
+  }
+  .send-button-3d[data-state="sent"] {
+    border-color: theme("colors.accLiteGreen");
+  }
+  .send-button-3d[data-state="failed"] {
+    border-color: theme("colors.accRed");
+  }
+  .send-button-3d-art {
+    display: block;
+    line-height: 0;
+  }
+  .rf-status {
+    font-size: 1.05rem;
+  }
+  /* Narrow screens: room under the send button for the drawer's floating toggle. */
+  @media not all and (min-width: theme("screens.md")) {
+    .report-page {
+      padding-bottom: 5rem;
+    }
+  }
+  .rf-status[data-state="sent"] {
+    color: theme("colors.accLiteGreen");
+  }
+  .rf-status[data-state="refused"],
+  .rf-status[data-state="failed"] {
+    color: theme("colors.accOrange");
+  }
+  .rf-status[data-state="sending"] {
+    color: theme("textColor.skyBlue");
+  }
+  .rf-status code {
+    font-family: monospace;
+    color: theme("textColor.white");
+    user-select: all;
+  }
+</style>
+
+<script>
+  import { type AppSlug, isApp, isBuildFor, KIND_LIMITS, LIMITS } from "../../worker/reports/contract";
+
+  // Crash samples (docs/reports.md, "The pages"). Screenshots are re-encoded here before they are sent, which keeps them
+  // small and drops their metadata (where and when a photo was taken, the camera...): a canvas keeps only the pixels.
+  const ATTACH_MAX = KIND_LIMITS.problem.files;
+  const IMAGE_MAX_BYTES = 150 * 1024;
+  const IMAGE_LONG_SIDE = 1600;
+  const TEXT_MAX_BYTES = 48 * 1024;
+  const IMAGE_FILE = /\.(png|jpe?g|webp|gif)$/i;
+  const TEXT_FILE = /\.(txt|log|json|md|cfg|csv)$/i;
+  const REPLAY_FILE = /\.swr$/i;
+  const QUALITIES = [0.86, 0.76, 0.66, 0.56, 0.46, 0.36];
+
+  interface Attachment {
+    name: string;
+    bytes: Uint8Array;
+  }
+
+  class Unusable extends Error {}
+
+  const kb = (n: number) => (n < 1024 ? `${n} bytes` : `${Math.ceil(n / 1024)} KB`);
+
+  let webpOk: boolean | undefined;
+  /** Whether this browser can encode WebP (Safari before 17 cannot; it then gets JPEG). */
+  function canEncodeWebp(): boolean {
+    if (webpOk === undefined) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 1;
+      webpOk = c.toDataURL("image/webp").startsWith("data:image/webp");
+    }
+    return webpOk;
+  }
+
+  const toBlob = (canvas: HTMLCanvasElement, type: string, quality: number) =>
+    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+
+  /** A picture as WebP (or JPEG), long side at most IMAGE_LONG_SIDE, at most IMAGE_MAX_BYTES. A GIF gives its first frame. */
+  async function reencode(file: Blob): Promise<{ bytes: Uint8Array; ext: string }> {
+    let bitmap: ImageBitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      throw new Unusable("could not be read as a picture");
+    }
+    try {
+      const webp = canEncodeWebp();
+      const type = webp ? "image/webp" : "image/jpeg";
+      let scale = Math.min(1, IMAGE_LONG_SIDE / Math.max(bitmap.width, bitmap.height)); // never upscale
+      for (;;) {
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        const g = canvas.getContext("2d");
+        if (!g) throw new Unusable("could not be read as a picture");
+        if (!webp) {
+          g.fillStyle = "#fff"; // JPEG has no transparency
+          g.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        g.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        for (const q of QUALITIES) {
+          const blob = await toBlob(canvas, type, q);
+          if (blob && blob.size <= IMAGE_MAX_BYTES) return { bytes: new Uint8Array(await blob.arrayBuffer()), ext: webp ? "webp" : "jpg" };
+        }
+        if (Math.max(canvas.width, canvas.height) < 200) throw new Unusable("could not be made small enough");
+        scale *= 0.75;
+      }
+    } finally {
+      bitmap.close();
+    }
+  }
+
+  /** What the server accepts as text: UTF-8 without NUL. */
+  function isText(bytes: Uint8Array): boolean {
+    if (bytes.includes(0)) return false;
+    try {
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** One chosen or pasted file, made ready to send, or Unusable with the reason. */
+  async function prepare(file: File, pastedName: string | null): Promise<Attachment> {
+    const label = pastedName ?? fileName(file.name);
+    const base = label.replace(/\.[^.]*$/, "") || "file";
+    if (/^image\/(png|jpeg|webp|gif)$/.test(file.type) || IMAGE_FILE.test(file.name)) {
+      const { bytes, ext } = await reencode(file);
+      return { name: `${base}.${ext}`, bytes };
+    }
+    if (TEXT_FILE.test(file.name) || REPLAY_FILE.test(file.name)) {
+      if (file.size > TEXT_MAX_BYTES) throw new Unusable(`is ${kb(file.size)}; a text file can be at most ${TEXT_MAX_BYTES / 1024} KB`);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const replay = REPLAY_FILE.test(file.name);
+      if (replay ? !(bytes[0] === 0x53 && bytes[1] === 0x57 && bytes[2] === 0x52 && bytes[3] === 0x31) : !isText(bytes)) {
+        throw new Unusable(replay ? "is not a Surf World replay" : "is not plain UTF-8 text");
+      }
+      return { name: label, bytes };
+    }
+    throw new Unusable("is not a screenshot (PNG, JPEG, WebP, GIF) or a text file (.txt .log .json .md .cfg .csv)");
+  }
+
+  const INSTALL_KEY = "burstui.report.install";
+
+  const hex = (bytes: number) =>
+    [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  /** One random id per browser, so its reports can be grouped and limited. Fresh every time if storage is blocked. */
+  function installId(): string {
+    try {
+      const kept = localStorage.getItem(INSTALL_KEY);
+      if (kept && /^[0-9a-f]{32}$/.test(kept)) return kept;
+      const made = hex(16);
+      localStorage.setItem(INSTALL_KEY, made);
+      return made;
+    } catch {
+      return hex(16);
+    }
+  }
+
+  const tidy = (s: string, max: number) => s.replace(/[\u0000-\u001f\u007f-\u009f]/g, " ").trim().slice(0, max);
+
+  /** The browser and system, as names only (no user agent string). */
+  function platform(): Record<string, string> {
+    const ua = navigator.userAgent;
+    const os =
+      /Windows NT 10/.test(ua) ? "Windows 10 or 11"
+      : /Windows/.test(ua) ? "Windows"
+      : /Android/.test(ua) ? "Android"
+      : /iPhone|iPad|iPod/.test(ua) ? "iOS"
+      : /Mac OS X/.test(ua) ? "macOS"
+      : /CrOS/.test(ua) ? "ChromeOS"
+      : /Linux/.test(ua) ? "Linux"
+      : "unknown";
+    const browser =
+      ua.match(/(Firefox|Edg|OPR|SamsungBrowser)\/(\d+)/) ??
+      ua.match(/(Chrome)\/(\d+)/) ??
+      ua.match(/Version\/(\d+).*(Safari)/)?.slice(0, 3).reverse() ??
+      null;
+    const runtime = browser ? `browser ${browser[1] === "Edg" ? "Edge" : browser[1]} ${browser[2]}` : "browser";
+    const out: Record<string, string> = { os, runtime: tidy(runtime, 80), source: "report page" };
+    if (navigator.language) out.locale = tidy(navigator.language, 80);
+    return out;
+  }
+
+  /** A file name the server accepts: A-Z a-z 0-9 . _ - only, at most 64 characters, keeping the extension. */
+  function fileName(name: string): string {
+    let s = name.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^\.+/, "");
+    if (s.length > LIMITS.fileNameChars) {
+      const dot = s.lastIndexOf(".");
+      const ext = dot > 0 && s.length - dot <= 12 ? s.slice(dot) : "";
+      s = s.slice(0, LIMITS.fileNameChars - ext.length) + ext;
+    }
+    return s || "file";
+  }
+
+  function base64(bytes: Uint8Array): string {
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+
+  async function gzip(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer> | null> {
+    if (typeof CompressionStream === "undefined") return null;
+    const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  function init() {
+    const form = document.querySelector<HTMLFormElement>("#report-form");
+    if (!form || form.dataset.ready) return;
+    form.dataset.ready = "1";
+    const appName = form.dataset.app ?? "";
+    if (!isApp(appName)) return;
+    const app: AppSlug = appName;
+
+    const note = form.querySelector<HTMLTextAreaElement>("#rf-note")!;
+    const file = form.querySelector<HTMLInputElement>("#rf-file")!;
+    const send = form.querySelector<HTMLButtonElement>("#rf-send")!;
+    const status = form.querySelector<HTMLElement>("#rf-status")!;
+
+    // ?build= from the app, only if it is a real build name of this app. Nothing else is read from the address.
+    // An unencoded "+" arrives as a space (build names have none), so put it back.
+    // The person is never asked for it: an app's link carries it, a visit from anywhere else has none.
+    const fromUrl = (new URLSearchParams(location.search).get("build") ?? "").replaceAll(" ", "+");
+    const buildName = isBuildFor(app, fromUrl) ? fromUrl : `${app}-0+unknown`; // builds start at 1: 0 is "not known"
+
+    const show = (state: "sending" | "sent" | "refused" | "failed", text: string, id?: string) => {
+      status.dataset.state = state;
+      status.classList.remove("hidden");
+      status.textContent = text;
+      if (id) {
+        const code = document.createElement("code");
+        code.textContent = id;
+        // (appendChild, not append: the Workers types in tsconfig shadow Element.append.)
+        status.appendChild(document.createTextNode(" "));
+        status.appendChild(code);
+      }
+    };
+    const invalid = (field: HTMLInputElement | HTMLTextAreaElement, text: string) => {
+      field.setAttribute("aria-invalid", "true");
+      field.focus();
+      show("refused", text);
+    };
+    note.addEventListener("input", () => note.removeAttribute("aria-invalid"));
+
+    // Crash samples: the list under the field is the truth; the file input is only a way to add to it.
+    const list = form.querySelector<HTMLUListElement>("#rf-files")!;
+    const attachments: Attachment[] = [];
+    let preparing: Promise<void> = Promise.resolve();
+    let pasted = 0;
+
+    const render = () => {
+      list.replaceChildren();
+      attachments.forEach((a, i) => {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "rf-file-name";
+        name.textContent = a.name;
+        name.title = a.name;
+        const size = document.createElement("span");
+        size.className = "rf-file-size";
+        size.textContent = kb(a.bytes.byteLength);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "rf-file-remove";
+        remove.textContent = "Remove";
+        remove.setAttribute("aria-label", `Remove ${a.name}`);
+        remove.addEventListener("click", () => {
+          attachments.splice(i, 1);
+          render();
+          file.focus();
+        });
+        li.appendChild(name);
+        li.appendChild(size);
+        li.appendChild(remove);
+        list.appendChild(li);
+      });
+      list.classList.toggle("hidden", attachments.length === 0);
+      file.disabled = attachments.length >= ATTACH_MAX;
+    };
+
+    const unique = (name: string) => {
+      let out = name;
+      for (let i = 2; attachments.some((a) => a.name === out); i++) out = name.replace(/(\.[^.]*)?$/, `-${i}$1`);
+      return out;
+    };
+
+    const add = (picked: File[], fromPaste: boolean) => {
+      preparing = preparing.then(async () => {
+        for (const f of picked) {
+          if (attachments.length >= ATTACH_MAX) {
+            show("refused", `At most ${ATTACH_MAX} crash samples can go with one report.`);
+            break;
+          }
+          const shown = fromPaste ? "the pasted picture" : fileName(f.name);
+          try {
+            const ready = await prepare(f, fromPaste ? `pasted-${++pasted}.png` : null);
+            attachments.push({ ...ready, name: unique(ready.name) });
+            render();
+            if (status.dataset.state === "refused") status.classList.add("hidden"); // an earlier file's complaint is done
+          } catch (e) {
+            show("refused", `${shown} ${e instanceof Unusable ? e.message : "could not be read"}.`);
+          }
+        }
+      });
+      return preparing;
+    };
+
+    file.addEventListener("change", () => {
+      const picked = [...(file.files ?? [])];
+      file.value = ""; // so the same file can be chosen again after it is removed
+      if (picked.length) void add(picked, false);
+    });
+
+    // A screenshot pasted into the note becomes a crash sample (text pastes as text, as always).
+    note.addEventListener("paste", (event) => {
+      const data = event.clipboardData;
+      const images = [...(data?.files ?? [])].filter((f) => f.type.startsWith("image/"));
+      if (!images.length) return;
+      if (!data?.types.includes("text/plain")) event.preventDefault();
+      void add(images, true);
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (send.disabled) return;
+
+      const noteText = note.value.trim();
+      if (!noteText) return invalid(note, "Please say what happened.");
+      if ([...noteText].length > LIMITS.noteChars) return invalid(note, `Please keep it under ${LIMITS.noteChars} characters.`);
+
+      await preparing; // a screenshot still being made smaller
+      const files = attachments.map((a) => ({ name: a.name, b64: base64(a.bytes) }));
+
+      const report = {
+        v: 1,
+        app,
+        build: buildName,
+        kind: "problem",
+        signature: "report page",
+        when: new Date().toISOString(),
+        install: installId(),
+        session: hex(8),
+        platform: platform(),
+        context: { via: "report page", files: files.length },
+        note: noteText,
+        log: [],
+        ...(files.length ? { files } : {}),
+      };
+
+      const json = new TextEncoder().encode(JSON.stringify(report));
+      const packed = await gzip(json);
+      const body = packed ?? json;
+      if (body.byteLength > KIND_LIMITS.problem.sentBytes) {
+        return show("refused", "This report is too large to send. Remove a crash sample and try again.");
+      }
+
+      send.disabled = true;
+      send.dataset.state = "sending"; // the envelope drops into the slot
+      let stored = false;
+      show("sending", "Sending…");
+      try {
+        const response = await fetch(`/api/report/${app}`, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...(packed ? { "content-encoding": "gzip" } : {}) },
+          body,
+          credentials: "omit",
+          signal: AbortSignal.timeout(15_000),
+        });
+        const answer = ((await response.json().catch(() => null)) ?? {}) as { ok?: unknown; id?: unknown; error?: unknown };
+        if (response.ok && answer.ok && typeof answer.id === "string") {
+          stored = true;
+          show("sent", "Sent, thank you. If you talk to me about it, this is its number:", answer.id);
+          form.reset();
+          attachments.length = 0;
+          render();
+        } else if (response.status === 400) {
+          show("refused", `The server refused this report: ${typeof answer.error === "string" ? answer.error : "not a valid report"}.`);
+        } else if (response.status === 413) {
+          show("refused", "The server refused this report as too large. Remove a crash sample and try again.");
+        } else if (response.status === 429) {
+          show("refused", "Too many reports have come from here today. Please try again tomorrow.");
+        } else {
+          show("failed", "The report could not be stored right now. Please try again later.");
+        }
+      } catch {
+        show("failed", "The report could not be sent (no connection to the server). Please try again later.");
+      } finally {
+        send.disabled = false;
+        send.dataset.state = stored ? "sent" : "failed"; // green rim and a fresh envelope, or it pops back out with a red rim
+        setTimeout(() => {
+          if (!send.disabled) send.dataset.state = "idle";
+        }, 3200);
+      }
+    });
+  }
+
+  document.addEventListener("astro:page-load", init);
+</script>
